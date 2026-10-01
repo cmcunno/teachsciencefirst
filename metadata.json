@@ -1,0 +1,6 @@
+{
+  "name": "Pyrex Science Portal",
+  "description": "Science teaching landing page protected by SHA-256 hash password authentication, providing links to interactive science teaching repositories and homepages.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

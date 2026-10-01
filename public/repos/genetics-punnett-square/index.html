@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mendelian Genetics & Punnett Square Engine</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #090d16;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #0f172a;
+      border-bottom: 1px solid #1e293b;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-family: monospace;
+      color: #38bdf8;
+      letter-spacing: 0.05em;
+    }
+    h1 { font-size: 1.25rem; font-weight: 600; color: #f8fafc; }
+    .container {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .card {
+      background: #0d1322;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+    .input-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .parent-box {
+      background: #111827;
+      border: 1px solid #334155;
+      padding: 1rem;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 1;
+      min-width: 220px;
+    }
+    select {
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #f8fafc;
+      padding: 0.5rem;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+    .grid-container {
+      display: flex;
+      justify-content: center;
+      margin: 1.5rem 0;
+    }
+    .punnett-table {
+      border-collapse: separate;
+      border-spacing: 6px;
+    }
+    .punnett-table td, .punnett-table th {
+      width: 90px;
+      height: 90px;
+      text-align: center;
+      vertical-align: middle;
+      border-radius: 6px;
+    }
+    .punnett-table th {
+      background: #1e293b;
+      color: #38bdf8;
+      font-size: 1.3rem;
+      font-family: monospace;
+      font-weight: 700;
+    }
+    .cell-geno {
+      background: #1e1b4b;
+      border: 2px solid #4338ca;
+      font-family: monospace;
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #e0e7ff;
+      transition: all 0.15s;
+    }
+    .cell-geno:hover {
+      transform: scale(1.05);
+      border-color: #818cf8;
+    }
+    .pheno-tag {
+      display: block;
+      font-size: 0.7rem;
+      font-family: sans-serif;
+      margin-top: 4px;
+      color: #a5b4fc;
+      font-weight: normal;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .summary-box {
+      background: #060911;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 1rem;
+    }
+    .summary-box h3 { font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.5rem; text-transform: uppercase; font-family: monospace; }
+    .ratio-list { font-family: monospace; font-size: 0.95rem; line-height: 1.8; color: #38bdf8; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <span class="badge">GENETICS CURRICULUM REPO · INDEX.HTML</span>
+      <h1>Mendelian Inheritance & Punnett Square Engine</h1>
+    </div>
+    <div style="font-size: 0.85rem; color: #94a3b8;">
+      Allele Probability & Phenotypic Ratios
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <div class="input-row">
+        <div class="parent-box">
+          <label style="font-size: 0.85rem; color: #94a3b8;">Trait Model</label>
+          <select id="traitSelect">
+            <option value="flower">Pea Flower Color (P: Purple, p: White)</option>
+            <option value="seed">Pea Seed Texture (R: Round, r: Wrinkled)</option>
+            <option value="eyes">Human Eye Pigment (B: Brown, b: Blue)</option>
+          </select>
+        </div>
+
+        <div class="parent-box">
+          <label style="font-size: 0.85rem; color: #94a3b8;">Parent 1 Genotype (Maternal)</label>
+          <select id="parent1Select">
+            <option value="Aa">Heterozygous (Pp)</option>
+            <option value="AA">Homozygous Dominant (PP)</option>
+            <option value="aa">Homozygous Recessive (pp)</option>
+          </select>
+        </div>
+
+        <div class="parent-box">
+          <label style="font-size: 0.85rem; color: #94a3b8;">Parent 2 Genotype (Paternal)</label>
+          <select id="parent2Select">
+            <option value="Aa">Heterozygous (Pp)</option>
+            <option value="AA">Homozygous Dominant (PP)</option>
+            <option value="aa">Homozygous Recessive (pp)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid-container">
+        <table class="punnett-table" id="punnettTable"></table>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-box">
+          <h3>Genotypic Ratio</h3>
+          <div class="ratio-list" id="genoRatio"></div>
+        </div>
+        <div class="summary-box">
+          <h3>Phenotypic Expression</h3>
+          <div class="ratio-list" id="phenoRatio"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const traits = {
+      flower: { dom: 'P', rec: 'p', domName: 'Purple Flowers', recName: 'White Flowers' },
+      seed: { dom: 'R', rec: 'r', domName: 'Round Seeds', recName: 'Wrinkled Seeds' },
+      eyes: { dom: 'B', rec: 'b', domName: 'Brown Eyes', recName: 'Blue Eyes' }
+    };
+
+    const traitSelect = document.getElementById('traitSelect');
+    const parent1Select = document.getElementById('parent1Select');
+    const parent2Select = document.getElementById('parent2Select');
+    const punnettTable = document.getElementById('punnettTable');
+
+    function updateGenetics() {
+      const traitKey = traitSelect.value;
+      const trait = traits[traitKey];
+
+      // Map options
+      const mapGenotype = (opt) => {
+        if (opt === 'AA') return [trait.dom, trait.dom];
+        if (opt === 'Aa') return [trait.dom, trait.rec];
+        return [trait.rec, trait.rec];
+      };
+
+      const p1Alleles = mapGenotype(parent1Select.value);
+      const p2Alleles = mapGenotype(parent2Select.value);
+
+      // Render table
+      punnettTable.innerHTML = `
+        <tr>
+          <th style="background:transparent;"></th>
+          <th>${p2Alleles[0]}</th>
+          <th>${p2Alleles[1]}</th>
+        </tr>
+        <tr>
+          <th>${p1Alleles[0]}</th>
+          <td class="cell-geno" id="c00"></td>
+          <td class="cell-geno" id="c01"></td>
+        </tr>
+        <tr>
+          <th>${p1Alleles[1]}</th>
+          <td class="cell-geno" id="c10"></td>
+          <td class="cell-geno" id="c11"></td>
+        </tr>
+      `;
+
+      const offspring = [
+        [p1Alleles[0], p2Alleles[0]],
+        [p1Alleles[0], p2Alleles[1]],
+        [p1Alleles[1], p2Alleles[0]],
+        [p1Alleles[1], p2Alleles[1]]
+      ];
+
+      const genoCounts = {};
+      let domCount = 0;
+      let recCount = 0;
+
+      const cells = ['c00', 'c01', 'c10', 'c11'];
+
+      offspring.forEach((pair, idx) => {
+        // Sort with dominant letter first
+        const sortedPair = [...pair].sort((a, b) => {
+          if (a === trait.dom && b === trait.rec) return -1;
+          if (a === trait.rec && b === trait.dom) return 1;
+          return 0;
+        });
+
+        const genoString = sortedPair.join('');
+        genoCounts[genoString] = (genoCounts[genoString] || 0) + 1;
+
+        const isDominant = sortedPair.includes(trait.dom);
+        if (isDominant) domCount++;
+        else recCount++;
+
+        const cell = document.getElementById(cells[idx]);
+        cell.innerHTML = `
+          ${genoString}
+          <span class="pheno-tag">${isDominant ? trait.domName : trait.recName}</span>
+        `;
+      });
+
+      // Genotypic summary
+      const genoItems = Object.keys(genoCounts).map(g => {
+        const pct = (genoCounts[g] / 4) * 100;
+        return `<div>${g}: ${genoCounts[g]}/4 (${pct.toFixed(0)}%)</div>`;
+      }).join('');
+      document.getElementById('genoRatio').innerHTML = genoItems;
+
+      // Phenotypic summary
+      const domPct = (domCount / 4) * 100;
+      const recPct = (recCount / 4) * 100;
+      document.getElementById('phenoRatio').innerHTML = `
+        <div>${trait.domName}: ${domCount}/4 (${domPct.toFixed(0)}%)</div>
+        <div>${trait.recName}: ${recCount}/4 (${recPct.toFixed(0)}%)</div>
+      `;
+    }
+
+    [traitSelect, parent1Select, parent2Select].forEach(el => el.addEventListener('change', updateGenetics));
+    updateGenetics();
+  </script>
+</body>
+</html>
