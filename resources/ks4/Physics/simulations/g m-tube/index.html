@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual GM Counter Simulation with Connection</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            background-color: #e8eff1;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px 30px 30px 30px; /* More bottom padding */
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 650px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        .description { /* Added class for the paragraph */
+             margin-bottom: 20px;
+             font-style: italic;
+             color: #555;
+         }
+
+        .controls { /* Style for controls box */
+            margin-top: 25px; /* Add space above controls now */
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        .controls label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .controls input[type="range"] { width: 70%; cursor: pointer; margin-bottom: 10px; }
+        #activityValue { font-weight: bold; color: #e67e22; display: inline-block; min-width: 30px; }
+
+        button { padding: 10px 15px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; transition: background-color 0.2s ease; }
+        #startButton { background-color: #2ecc71; color: white; }
+        #startButton:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        #stopButton { background-color: #e74c3c; color: white; }
+        #stopButton:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        #resetButton { background-color: #3498db; color: white; }
+        button:hover:not(:disabled) { opacity: 0.85; }
+
+        /* --- Simulation Area --- */
+        .simulation-area {
+            position: relative; width: 100%; height: 250px;
+            background-color: #d5e6eb; border: 1px solid #b0c4de;
+            margin-bottom: 10px; border-radius: 5px; overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .gm-tube {
+            width: 70%; height: 60px; border: 3px solid #555;
+            background: linear-gradient(to bottom, #f0f0f0, #d8d8d8);
+            border-radius: 8px; position: relative;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3); z-index: 10;
+        }
+        .center-wire {
+            position: absolute; top: 50%; left: 0; width: 100%; height: 2px;
+            background-color: #a52a2a; transform: translateY(-50%); z-index: 11;
+        }
+         .particle { /* ... (particle styles unchanged) ... */
+            position: absolute; width: 8px; height: 8px;
+            background-color: #ffcc00; border-radius: 50%;
+            box-shadow: 0 0 5px #ffcc00; z-index: 5;
+         }
+         @keyframes travel-to-tube { /* ... (animation unchanged) ... */
+            0% { transform: translate(0, 0) scale(0.8); opacity: 0.8; }
+            95% { opacity: 1; transform: translate(var(--tx), var(--ty)) scale(1); }
+            100% { transform: translate(var(--tx), var(--ty)) scale(1.1); opacity: 0; }
+         }
+         .discharge-effect { /* ... (discharge styles unchanged) ... */
+            position: absolute; top: 50%; left: 50%; width: 10px; height: 10px;
+            background: radial-gradient(circle, rgba(135,206,250,0.9) 0%, rgba(0,191,255,0.5) 50%, rgba(0,0,255,0) 70%);
+            border-radius: 50%; transform: translate(-50%, -50%) scale(0.1);
+            opacity: 0; z-index: 12; pointer-events: none;
+         }
+         .discharge-effect.active { animation: discharge-pulse 0.2s ease-out forwards; }
+         @keyframes discharge-pulse { /* ... (animation unchanged) ... */
+             0% { transform: translate(-50%, -50%) scale(0.1); opacity: 0.9; }
+             100% { transform: translate(-50%, -50%) scale(6); opacity: 0; }
+         }
+
+        /* --- Signal Path Visualization --- */
+        .signal-path {
+            width: 90%; /* Match display width */
+            height: 20px;
+            margin: 5px auto 0 auto; /* Align with display, remove bottom margin */
+            position: relative;
+        }
+        #signalWire {
+            width: 100%; height: 4px; background-color: #7f8c8d;
+            border-radius: 2px; position: absolute; top: 50%; left: 0;
+            transform: translateY(-50%);
+        }
+        #signalPulse {
+            width: 12px; height: 12px; background-color: #f1c40f;
+            border: 1px solid #c09822; border-radius: 3px;
+            position: absolute; top: 50%; left: 0;
+            transform: translate(0, -50%); opacity: 0; z-index: 15;
+        }
+        #signalPulse.animate { animation: pulse-travel 0.35s linear forwards; }
+        @keyframes pulse-travel {
+            0% { left: 0%; opacity: 1; }
+            95% { opacity: 1; }
+            /* Stop just before the end of the wire container */
+            100% { left: calc(100% - 12px); opacity: 0; }
+        }
+
+        /* --- Display Styling (Counter Box) --- */
+        .display {
+            width: 90%; /* Align with signal path width */
+            margin: 0 auto 15px auto; /* Remove top margin, center */
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ced4da;
+            border-top: 3px solid #7f8c8d; /* Thicker top border to meet wire */
+            position: relative; /* For potential future pseudo-elements if needed */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+         .display h2 {
+             margin-top: 0;
+             margin-bottom: 15px;
+             font-size: 1.2em;
+             color: #333;
+             border-bottom: 1px solid #ccc;
+             padding-bottom: 5px;
+         }
+        .display p {
+            font-size: 1.1em; margin: 8px 0;
+            background-color: transparent; /* Use parent background */
+            padding: 5px 0; /* Reduced padding */
+            border: none; /* Remove inner border */
+            text-align: left; /* Align text left */
+            padding-left: 10px; /* Indent text slightly */
+        }
+        .display span {
+            font-weight: bold; font-size: 1.3em; color: #0056b3;
+            min-width: 70px; /* Wider space for numbers */
+            display: inline-block; text-align: right;
+            font-family: monospace;
+            float: right; /* Align numbers to the right */
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Visual GM Counter Simulation</h1>
+
+        <p class="description">Radiation particles (yellow dots) enter the GM tube, causing an ionization discharge (blue flash). This generates an electrical pulse (yellow square) that travels down the wire into the counter unit below.</p>
+
+        <div class="simulation-area" id="simulationArea">
+            <div class="gm-tube" id="gmTube">
+                <div class="center-wire"></div>
+            </div>
+        </div>
+
+        <!-- Signal Path -->
+        <div class="signal-path">
+            <div id="signalWire"></div>
+            <div id="signalPulse"></div>
+        </div>
+
+        <!-- Display/Counter Unit (Moved Before Controls) -->
+        <div class="display">
+            <h2>Counter</h2>
+            <p>Total Counts: <span id="countDisplay">0</span></p>
+            <p>Counts Per Minute (CPM): <span id="cpmDisplay">0</span></p>
+        </div>
+
+        <!-- Controls (Moved After Display) -->
+        <div class="controls">
+            <label for="activitySlider">Radiation Source Activity:</label>
+            <input type="range" id="activitySlider" min="1" max="50" value="5">
+            <span id="activityValue">5</span> particles/sec (average)
+            <br>
+            <button id="startButton">Start</button>
+            <button id="stopButton" disabled>Stop</button>
+            <button id="resetButton">Reset</button>
+        </div>
+
+    </div> <!-- End Container -->
+
+    <audio id="clickSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" type="audio/wav">
+    </audio>
+
+    <script>
+        // DOM Elements
+        const simulationArea = document.getElementById('simulationArea');
+        const gmTube = document.getElementById('gmTube');
+        const activitySlider = document.getElementById('activitySlider');
+        const activityValueSpan = document.getElementById('activityValue');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const resetButton = document.getElementById('resetButton');
+        const countDisplay = document.getElementById('countDisplay');
+        const cpmDisplay = document.getElementById('cpmDisplay');
+        const clickSound = document.getElementById('clickSound');
+        const signalPulse = document.getElementById('signalPulse');
+
+        // Simulation State
+        let count = 0;
+        let startTime = 0;
+        let isRunning = false;
+        let particleTimeoutId = null;
+        let displayIntervalId = null;
+        let activityLevel = parseInt(activitySlider.value);
+
+        // --- Utility Functions ---
+        function getRandomDelay() {
+            if (activityLevel <= 0) return Infinity;
+            const averageDelay = 1000 / activityLevel;
+            return -Math.log(1.0 - Math.random()) * averageDelay;
+        }
+
+        activitySlider.addEventListener('input', () => {
+            if (!isRunning) {
+                activityLevel = parseInt(activitySlider.value);
+                activityValueSpan.textContent = activityLevel;
+            }
+        });
+
+        // --- Simulation Core ---
+        function createParticle() {
+             if (!isRunning) return;
+             const particle = document.createElement('div');
+             particle.classList.add('particle');
+             const areaRect = simulationArea.getBoundingClientRect();
+             const tubeRect = gmTube.getBoundingClientRect();
+             const startSide = Math.floor(Math.random() * 4);
+             let startX, startY; const margin = 20;
+             switch (startSide) {
+                 case 0: startX = Math.random() * areaRect.width; startY = -margin; break;
+                 case 1: startX = areaRect.width + margin; startY = Math.random() * areaRect.height; break;
+                 case 2: startX = Math.random() * areaRect.width; startY = areaRect.height + margin; break;
+                 case 3: startX = -margin; startY = Math.random() * areaRect.height; break;
+             }
+             particle.style.left = `${startX}px`; particle.style.top = `${startY}px`;
+             const targetX = tubeRect.left - areaRect.left + tubeRect.width / 2;
+             const targetY = tubeRect.top - areaRect.top + tubeRect.height / 2;
+             const translateX = targetX - startX; const translateY = targetY - startY;
+             simulationArea.appendChild(particle);
+             const animationDuration = 1.5 + Math.random() * 1.0;
+             particle.style.setProperty('--tx', `${translateX}px`); particle.style.setProperty('--ty', `${translateY}px`);
+             particle.style.animation = `travel-to-tube ${animationDuration}s linear forwards`;
+             const detectionTime = animationDuration * 0.9 * 1000;
+             setTimeout(() => { if (isRunning) { triggerDetection(); } }, detectionTime);
+             setTimeout(() => { particle.remove(); }, animationDuration * 1000 + 50);
+             scheduleNextParticle();
+        }
+
+        function triggerDetection() {
+            // Check if pulse animation is already running to prevent visual overlap/spam
+            // This provides a basic "dead time" visual effect for the pulse wire
+            if (signalPulse.classList.contains('animate')) {
+                return; // Ignore this detection for the pulse wire animation
+            }
+
+            count++;
+            countDisplay.textContent = count;
+
+            clickSound.currentTime = 0;
+            clickSound.play().catch(e => console.warn("Audio play prevented:", e));
+
+            showDischargeEffect();
+            animateSignalPulse(); // Animate pulse only if not already animating
+        }
+
+        function showDischargeEffect() {
+            const discharge = document.createElement('div');
+            discharge.classList.add('discharge-effect');
+            gmTube.appendChild(discharge);
+            requestAnimationFrame(() => { discharge.classList.add('active'); });
+            setTimeout(() => { discharge.remove(); }, 250);
+        }
+
+        function animateSignalPulse() {
+            signalPulse.classList.remove('animate');
+            signalPulse.style.left = '0%';
+            void signalPulse.offsetWidth; // Reflow
+            signalPulse.classList.add('animate');
+
+            // Add listener to remove class when animation ends
+            // This ensures the check in triggerDetection works correctly
+             signalPulse.addEventListener('animationend', () => {
+                 signalPulse.classList.remove('animate');
+             }, { once: true }); // Automatically remove listener after it runs once
+        }
+
+        function scheduleNextParticle() {
+            if (!isRunning) return;
+            const delay = getRandomDelay();
+            if (delay !== Infinity) {
+                particleTimeoutId = setTimeout(createParticle, delay);
+            }
+        }
+
+        function updateDisplay() {
+            if (!isRunning || startTime === 0) return;
+            const elapsedTimeMs = Date.now() - startTime;
+            const elapsedTimeSec = elapsedTimeMs / 1000;
+            if (elapsedTimeSec > 0) {
+                const cpm = (count / elapsedTimeSec) * 60;
+                cpmDisplay.textContent = Math.round(cpm);
+            } else { cpmDisplay.textContent = "0"; }
+        }
+
+        // --- Control Functions ---
+        function startSimulation() {
+            if (isRunning) return;
+            isRunning = true;
+            try { const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') { audioCtx.resume(); } } catch(e) { console.warn("Web Audio API issues."); }
+            startTime = Date.now(); count = 0;
+            countDisplay.textContent = "0"; cpmDisplay.textContent = "Calculating...";
+            signalPulse.classList.remove('animate'); signalPulse.style.opacity = '0';
+            startButton.disabled = true; stopButton.disabled = false; resetButton.disabled = false; activitySlider.disabled = true;
+            createParticle();
+            displayIntervalId = setInterval(updateDisplay, 1000);
+        }
+
+        function stopSimulation() {
+            if (!isRunning) return;
+            isRunning = false;
+            clearTimeout(particleTimeoutId); clearInterval(displayIntervalId);
+            simulationArea.querySelectorAll('.particle').forEach(p => p.remove());
+            gmTube.querySelectorAll('.discharge-effect').forEach(d => d.remove());
+            signalPulse.classList.remove('animate'); signalPulse.style.opacity = '0';
+            startButton.disabled = false; stopButton.disabled = true; activitySlider.disabled = false;
+            updateDisplay(); if (cpmDisplay.textContent === 'Calculating...') { cpmDisplay.textContent = '0'; }
+        }
+
+        function resetCounter() {
+            stopSimulation(); count = 0; startTime = 0;
+            countDisplay.textContent = "0"; cpmDisplay.textContent = "0";
+            startButton.disabled = false; stopButton.disabled = true;
+        }
+
+        // --- Event Listeners ---
+        startButton.addEventListener('click', startSimulation);
+        stopButton.addEventListener('click', stopSimulation);
+        resetButton.addEventListener('click', resetCounter);
+
+        // Initial setup
+        activityValueSpan.textContent = activityLevel;
+        stopButton.disabled = true;
+        signalPulse.style.opacity = '0';
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Virtual Microbiology Lab: Aseptic Technique & Antimicrobial Testing</title>
+<style>
+  /* ---------- SAME STYLES AS BEFORE ---------- */
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#333;padding:20px;min-height:100vh;}
+  .container{max-width:1200px;margin:0 auto;background:rgba(255,255,255,.95);border-radius:15px;padding:30px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+  .tab-nav{display:flex;margin-bottom:30px;border-bottom:2px solid #dee2e6;}
+  .tab-btn{background:#e9ecef;border:none;padding:15px 30px;margin-right:5px;border-radius:8px 8px 0 0;cursor:pointer;font-size:16px;font-weight:600;transition:all .3s;position:relative;}
+  .tab-btn:hover:not(.disabled){background:#dee2e6;}
+  .tab-btn.active{background:#4361ee;color:white;}
+  .tab-btn.disabled{background:#f8f9fa;color:#adb5bd;cursor:not-allowed;opacity:.6;}
+  .tab-btn.disabled::after{content:'🔒';position:absolute;right:10px;top:50%;transform:translateY(-50%);}
+  .tab-content{display:none;}
+  .tab-content.active{display:block;}
+  .quiz-container{max-width:800px;margin:0 auto;padding:40px;}
+  .quiz-container h2{color:#5a189a;margin-bottom:30px;text-align:center;font-size:2em;}
+  .quiz-instructions{background:#e3f2fd;padding:20px;border-radius:10px;margin-bottom:30px;border-left:5px solid #2196f3;}
+  .quiz-instructions h3{color:#1976d2;margin-bottom:10px;}
+  .quiz-instructions p{color:#555;line-height:1.6;}
+  .technique-option{background:white;border:2px solid #dee2e6;padding:20px;margin:10px 0;border-radius:10px;cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:15px;}
+  .technique-option:hover{border-color:#4361ee;background:#f8f9fa;}
+  .technique-option.selected{border-color:#2a9d8f;background:#e8f5e9;}
+  .checkbox{width:24px;height:24px;border:2px solid #dee2e6;border-radius:5px;display:flex;align-items:center;justify-content:center;transition:all .3s;}
+  .technique-option.selected .checkbox{border-color:#2a9d8f;background:#2a9d8f;}
+  .checkbox::after{content:'✓';color:white;font-weight:bold;opacity:0;transition:opacity .3s;}
+  .technique-option.selected .checkbox::after{opacity:1;}
+  .technique-text{flex:1;font-size:16px;line-height:1.5;}
+  .selection-counter{text-align:center;margin:20px 0;font-size:18px;font-weight:600;}
+  .selection-counter .current{color:#4361ee;font-size:24px;}
+  .selection-counter .needed{color:#2a9d8f;}
+  .quiz-feedback{padding:20px;border-radius:10px;margin:20px 0;text-align:center;font-weight:600;display:none;}
+  .quiz-feedback.success{background:#e8f5e9;color:#2a9d8f;border:2px solid #2a9d8f;}
+  .quiz-feedback.error{background:#ffebee;color:#e63946;border:2px solid #e63946;}
+  .lab-container{padding:0;background:transparent;box-shadow:none;}
+  .experiment-area{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-bottom:30px;}
+  .petri-dish-container{background:#f8f9fa;border-radius:10px;padding:20px;box-shadow:inset 0 2px 10px rgba(0,0,0,.1);}
+  #petriDish{width:100%;max-width:500px;height:auto;filter:drop-shadow(0 5px 15px rgba(0,0,0,.2));}
+  .controls{background:#e9ecef;padding:20px;border-radius:10px;}
+  .control-btn{background:#7209b7;color:white;border:none;padding:12px 24px;margin:5px;border-radius:8px;cursor:pointer;font-size:16px;transition:all .3s;}
+  .control-btn:hover{background:#560bad;transform:translateY(-2px);}
+  .control-btn:disabled{background:#adb5bd;cursor:not-allowed;transform:none;}
+  .status{margin-top:20px;padding:15px;background:white;border-radius:8px;min-height:60px;font-weight:500;}
+  .results-section{grid-column:1/-1;margin-top:20px;}
+  table{width:100%;border-collapse:collapse;background:white;box-shadow:0 3px 10px rgba(0,0,0,.1);}
+  th,td{padding:12px;text-align:left;border-bottom:1px solid #dee2e6;}
+  th{background:#4361ee;color:white;font-weight:600;}
+  tr:hover{background:#f1faee;}
+  .zone-diameter{color:#2a9d8f;font-weight:bold;}
+  .zone-area{color:#e63946;font-weight:bold;}
+  .graph-container{margin-top:20px;background:white;padding:20px;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,.1);}
+  #resultsChart{width:100%;max-width:600px;height:300px;}
+  .timer{font-size:1.5em;color:#f72585;font-weight:bold;text-align:center;margin:15px 0;}
+  @keyframes streaking{to{stroke-dashoffset:0;}}
+  @keyframes growth{from{r:0;}to{r:50;}}
+  @keyframes pulse{0%,100%{opacity:.3;}50%{opacity:.8;}}
+  .incubating{animation:pulse 2s infinite;}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- TAB NAVIGATION -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('quiz')">1. Aseptic Technique Quiz</button>
+    <button class="tab-btn disabled" id="labTabBtn" onclick="switchTab('lab')">2. Antimicrobial Testing Lab</button>
+  </div>
+
+  <!-- QUIZ TAB -->
+  <div id="quizTab" class="tab-content active">
+    <div class="quiz-container">
+      <h2>🧪 Aseptic Technique Knowledge Check</h2>
+      <div class="quiz-instructions">
+        <h3>Instructions:</h3>
+        <p>Select the <strong>4 correct aseptic techniques</strong> from the list below. You must identify all 4 correct techniques to unlock the practical simulation lab. Read each option carefully!</p>
+      </div>
+      <div class="selection-counter">
+        Selected: <span class="current" id="selectedCount">0</span> / <span class="needed">4</span> correct techniques
+      </div>
+      <div id="techniqueOptions">
+        <div class="technique-option" data-correct="true" onclick="toggleSelection(this)"><div class="checkbox"></div><div class="technique-text">Flame the inoculating loop until it glows red hot before and after each use</div></div>
+        <div class="technique-option" data-correct="false" onclick="toggleSelection(this)"><div class="checkbox"></div><div class="technique-text">Place petri dish lid face up on the bench during inoculation</div></div>
+        <div class="technique-option" data-correct="true" onclick="toggleSelection(this)"><div class="checkbox"></div><div class="technique-text">Disinfect work surface with ethanol before starting the experiment</div></div>
+        <div class="technique-option" data-correct="false" onclick="toggleSelection(this)"><div class="checkbox"></div><div class="technique-text">Blow on the inoculating loop to cool it down quickly</div></div>
+        <div class="technique-option" data-correct="true" onclick="toggleSelection(this)"><div class="checkbox"></div><div class="technique-text">Pass the neck of the McCartney bottle through the Bunsen flame</div></div>
+        <div class="technique-option" data-correct="false" onclick="toggleSelection(this)"><div class="checkbox"></div><div class="technique-text">Touch the inoculating loop to the bench to test if it's cool</div></div>
+        <div class="technique-option" data-correct="true" onclick="toggleSelection(this)"><div class="checkbox"></div><div class="technique-text">Hold the petri dish lid at an angle to prevent contamination</div></div>
+      </div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+    </div>
+  </div>
+
+  <!-- LAB TAB -->
+  <div id="labTab" class="tab-content">
+    <div class="lab-container">
+      <h1>🔬 Virtual Microbiology Lab: Antimicrobial Susceptibility Testing</h1>
+      <div class="experiment-area">
+        <div class="petri-dish-container">
+          <svg id="petriDish" viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+            <defs><filter id="shadow"><feGaussianBlur in="SourceAlpha" stdDeviation="3"/><feOffset dx="0" dy="2" result="offsetblur"/><feFlood flood-color="#000000" flood-opacity="0.2"/><feComposite in2="offsetblur" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+            <circle cx="250" cy="250" r="230" fill="#e3f2fd" stroke="#1976d2" stroke-width="3" filter="url(#shadow)"/>
+            <circle cx="250" cy="250" r="220" fill="#1e3a8a" opacity="0.1"/>
+            <line x1="30" y1="250" x2="470" y2="250" stroke="#333" stroke-width="2"/>
+            <line x1="250" y1="30" x2="250" y2="470" stroke="#333" stroke-width="2"/>
+            <text x="125" y="125" text-anchor="middle" font-size="18" font-weight="bold" fill="#333">0%</text>
+            <text x="375" y="125" text-anchor="middle" font-size="18" font-weight="bold" fill="#333">50%</text>
+            <text x="125" y="375" text-anchor="middle" font-size="18" font-weight="bold" fill="#333">75%</text>
+            <text x="375" y="375" text-anchor="middle" font-size="18" font-weight="bold" fill="#333">100%</text>
+            <g id="bacteria" opacity="0"></g>
+            <g id="discs" opacity="0"><circle id="disc0" cx="125" cy="125" r="8" fill="#ff9800" stroke="#f57c00" stroke-width="2"/><circle id="disc50" cx="375" cy="125" r="8" fill="#ff9800" stroke="#f57c00" stroke-width="2"/><circle id="disc75" cx="125" cy="375" r="8" fill="#ff9800" stroke="#f57c00" stroke-width="2"/><circle id="disc100" cx="375" cy="375" r="8" fill="#ff9800" stroke="#f57c00" stroke-width="2"/></g>
+            <g id="zones" opacity="0"></g>
+            <g id="streaks" opacity="0" stroke="#4caf50" stroke-width="3" fill="none" stroke-dasharray="100" stroke-dashoffset="100"></g>
+          </svg>
+          <div id="incubationTimer" class="timer" style="display:none;">Incubation Time: <span id="timerValue">0h</span></div>
+        </div>
+        <div class="controls">
+          <h2>Experiment Controls</h2>
+          <button class="control-btn" onclick="startExperiment()">1. Start Experiment</button>
+          <button class="control-btn" onclick="streakPlate()" id="streakBtn" disabled>2. Streak Plate</button>
+          <button class="control-btn" onclick="placeDiscs()" id="discBtn" disabled>3. Place Discs</button>
+          <button class="control-btn" onclick="startIncubation()" id="incubateBtn" disabled>4. Start Incubation</button>
+          <button class="control-btn" onclick="resetExperiment()">Reset</button>
+          <div class="status" id="status"><strong>Status:</strong> Click "Start Experiment" to begin!</div>
+        </div>
+      </div>
+      <div class="results-section">
+        <h2>📊 Dynamic Results Table</h2>
+        <table id="resultsTable"><thead><tr><th>Antimicrobial Concentration</th><th>Zone Diameter (mm)</th><th>Zone Area (mm²)</th><th>Bacterial Sensitivity</th></tr></thead>
+          <tbody>
+            <tr><td>0% (Control)</td><td class="zone-diameter">-</td><td class="zone-area">-</td><td>-</td></tr>
+            <tr><td>50%</td><td class="zone-diameter">-</td><td class="zone-area">-</td><td>-</td></tr>
+            <tr><td>75%</td><td class="zone-diameter">-</td><td class="zone-area">-</td><td>-</td></tr>
+            <tr><td>100%</td><td class="zone-diameter">-</td><td class="zone-area">-</td><td>-</td></tr>
+          </tbody>
+        </table>
+        <div class="graph-container"><h3>📈 Zone of Inhibition Analysis</h3><canvas id="resultsChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ---------- TAB SWITCHING ---------- */
+  function switchTab(tab) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+    // Show selected tab
+    document.getElementById(tab + 'Tab').classList.add('active');
+    event.currentTarget.classList.add('active');
+
+    // If switching to lab, unlock and load simulation
+    if (tab === 'lab') {
+      document.getElementById('labTabBtn').classList.remove('disabled');
+      // Load simulation only once
+      if (!window.labLoaded) {
+        window.labLoaded = true;
+        initLab();
+      }
+    }
+  }
+
+  /* ---------- QUIZ LOGIC ---------- */
+  const selectedTechniques = new Set();
+  const correctTechniques = ['Flame the inoculating loop until it glows red hot before and after each use',
+                            'Disinfect work surface with ethanol before starting the experiment',
+                            'Pass the neck of the McCartney bottle through the Bunsen flame',
+                            'Hold the petri dish lid at an angle to prevent contamination'];
+
+  function toggleSelection(el) {
+    const text = el.querySelector('.technique-text').textContent;
+    el.classList.toggle('selected');
+    if (selectedTechniques.has(text)) selectedTechniques.delete(text);
+    else selectedTechniques.add(text);
+    document.getElementById('selectedCount').textContent = selectedTechniques.size;
+
+    if (selectedTechniques.size === 4) {
+      const allCorrect = [...selectedTechniques].every(t => correctTechniques.includes(t));
+      const fb = document.getElementById('quizFeedback');
+      fb.style.display = 'block';
+      if (allCorrect) {
+        fb.className = 'quiz-feedback success';
+        fb.textContent = '🎉 Excellent! All 4 correct techniques identified. The lab simulation is now unlocked!';
+        document.getElementById('labTabBtn').classList.remove('disabled');
+      } else {
+        fb.className = 'quiz-feedback error';
+        fb.textContent = '❌ Not quite right. Review your selections and try again.';
+        setTimeout(() => {
+          selectedTechniques.clear();
+          document.querySelectorAll('.technique-option').forEach(opt => opt.classList.remove('selected'));
+          document.getElementById('selectedCount').textContent = 0;
+          fb.style.display = 'none';
+        }, 2500);
+      }
+    }
+  }
+
+  /* ---------- LAB SIMULATION ---------- */
+  let experimentState, timerInterval;
+  function initLab() {
+    experimentState = {
+      started: false, streaked: false, discsPlaced: false, incubating: false, resultsReady: false,
+      incubationTime: 0, incubationDuration: 10,
+      results: { 0: { diameter: 0, area: 0 }, 50: { diameter: 0, area: 0 }, 75: { diameter: 0, area: 0 }, 100: { diameter: 0, area: 0 } }
+    };
+    updateStatus('Welcome to the Virtual Microbiology Lab! Follow the steps to complete the experiment.');
+  }
+
+  function updateStatus(msg) { document.getElementById('status').innerHTML = `<strong>Status:</strong> ${msg}`; }
+  function randomBetween(min, max) { return Math.round(min + Math.random() * (max - min)); }
+
+  function startExperiment() {
+    experimentState.started = true;
+    document.querySelector('.control-btn[onclick="startExperiment()"]').disabled = true;
+    document.getElementById('streakBtn').disabled = false;
+    updateStatus('Experiment started! Bench disinfected. Ready to streak plate with Bacillus megaterium.');
+    const streaks = document.getElementById('streaks');
+    streaks.innerHTML = '';
+    streaks.style.opacity = 1;
+    streaks.style.animation = 'streaking 2s ease-in-out forwards';
+    for (let i = 0; i < 4; i++) {
+      const x = i % 2 === 0 ? 125 : 375, y = i < 2 ? 125 : 375;
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', `M${x - 60},${y} Q${x},${y - 40} ${x + 60},${y} M${x},${y - 60} L${x},${y + 60}`);
+      path.style.stroke = '#2d6a4f'; path.style.strokeWidth = '2'; path.style.opacity = '0.6';
+      streaks.appendChild(path);
+    }
+  }
+
+  function streakPlate() {
+    experimentState.streaked = true;
+    document.getElementById('streakBtn').disabled = true;
+    document.getElementById('discBtn').disabled = false;
+    updateStatus('Bacillus megaterium successfully streaked! Ready to place antimicrobial discs.');
+    setTimeout(() => {
+      document.getElementById('streaks').style.opacity = 0;
+      document.getElementById('bacteria').style.opacity = 0.3;
+    }, 1000);
+  }
+
+  function placeDiscs() {
+    experimentState.discsPlaced = true;
+    document.getElementById('discBtn').disabled = true;
+    document.getElementById('incubateBtn').disabled = false;
+    updateStatus('Discs placed! 0%, 50%, 75%, and 100% antibacterial solution discs are now on the plate.');
+    const discs = document.getElementById('discs');
+    discs.style.transition = 'opacity 0.5s'; discs.style.opacity = 1;
+  }
+
+  function startIncubation() {
+    experimentState.incubating = true; experimentState.incubationTime = 0;
+    document.getElementById('incubateBtn').disabled = true;
+    updateStatus('Incubation started! Growing at 25°C...');
+    const timerDisplay = document.getElementById('incubationTimer');
+    const timerValue = document.getElementById('timerValue');
+    timerDisplay.style.display = 'block'; timerDisplay.classList.add('incubating');
+    timerInterval = setInterval(() => {
+      experimentState.incubationTime++;
+      const hours = Math.floor((experimentState.incubationTime / experimentState.incubationDuration) * 48);
+      timerValue.textContent = `${hours}h`;
+      const growthProgress = experimentState.incubationTime / experimentState.incubationDuration;
+      document.getElementById('bacteria').style.opacity = 0.3 + (growthProgress * 0.4);
+      if (experimentState.incubationTime >= experimentState.incubationDuration) { finishIncubation(); }
+    }, 500);
+  }
+
+  function finishIncubation() {
+    clearInterval(timerInterval);
+    experimentState.incubating = false; experimentState.resultsReady = true;
+    document.getElementById('incubationTimer').classList.remove('incubating');
+    updateStatus('Incubation complete! Results are ready for analysis.');
+    generateResults(); displayZones(); updateResultsTable(); drawChart();
+  }
+
+  function generateResults() {
+    experimentState.results[0] = { diameter: 0, area: 0 };
+    experimentState.results[50] = { diameter: randomBetween(10, 16), area: 0 };
+    experimentState.results[75] = { diameter: randomBetween(16, 22), area: 0 };
+    experimentState.results[100] = { diameter: randomBetween(22, 28), area: 0 };
+    Object.keys(experimentState.results).forEach(k => {
+      const r = experimentState.results[k].diameter / 2;
+      experimentState.results[k].area = Math.PI * r * r;
+    });
+  }
+
+  function displayZones() {
+    const zones = document.getElementById('zones');
+    zones.style.opacity = 0.7; zones.innerHTML = '';
+    const positions = { 50: { x: 375, y: 125 }, 75: { x: 125, y: 375 }, 100: { x: 375, y: 375 } };
+    Object.keys(experimentState.results).sort((a, b) => a - b).forEach(conc => {
+      if (conc == 0) return;
+      const pos = positions[conc], radius = experimentState.results[conc].diameter * 2;
+      const zone = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      zone.setAttribute('cx', pos.x); zone.setAttribute('cy', pos.y); zone.setAttribute('r', 0);
+      zone.setAttribute('fill', '#ffebee'); zone.setAttribute('stroke', '#c62828'); zone.setAttribute('stroke-width', '2'); zone.setAttribute('opacity', '0.6');
+      zones.appendChild(zone);
+      setTimeout(() => { zone.style.transition = 'r 1.5s ease-out'; zone.setAttribute('r', radius); }, 200);
+    });
+  }
+
+  function updateResultsTable() {
+    const tbody = document.querySelector('#resultsTable tbody'), rows = tbody.querySelectorAll('tr'), concs = [0, 50, 75, 100];
+    rows.forEach((row, idx) => {
+      const conc = concs[idx], res = experimentState.results[conc], cells = row.querySelectorAll('td');
+      cells[1].textContent = res.diameter === 0 ? 'No zone' : `${res.diameter.toFixed(1)} mm`;
+      cells[2].textContent = res.area === 0 ? 'No zone' : `${res.area.toFixed(1)} mm²`;
+      if (conc === 0) { cells[3].textContent = 'Control'; cells[3].style.color = '#000'; }
+      else if (res.diameter < 12) { cells[3].textContent = 'Resistant'; cells[3].style.color = '#e76f51'; }
+      else if (res.diameter < 18) { cells[3].textContent = 'Intermediate'; cells[3].style.color = '#e9c46a'; }
+      else { cells[3].textContent = 'Sensitive'; cells[3].style.color = '#2a9d8f'; }
+    });
+  }
+
+  function drawChart() {
+    const canvas = document.getElementById('resultsChart'), ctx = canvas.getContext('2d');
+    const width = canvas.width = canvas.offsetWidth * 2, height = canvas.height = canvas.offsetHeight * 2;
+    ctx.scale(2, 2); ctx.clearRect(0, 0, width, height);
+    const data = [
+      { label: '0%', value: experimentState.results[0].diameter },
+      { label: '50%', value: experimentState.results[50].diameter },
+      { label: '75%', value: experimentState.results[75].diameter },
+      { label: '100%', value: experimentState.results[100].diameter }
+    ];
+    const maxValue = Math.max(...data.map(d => d.value), 30), padding = 60;
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(padding, padding); ctx.lineTo(padding, height / 2 - padding); ctx.lineTo(width / 2 - 20, height / 2 - padding); ctx.stroke();
+    const barWidth = (width / 2 - padding * 2) / data.length;
+    data.forEach((item, idx) => {
+      const x = padding + 20 + idx * barWidth, barHeight = (item.value / maxValue) * (height / 2 - 40), y = height / 2 - padding - barHeight;
+      setTimeout(() => {
+        ctx.fillStyle = item.value === 0 ? '#adb5bd' : '#219ebc'; ctx.fillRect(x, y, barWidth - 10, barHeight);
+        ctx.fillStyle = '#333'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(`${item.value}mm`, x + (barWidth - 10) / 2, y - 5);
+        ctx.fillText(item.label, x + (barWidth - 10) / 2, height / 2 - padding + 20);
+      }, idx * 300);
+    });
+    ctx.save(); ctx.translate(20, height / 4); ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = '#333'; ctx.font = '14px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Zone Diameter (mm)', 0, 0); ctx.restore();
+    ctx.fillStyle = '#333'; ctx.font = '16px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Antimicrobial Susceptibility Results', width / 4, 30);
+  }
+
+  function resetExperiment() {
+    clearInterval(timerInterval);
+    initLab();
+    document.querySelectorAll('.control-btn').forEach(btn => btn.disabled = false);
+    document.getElementById('streakBtn').disabled = true;
+    document.getElementById('discBtn').disabled = true;
+    document.getElementById('incubateBtn').disabled = true;
+    document.getElementById('incubationTimer').style.display = 'none';
+    document.getElementById('streaks').innerHTML = ''; document.getElementById('streaks').style.opacity = 0;
+    document.getElementById('bacteria').style.opacity = 0; document.getElementById('discs').style.opacity = 0;
+    document.getElementById('zones').innerHTML = ''; document.getElementById('zones').style.opacity = 0;
+    const tbody = document.querySelector('#resultsTable tbody');
+    tbody.querySelectorAll('tr').forEach(row => {
+      const cells = row.querySelectorAll('td');
+      cells[1].textContent = '-'; cells[2].textContent = '-'; cells[3].textContent = '-'; cells[3].style.color = 'inherit';
+    });
+    const canvas = document.getElementById('resultsChart'); const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  /* ---------- INITIALISE ---------- */
+  window.labLoaded = false; // simulation not yet loaded
+</script>
+</body>
+</html>

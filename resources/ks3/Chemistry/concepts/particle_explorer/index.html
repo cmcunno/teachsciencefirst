@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeuroLab-Particle Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+      body { font-family: 'Inter', sans-serif; }
+      @media print {
+        .no-print { display: none !important; }
+        .print-only { display: block !important; }
+        @page { margin: 1cm; size: A4 portrait; }
+        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      }
+      .print-only { display: none; }
+    </style>
+
+<link rel="stylesheet" href="./index.css">
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "@react-three/fiber": "https://aistudiocdn.com/@react-three/fiber@^9.4.2",
+    "three": "https://aistudiocdn.com/three@^0.181.2",
+    "@react-three/drei": "https://aistudiocdn.com/@react-three/drei@^10.7.7"
+  }
+}
+</script>
+  <script type="module" crossorigin src="./assets/index-BDFj6cjt.js"></script>
+</head>
+  <body class="bg-slate-900 text-slate-100 antialiased overflow-hidden">
+    <div id="root"></div>
+</body>
+</html>

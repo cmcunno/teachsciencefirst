@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radioactive Decay Simulation</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Base styles */
+        :root {
+             --header-height: 65px;
+             --container-padding: 20px;
+             --transition-speed: 0.4s; /* Speed for zoom/overlay effects */
+        }
+        html { box-sizing: border-box; }
+        *, *:before, *:after { box-sizing: inherit; }
+
+        body {
+            font-family: sans-serif; display: flex; flex-direction: column;
+            align-items: center; padding: 0 var(--container-padding) var(--container-padding) var(--container-padding);
+            background-color: #f0f0f0; min-height: 100vh; margin: 0; overflow-x: hidden;
+        }
+        h1 { color: #333; margin-top: 15px; margin-bottom: 15px; text-align: center; flex-shrink: 0; height: var(--header-height); line-height: normal; }
+
+        /* Main layout container */
+        #main-container {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;
+            width: 100%; max-width: 1400px; height: calc(100vh - var(--header-height) - var(--container-padding));
+            overflow: hidden;
+            /* Removed blur transitions, pointer events handled differently */
+        }
+
+        /* --- Component Common Styles --- */
+         .fullscreen-target { /* Still using this class for JS targeting */
+            position: relative; border: 1px solid #ccc; background-color: #fff; border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1); padding: 10px 15px;
+            display: flex; flex-direction: column;
+            transition: transform var(--transition-speed) ease, width var(--transition-speed) ease,
+                         height var(--transition-speed) ease, top var(--transition-speed) ease,
+                         left var(--transition-speed) ease, opacity var(--transition-speed) ease;
+            transform-origin: center center;
+         }
+
+        /* --- Icon Styles --- */
+         .fullscreen-toggle-icon {
+            position: absolute; top: 5px; right: 8px; cursor: pointer; z-index: 10;
+            font-size: 1.2em; color: #555; padding: 2px; line-height: 1;
+            background-color: rgba(255, 255, 255, 0.6); border-radius: 3px; transition: color 0.2s;
+         }
+         .fullscreen-toggle-icon:hover { color: #000; }
+
+
+        /* --- Styles for the Zoomed Element --- */
+        .zoomed-element {
+            position: fixed !important; top: 50% !important; left: 50% !important;
+            transform: translate(-50%, -50%) scale(1.0) !important; /* Centered, scale 1 */
+            /* --- Size using viewport units --- */
+            width: 90vw !important;  /* 90% viewport width */
+            height: 90vh !important; /* 90% viewport height */
+            /* --- Removed fixed pixel max dimensions --- */
+            z-index: 1002 !important; /* Above overlay */
+            overflow: auto !important; /* INTERNAL scroll if needed */
+            display: flex !important; flex-direction: column !important;
+            flex-grow: 0 !important; flex-basis: auto !important;
+            box-shadow: 0 0 25px rgba(0,0,0,0.3); /* Enhanced shadow */
+        }
+        .zoomed-element .fullscreen-toggle-icon {
+            top: 10px !important; right: 15px !important; font-size: 1.5em !important;
+            background-color: rgba(230, 230, 230, 0.8) !important;
+        }
+
+        /* --- Zoom Overlay (No Blur) --- */
+        #zoom-overlay {
+             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+             background-color: rgba(0, 0, 0, 0.65); /* Darker overlay for contrast */
+             /* --- Blur properties REMOVED --- */
+             z-index: 1001; /* Below zoomed element, above normal content */
+             opacity: 0; pointer-events: none;
+             transition: opacity var(--transition-speed) ease;
+         }
+         #zoom-overlay.active {
+             opacity: 1;
+             pointer-events: auto; /* Allow clicking overlay to close */
+         }
+
+
+        /* --- Original Layout Rules --- */
+        #simulation-area { flex: 0 1 auto; justify-content: center; align-items: center; overflow: auto; }
+        #grid-container { display: grid; grid-template-columns: repeat(10, 30px); grid-template-rows: repeat(10, 30px); gap: 4px; border: 2px solid #555; padding: 8px; background-color: #ddd; width: fit-content; margin: 0; flex-shrink: 0; max-width: 100%; overflow: auto; }
+        .atom { width: 30px; height: 30px; border-radius: 50%; transition: background-color 0.3s ease; position: relative; box-sizing: border-box; }
+        .undecayed { background-color: #4CAF50; border: 1px solid #388E3C; }
+        .decayed { background-color: #f44336; border: 1px solid #d32f2f; }
+
+        #results-area { flex: 1 1 500px; display: flex; flex-direction: column; gap: 15px; min-width: 300px; max-height: 100%; overflow: hidden; }
+        #info { flex-shrink: 0; }
+        #half-life-section { flex-shrink: 0; display: flex; flex-direction: column; }
+        #chart-container { flex-grow: 1; min-height: 200px; overflow: hidden; display: flex; flex-direction: column; }
+
+        #info h2, #half-life-section h3 { margin-top: 0; margin-bottom: 10px;}
+        #info p { margin: 6px 0; font-size: 1.0em; }
+        #info span { font-weight: bold; }
+        #controls { margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+        button { padding: 8px 12px; font-size: 0.9em; cursor: pointer; border: none; border-radius: 4px; color: white; transition: background-color 0.2s ease; }
+        button:disabled { background-color: #aaa !important; cursor: not-allowed; }
+        #start-button { background-color: #2196F3; } #pause-button { background-color: #607D8B; } #reset-button { background-color: #ff9800; } #toggle-intervals-button { background-color: #009688; }
+
+        #half-life-section .controls-wrapper { flex-shrink: 0; display: flex; justify-content: center; margin-bottom: 10px; }
+        #half-life-section .table-wrapper { flex-grow: 1; overflow-y: auto; min-height: 50px; }
+        #half-life-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        #half-life-table th, #half-life-table td { border: 1px solid #eee; padding: 5px 8px; text-align: center; }
+        #half-life-table thead th { background-color: #f2f2f2; font-weight: bold;}
+        #half-life-table tbody tr:nth-child(even) { background-color: #f9f9f9;}
+        .interval-cell { font-style: italic; color: #555; min-width: 60px; }
+        .interval-cell.shown { font-style: normal; font-weight: bold; color: #000;}
+
+        .decay-particle { position: absolute; width: 8px; height: 15px; background-color: rgba(255, 235, 59, 0.9); border-radius: 2px 2px 0 0; pointer-events: none; transform-origin: bottom center; clip-path: polygon(50% 0%, 100% 50%, 100% 100%, 0% 100%, 0% 50%); z-index: 10; }
+        @keyframes decay-fade-move { 0% { opacity: 1; transform: translate(0, 0) scale(0.8); } 20% { transform: translate(0, -5px) scale(1); } 100% { opacity: 0; transform: translate(0, -40px) scale(0.5); } }
+        .decay-animate { animation: decay-fade-move 0.8s ease-out forwards; }
+
+        #chart-controls { display: flex; gap: 10px; margin-bottom: 5px; justify-content: center; flex-shrink: 0; }
+        .chart-canvas-wrapper { flex-grow: 1; position: relative; overflow: hidden; }
+        #decayChart { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        /* Internal layout within zoomed elements (ensure flex still works) */
+        .zoomed-element#chart-container .chart-canvas-wrapper { flex-grow: 1;}
+        .zoomed-element#half-life-section .table-wrapper { max-height: none; flex-grow: 1;}
+
+    </style>
+</head>
+<body>
+
+    <h1>Radioactive Decay Simulation</h1>
+
+    <div id="main-container"> <!-- Dimmed via overlay, not directly blurred -->
+
+        <div id="simulation-area" class="fullscreen-target">
+            <span class="fullscreen-toggle-icon" title="Zoom In/Out">&#x2922;</span>
+            <div id="grid-container"></div>
+        </div>
+
+        <div id="results-area">
+            <div id="info" class="fullscreen-target">
+                 <span class="fullscreen-toggle-icon" title="Zoom In/Out">&#x2922;</span>
+                <h2>Simulation Info</h2>
+                <p>Total Atoms: <span id="total-atoms">100</span></p>
+                <p>Undecayed: <span id="undecayed-count">100</span></p>
+                <p>Decayed: <span id="decayed-count">0</span></p>
+                <p>Time Elapsed: <span id="timer">0.00 s / 90.00 s</span></p>
+                <div id="controls">
+                    <button id="start-button">Start</button>
+                    <button id="pause-button" disabled>Pause</button>
+                    <button id="reset-button" disabled>Reset</button>
+                </div>
+                 <p style="font-size: 0.8em; margin-top: 10px; color: #666;">
+                    Green atoms decay randomly to red. Half-life = time for 50% of *remaining* atoms to decay. Max time: 90s.
+                 </p>
+            </div>
+
+            <div id="chart-container" class="fullscreen-target">
+                 <span class="fullscreen-toggle-icon" title="Zoom In/Out">&#x2922;</span>
+                 <div id="chart-controls"></div>
+                 <div class="chart-canvas-wrapper">
+                      <canvas id="decayChart"></canvas>
+                 </div>
+            </div>
+
+            <div id="half-life-section" class="fullscreen-target">
+                 <span class="fullscreen-toggle-icon" title="Zoom In/Out">&#x2922;</span>
+                <h3>Half-Lives Recorded</h3>
+                <div class="controls-wrapper">
+                     <button id="toggle-intervals-button" disabled>Show Intervals</button>
+                </div>
+                <div class="table-wrapper">
+                    <table id="half-life-table">
+                        <thead>
+                            <tr><th>HL</th> <th>Target</th> <th>Time (s)</th> <th>Interval (s)</th></tr>
+                        </thead>
+                        <tbody id="half-life-table-body"></tbody>
+                    </table>
+                 </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="zoom-overlay"></div> <!-- Overlay Div (No blur effect) -->
+
+    <script>
+        // --- Constants and Variables ---
+        const GRID_SIZE = 10; const TOTAL_ATOMS = GRID_SIZE * GRID_SIZE;
+        const TIME_TICK_MS = 100; const DECAY_PROBABILITY_PER_TICK = 0.005;
+        const MAX_SIMULATION_TIME_MS = 90000;
+        const TRANSITION_DURATION_MS = 400; // Matches CSS transition
+
+        const gridContainer = document.getElementById('grid-container');
+        const undecayedCountEl = document.getElementById('undecayed-count');
+        const decayedCountEl = document.getElementById('decayed-count');
+        const timerEl = document.getElementById('timer');
+        const startButton = document.getElementById('start-button');
+        const pauseButton = document.getElementById('pause-button');
+        const resetButton = document.getElementById('reset-button');
+        const toggleIntervalsButton = document.getElementById('toggle-intervals-button');
+        const halfLifeTableBody = document.getElementById('half-life-table-body');
+        const totalAtomsEl = document.getElementById('total-atoms');
+        const chartCanvas = document.getElementById('decayChart');
+        const mainContainer = document.getElementById('main-container'); // Keep reference if needed elsewhere, but not for blur
+        const zoomOverlay = document.getElementById('zoom-overlay');
+        const bodyEl = document.body;
+
+        let atoms = []; let undecayedCount = TOTAL_ATOMS; let decayedCount = 0;
+        let simulationInterval = null; let startTime = null; let accumulatedTimeMs = 0;
+        let isRunning = false; let isPaused = false;
+        let halfLifeTimes = []; let nextHalfLifeTargetCount = Math.floor(TOTAL_ATOMS / 2);
+        let halfLifeCounter = 0; let showIntervals = false;
+        let decayChartInstance = null; let chartTimeData = []; let chartPercentageData = [];
+        let currentZoomedElement = null;
+        const ICON_EXPAND = '&#x2922;'; const ICON_COLLAPSE = '&#x2924;';
+
+        // --- Core Simulation & UI Functions (Should be Correct Now) ---
+        function createParticle(atomElement) { const particle = document.createElement('div'); particle.classList.add('decay-particle'); const rect = atomElement.getBoundingClientRect(); const scrollX = window.scrollX || window.pageXOffset; const scrollY = window.scrollY || window.pageYOffset; const particleStartX = rect.left + scrollX + (rect.width / 2) - 4; const particleStartY = rect.top + scrollY + (rect.height / 2) - 7; particle.style.left = `${particleStartX}px`; particle.style.top = `${particleStartY}px`; document.body.appendChild(particle); particle.classList.add('decay-animate'); particle.addEventListener('animationend', () => particle.remove(), { once: true }); }
+        function setupGrid() { gridContainer.innerHTML = ''; atoms = []; for (let i = 0; i < TOTAL_ATOMS; i++) { const atomElement = document.createElement('div'); atomElement.classList.add('atom', 'undecayed'); gridContainer.appendChild(atomElement); atoms.push({ element: atomElement, isDecayed: false }); } totalAtomsEl.textContent = TOTAL_ATOMS; }
+        function setupChart() { if (decayChartInstance) { decayChartInstance.destroy(); decayChartInstance = null; } const ctx = chartCanvas.getContext('2d'); decayChartInstance = new Chart(ctx, { type: 'line', data: { labels: chartTimeData, datasets: [{ label: 'Undecayed Atoms (%)', data: chartPercentageData, borderColor: 'rgb(75, 192, 192)', backgroundColor: 'rgba(75, 192, 192, 0.2)', borderWidth: 1.5, pointRadius: 0.5, tension: 0.0 }] }, options: { animation: false, maintainAspectRatio: false, scales: { x: { type: 'linear', position: 'bottom', title: { display: true, text: 'Time (s)' }, min: 0, ticks: { maxRotation: 0, autoSkipPadding: 15 } }, y: { title: { display: true, text: 'Undecayed (%)' }, min: 0, max: 100 } }, plugins: { legend: { display: false }, tooltip: { callbacks: { title: (i) => 'Time: ' + i[0].parsed.x.toFixed(2) + ' s', label: (i) => 'Undecayed: ' + i.parsed.y.toFixed(2) + '%' } } }, layout: { padding: { top: 5, right: 10, bottom: 0, left: 5 } } } }); if (chartTimeData.length === 0) { chartTimeData.push(0); chartPercentageData.push(100); decayChartInstance.data.labels = chartTimeData; decayChartInstance.data.datasets[0].data = chartPercentageData; decayChartInstance.update('none'); } }
+        function updateHalfLifeTable() { halfLifeTableBody.innerHTML = ''; toggleIntervalsButton.disabled = halfLifeTimes.length === 0; if (halfLifeTimes.length === 0) { halfLifeTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No half-lives yet.</td></tr>'; return; } halfLifeTimes.forEach((hl, index) => { const row = document.createElement('tr'); const intervalVal = ((index > 0 ? hl.timeMs - halfLifeTimes[index - 1].timeMs : hl.timeMs) / 1000).toFixed(2); row.innerHTML = `<td>${index + 1}</td><td>${hl.targetCount}</td><td>${(hl.timeMs / 1000).toFixed(2)}</td><td class="interval-cell" data-interval="${intervalVal}">?</td>`; const intervalCell = row.querySelector('.interval-cell'); if (showIntervals) { intervalCell.textContent = intervalCell.dataset.interval; intervalCell.classList.add('shown'); } else { intervalCell.textContent = "?"; intervalCell.classList.remove('shown'); } halfLifeTableBody.appendChild(row); }); }
+        function updateDisplay() { const currentTimeMs = Math.min( isRunning && !isPaused ? accumulatedTimeMs + (Date.now() - startTime) : accumulatedTimeMs, MAX_SIMULATION_TIME_MS ); undecayedCountEl.textContent = undecayedCount; decayedCountEl.textContent = decayedCount; timerEl.textContent = `${(currentTimeMs / 1000).toFixed(2)} s / ${(MAX_SIMULATION_TIME_MS / 1000).toFixed(2)} s`; updateHalfLifeTable(); }
+
+        function simulationTick() {
+            if (!isRunning || isPaused) return;
+            const currentTickStartTime = Date.now(); const elapsedTimeMs = accumulatedTimeMs + (currentTickStartTime - startTime);
+            if (elapsedTimeMs >= MAX_SIMULATION_TIME_MS) { accumulatedTimeMs = MAX_SIMULATION_TIME_MS; startTime = null; stopSimulation(); console.log(`Max time reached.`); return; }
+            let newlyDecayed = 0;
+            atoms.forEach(atom => { if (!atom.isDecayed && Math.random() < DECAY_PROBABILITY_PER_TICK) { atom.isDecayed = true; atom.element.classList.remove('undecayed'); atom.element.classList.add('decayed'); createParticle(atom.element); newlyDecayed++; } });
+            if (newlyDecayed > 0) { undecayedCount -= newlyDecayed; decayedCount += newlyDecayed; }
+            const currentTimeSec = elapsedTimeMs / 1000; const currentPercentage = (undecayedCount / TOTAL_ATOMS) * 100;
+            chartTimeData.push(currentTimeSec); chartPercentageData.push(currentPercentage);
+            const maxDataPoints = 1500; if (chartTimeData.length > maxDataPoints) { chartTimeData.shift(); chartPercentageData.shift(); }
+            if (decayChartInstance) { decayChartInstance.data.labels = chartTimeData; decayChartInstance.data.datasets[0].data = chartPercentageData; decayChartInstance.update('none'); }
+            while (undecayedCount <= nextHalfLifeTargetCount && nextHalfLifeTargetCount >= 1) { halfLifeCounter++; if (!halfLifeTimes.some(hl => hl.counter === halfLifeCounter)) { halfLifeTimes.push({ counter: halfLifeCounter, targetCount: nextHalfLifeTargetCount, timeMs: elapsedTimeMs }); } nextHalfLifeTargetCount = Math.floor(nextHalfLifeTargetCount / 2); if (nextHalfLifeTargetCount < 1) break; }
+            updateDisplay();
+            if (undecayedCount === 0) { stopSimulation(); console.log("All atoms decayed."); }
+        }
+
+        function startSimulation() { if (isRunning) return; if (accumulatedTimeMs >= MAX_SIMULATION_TIME_MS) { console.log("Max time. Reset first."); return; } if (accumulatedTimeMs === 0 && undecayedCount === TOTAL_ATOMS) { chartTimeData = [0]; chartPercentageData = [100]; if (decayChartInstance) { decayChartInstance.data.labels = chartTimeData; decayChartInstance.data.datasets[0].data = chartPercentageData; decayChartInstance.update('none'); } else { setupChart(); } updateHalfLifeTable(); } isRunning = true; isPaused = false; startTime = Date.now(); startButton.disabled = true; pauseButton.disabled = false; resetButton.disabled = false; clearInterval(simulationInterval); simulationInterval = setInterval(simulationTick, TIME_TICK_MS); console.log("Started."); }
+        function togglePause() { if (!isRunning) {console.log("Cannot pause: Not running."); return;} isPaused = !isPaused; if (isPaused) { clearInterval(simulationInterval); const timeSinceStart = startTime ? Date.now() - startTime : 0; accumulatedTimeMs = Math.min(accumulatedTimeMs + timeSinceStart, MAX_SIMULATION_TIME_MS); startTime = null; pauseButton.textContent = 'Resume'; updateDisplay(); if (decayChartInstance && accumulatedTimeMs < MAX_SIMULATION_TIME_MS) { const pauseTimeSec = accumulatedTimeMs / 1000; const pausePercentage = (undecayedCount / TOTAL_ATOMS) * 100; const lastTime = chartTimeData.length > 0 ? chartTimeData[chartTimeData.length - 1] : -1; if (Math.abs(lastTime - pauseTimeSec) > 1e-6) { chartTimeData.push(pauseTimeSec); chartPercentageData.push(pausePercentage); decayChartInstance.data.labels = chartTimeData; decayChartInstance.data.datasets[0].data = chartPercentageData; decayChartInstance.update('none'); } } console.log("Paused."); } else { if (accumulatedTimeMs >= MAX_SIMULATION_TIME_MS) { console.log("Cannot resume, max time."); isPaused = true; return; } startTime = Date.now(); simulationInterval = setInterval(simulationTick, TIME_TICK_MS); pauseButton.textContent = 'Pause'; console.log("Resumed."); } }
+        function stopSimulation() { let finalTimeMs = accumulatedTimeMs; if ((isRunning && !isPaused && startTime) || isPaused) { const timeSinceStart = startTime ? Date.now() - startTime : 0; finalTimeMs = isPaused ? accumulatedTimeMs : Math.min(accumulatedTimeMs + timeSinceStart, MAX_SIMULATION_TIME_MS); } accumulatedTimeMs = finalTimeMs; isRunning = false; isPaused = false; clearInterval(simulationInterval); simulationInterval = null; startTime = null; if (decayChartInstance) { const finalTimeSec = accumulatedTimeMs / 1000; const finalPercentage = (undecayedCount / TOTAL_ATOMS) * 100; const lastTime = chartTimeData.length > 0 ? chartTimeData[chartTimeData.length - 1] : -1; const lastPerc = chartPercentageData.length > 0 ? chartPercentageData[chartPercentageData.length - 1] : -1; if (chartTimeData.length === 0 || Math.abs(lastTime - finalTimeSec) > 1e-6 || Math.abs(lastPerc - finalPercentage) > 1e-6) { if (chartTimeData.length > 0 && Math.abs(lastTime - finalTimeSec) < 1e-6) { chartTimeData.pop(); chartPercentageData.pop(); } chartTimeData.push(finalTimeSec); chartPercentageData.push(finalPercentage); decayChartInstance.data.labels = chartTimeData; decayChartInstance.data.datasets[0].data = chartPercentageData; decayChartInstance.update('none'); } } startButton.disabled = accumulatedTimeMs >= MAX_SIMULATION_TIME_MS; pauseButton.disabled = true; pauseButton.textContent = 'Pause'; resetButton.disabled = false; updateDisplay(); console.log(`Stopped at ${ (accumulatedTimeMs / 1000).toFixed(2) }s.`); }
+        function resetSimulation() { if (currentZoomedElement) { toggleZoom(currentZoomedElement, currentZoomedElement.querySelector('.fullscreen-toggle-icon')); } if (isRunning || simulationInterval) { isRunning = false; isPaused = false; clearInterval(simulationInterval); simulationInterval = null; } undecayedCount = TOTAL_ATOMS; decayedCount = 0; accumulatedTimeMs = 0; startTime = null; halfLifeTimes = []; nextHalfLifeTargetCount = Math.floor(TOTAL_ATOMS / 2); halfLifeCounter = 0; setupGrid(); document.querySelectorAll('.decay-particle').forEach(p => p.remove()); chartTimeData = []; chartPercentageData = []; setupChart(); showIntervals = false; toggleIntervalsButton.textContent = 'Show Intervals'; updateHalfLifeTable(); updateDisplay(); startButton.disabled = false; pauseButton.disabled = true; pauseButton.textContent = 'Pause'; resetButton.disabled = true; console.log("Reset."); }
+
+
+        // --- Toggle Zoom Function (No Blur Logic) ---
+        function toggleZoom(targetElement, iconElement) {
+            if (!targetElement || !iconElement) return;
+            const isCurrentlyZoomed = targetElement === currentZoomedElement;
+
+            if (currentZoomedElement) { // Always unzoom if something is zoomed
+                const currentIcon = currentZoomedElement.querySelector('.fullscreen-toggle-icon');
+                currentZoomedElement.classList.remove('zoomed-element');
+                if (currentIcon) { currentIcon.innerHTML = ICON_EXPAND; currentIcon.title = 'Zoom In'; }
+                // --- No blur class to remove ---
+                zoomOverlay.classList.remove('active'); // Deactivate overlay
+
+                if (currentZoomedElement.id === 'chart-container' && decayChartInstance) {
+                    setTimeout(() => decayChartInstance.resize(), TRANSITION_DURATION_MS);
+                }
+                currentZoomedElement = null;
+            }
+
+            if (!isCurrentlyZoomed) { // Zoom in if not already zoomed
+                targetElement.classList.add('zoomed-element');
+                // --- No blur class to add ---
+                zoomOverlay.classList.add('active'); // Activate overlay for dimming
+                iconElement.innerHTML = ICON_COLLAPSE; iconElement.title = 'Zoom Out';
+                currentZoomedElement = targetElement;
+
+                if (targetElement.id === 'chart-container' && decayChartInstance) {
+                     setTimeout(() => decayChartInstance.resize(), TRANSITION_DURATION_MS);
+                }
+            }
+        }
+
+        // --- Event Listeners ---
+        startButton.addEventListener('click', startSimulation);
+        pauseButton.addEventListener('click', togglePause);
+        resetButton.addEventListener('click', resetSimulation);
+        toggleIntervalsButton.addEventListener('click', () => { showIntervals = !showIntervals; toggleIntervalsButton.textContent = showIntervals ? 'Hide Intervals' : 'Show Intervals'; updateHalfLifeTable(); });
+
+        // --- Zoom/Overlay Click Listener ---
+        bodyEl.addEventListener('click', function(event) {
+            const icon = event.target.closest('.fullscreen-toggle-icon');
+            if (icon) { const target = icon.closest('.fullscreen-target'); if (target) { toggleZoom(target, icon); event.stopPropagation(); } return; }
+            if (event.target === zoomOverlay && currentZoomedElement) { const currentIcon = currentZoomedElement.querySelector('.fullscreen-toggle-icon'); toggleZoom(currentZoomedElement, currentIcon); }
+        });
+
+        // --- Initial setup ---
+        document.addEventListener('DOMContentLoaded', () => { resetSimulation(); });
+
+    </script>
+
+</body>
+</html>

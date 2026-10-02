@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Potato Osmosis Simulation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom transition for chart updates */
+        .chart-container {
+            position: relative;
+            height: 20rem; /* h-80 */
+        }
+        @media (min-width: 1024px) {
+            .lg-chart-container {
+                height: auto;
+            }
+        }
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+    </style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-gray-100 dark:bg-gray-900">
+    <div id="root">
+        <div class="min-h-screen text-gray-800 dark:text-gray-200 p-4 sm:p-6 lg:p-8">
+            <div class="max-w-7xl mx-auto">
+                <header class="text-center mb-8">
+                    <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white">Potato Osmosis Experiment</h1>
+                    <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">A visual simulation of osmosis in potato cells.</p>
+                </header>
+
+                <main class="space-y-8">
+                    <!-- Simulation Visuals -->
+                    <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white">Live Simulation</h3>
+                            <button id="expand-simulation-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition p-1 rounded-full" aria-label="Expand simulation view">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 1v-4m0 0h-4m4 0l-5 5"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="test-tubes-container" class="flex flex-col md:flex-row justify-around items-center gap-8 md:gap-12">
+                            <!-- Test tubes will be rendered here by JS -->
+                        </div>
+                        <div id="progress-bar-container" class="hidden w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mt-8">
+                            <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                            <p id="progress-text" class="text-center text-sm mt-2">Simulating "Overnight"... 0%</p>
+                        </div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="flex justify-center space-x-4">
+                        <button id="start-btn" class="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">
+                            Start Experiment
+                        </button>
+                        <button id="reset-btn" class="px-8 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 transition-colors">
+                            Reset
+                        </button>
+                    </div>
+
+                    <!-- Results & Graphs -->
+                    <div class="space-y-8">
+                        <div id="results-table-container" class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6">
+                            <!-- Results table will be rendered here by JS -->
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 h-80 lg:h-auto flex flex-col">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">Length Change Over Time</h3>
+                                    <button id="expand-length-chart-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition p-1 rounded-full ml-auto" aria-label="Expand Length Change Over Time chart">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 1v-4m0 0h-4m4 0l-5 5"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="flex-grow chart-container lg-chart-container">
+                                    <canvas id="length-chart"></canvas>
+                                </div>
+                            </div>
+                            <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 h-80 lg:h-auto flex flex-col">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">Mass Change Over Time</h3>
+                                    <button id="expand-mass-chart-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition p-1 rounded-full ml-auto" aria-label="Expand Mass Change Over Time chart">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 1v-4m0 0h-4m4 0l-5 5"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="flex-grow chart-container lg-chart-container">
+                                    <canvas id="mass-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="final-chart-wrapper" class="hidden mt-8">
+                             <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 h-96 flex flex-col">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">Analysis: Mass Change vs. Solution Concentration</h3>
+                                    <button id="expand-final-chart-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition p-1 rounded-full" aria-label="Expand analysis chart">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 1v-4m0 0h-4m4 0l-5 5"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="flex-grow relative h-80">
+                                    <canvas id="final-mass-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                <footer class="text-center mt-12 text-gray-500 dark:text-gray-400 text-sm">
+                    <p>&copy; 2024 Advanced Frontend Engineering. All Rights Reserved.</p>
+                </footer>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal -->
+    <div id="modal" class="modal fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 hidden opacity-0" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div id="modal-content" class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transform transition-transform duration-300 scale-95">
+        <header class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <h2 id="modal-title" class="text-xl font-bold text-gray-900 dark:text-white"></h2>
+          <button id="modal-close-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1 rounded-full" aria-label="Close modal">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </header>
+        <main id="modal-body" class="p-6 overflow-y-auto">
+          <!-- Modal content goes here -->
+        </main>
+      </div>
+    </div>
+
+
+    <script type="module">
+        // --- CONSTANTS & TYPES ---
+        const SolutionType = {
+            SUGAR_HIGH: '0.5 M Sugar',
+            SUGAR_LOW: '0.25 M Sugar',
+            WATER: 'Distilled Water',
+        };
+
+        const SimulationState = {
+            IDLE: 'idle',
+            RUNNING: 'running',
+            FINISHED: 'finished',
+        };
+
+        const SIMULATION_DURATION = 30; // in seconds
+        const TICK_INTERVAL = 250; // ms
+        const INITIAL_POTATO_LENGTH = 3.0; // cm
+        const INITIAL_POTATO_MASS = 2.5; // g
+
+        const OSMOSIS_EFFECTS = {
+            [SolutionType.SUGAR_HIGH]: { length: -0.15, mass: -0.20 },
+            [SolutionType.SUGAR_LOW]: { length: -0.05, mass: -0.08 },
+            [SolutionType.WATER]: { length: 0.10, mass: 0.15 },
+        };
+
+        const SOLUTION_COLORS = {
+            [SolutionType.SUGAR_HIGH]: 'bg-blue-300',
+            [SolutionType.SUGAR_LOW]: 'bg-blue-200',
+            [SolutionType.WATER]: 'bg-blue-100',
+        };
+
+        const CHART_COLORS = {
+            [SolutionType.SUGAR_HIGH]: '#ef4444', // red-500
+            [SolutionType.SUGAR_LOW]: '#f97316', // orange-500
+            [SolutionType.WATER]: '#22c55e', // green-500
+        };
+        
+        // --- STATE ---
+        let state = {
+            simulationState: SimulationState.IDLE,
+            potatoSamples: [],
+            measurements: [],
+            elapsedTime: 0,
+            intervalId: null,
+            charts: {
+                lengthChart: null,
+                massChart: null,
+                finalMassChart: null,
+            },
+            userInputs: {},
+            validationStates: {},
+        };
+
+        // --- DOM ELEMENTS ---
+        const DOMElements = {
+            testTubesContainer: document.getElementById('test-tubes-container'),
+            progressBarContainer: document.getElementById('progress-bar-container'),
+            progressBar: document.getElementById('progress-bar'),
+            progressText: document.getElementById('progress-text'),
+            startBtn: document.getElementById('start-btn'),
+            resetBtn: document.getElementById('reset-btn'),
+            resultsTableContainer: document.getElementById('results-table-container'),
+            finalChartWrapper: document.getElementById('final-chart-wrapper'),
+            modal: document.getElementById('modal'),
+            modalContent: document.getElementById('modal-content'),
+            modalTitle: document.getElementById('modal-title'),
+            modalBody: document.getElementById('modal-body'),
+            modalCloseBtn: document.getElementById('modal-close-btn'),
+            expandSimBtn: document.getElementById('expand-simulation-btn'),
+            expandLengthChartBtn: document.getElementById('expand-length-chart-btn'),
+            expandMassChartBtn: document.getElementById('expand-mass-chart-btn'),
+            expandFinalChartBtn: document.getElementById('expand-final-chart-btn'),
+        };
+
+        // --- UTILITY FUNCTIONS ---
+        const createInitialSamples = () => {
+            const solutions = [SolutionType.SUGAR_HIGH, SolutionType.SUGAR_LOW, SolutionType.WATER];
+            return solutions.map((solution, index) => {
+                const initialLength = INITIAL_POTATO_LENGTH + (Math.random() - 0.5) * 0.1;
+                const initialMass = INITIAL_POTATO_MASS + (Math.random() - 0.5) * 0.1;
+                return {
+                    id: index,
+                    solution,
+                    initialLength,
+                    initialMass,
+                    currentLength: initialLength,
+                    currentMass: initialMass,
+                };
+            });
+        };
+
+        const calculateChange = (initial, final) => {
+            if (initial === 0) return 0;
+            return ((final - initial) / initial) * 100;
+        };
+        
+        // --- MODAL LOGIC ---
+        const openModal = (title, contentHTML) => {
+            DOMElements.modalTitle.textContent = title;
+            DOMElements.modalBody.innerHTML = contentHTML;
+            DOMElements.modal.classList.remove('hidden');
+            setTimeout(() => {
+                DOMElements.modal.classList.remove('opacity-0');
+                DOMElements.modalContent.classList.remove('scale-95');
+            }, 10);
+        };
+
+        const closeModal = () => {
+            DOMElements.modal.classList.add('opacity-0');
+            DOMElements.modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                DOMElements.modal.classList.add('hidden');
+                DOMElements.modalBody.innerHTML = '';
+            }, 300);
+        };
+        
+        // --- RENDERING FUNCTIONS ---
+        const renderTestTubes = (container) => {
+            container.innerHTML = state.potatoSamples.map(sample => {
+                const scaleY = sample.currentLength / sample.initialLength;
+                const scaleX = Math.sqrt(sample.currentMass / sample.initialMass / scaleY);
+                return `
+                    <div class="flex flex-col items-center space-y-2">
+                        <div class="relative w-20 h-48 bg-white/20 border-2 border-gray-400 rounded-b-3xl rounded-t-lg overflow-hidden flex justify-center items-end">
+                            <div class="absolute bottom-0 w-full h-1/2 ${SOLUTION_COLORS[sample.solution]} transition-all duration-300"></div>
+                            <div id="potato-${sample.id}" class="relative z-10 w-6 h-24 mb-2 bg-yellow-200 border-2 border-yellow-400 rounded-lg transition-transform duration-300 ease-in-out origin-bottom" style="transform: scaleY(${scaleY}) scaleX(${scaleX})"></div>
+                        </div>
+                        <div class="text-center">
+                            <p class="font-semibold text-gray-800 dark:text-gray-200">${sample.solution}</p>
+                            <p id="stats-${sample.id}" class="text-xs text-gray-600 dark:text-gray-400">
+                                L: ${sample.currentLength.toFixed(2)} cm | M: ${sample.currentMass.toFixed(2)} g
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        const updateTestTubes = () => {
+             state.potatoSamples.forEach(sample => {
+                const scaleY = sample.currentLength / sample.initialLength;
+                const scaleX = Math.sqrt(sample.currentMass / sample.initialMass / scaleY);
+                const potatoEl = document.getElementById(`potato-${sample.id}`);
+                const statsEl = document.getElementById(`stats-${sample.id}`);
+                if (potatoEl) potatoEl.style.transform = `scaleY(${scaleY}) scaleX(${scaleX})`;
+                if (statsEl) statsEl.innerHTML = `L: ${sample.currentLength.toFixed(2)} cm | M: ${sample.currentMass.toFixed(2)} g`;
+            });
+        };
+
+        const renderResultsTable = () => {
+            const getValidationClass = (state) => {
+                switch (state) {
+                    case 'correct': return 'bg-green-100 dark:bg-green-900 border-green-500 focus:ring-green-500 focus:border-green-500';
+                    case 'incorrect': return 'bg-red-100 dark:bg-red-900 border-red-500 focus:ring-red-500 focus:border-red-500';
+                    default: return 'bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500';
+                }
+            };
+
+            const isFinished = state.simulationState === SimulationState.FINISHED;
+            const tableRows = state.potatoSamples.map(sample => {
+                const finalLength = isFinished ? sample.currentLength : sample.initialLength;
+                const finalMass = isFinished ? sample.currentMass : sample.initialMass;
+                const lengthChange = calculateChange(sample.initialLength, finalLength);
+                const massChange = calculateChange(sample.initialMass, finalMass);
+                const massKey = `${sample.id}-mass`;
+
+                return `
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        <th scope="row" class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">${sample.solution}</th>
+                        <td class="px-4 py-4 text-center">${sample.initialLength.toFixed(2)}</td>
+                        <td class="px-4 py-4 text-center">${sample.initialMass.toFixed(2)}</td>
+                        <td class="px-4 py-4 text-center">${state.simulationState !== SimulationState.IDLE ? sample.currentLength.toFixed(2) : '-'}</td>
+                        <td class="px-4 py-4 text-center">${state.simulationState !== SimulationState.IDLE ? sample.currentMass.toFixed(2) : '-'}</td>
+                        <td class="px-4 py-4 text-center">${isFinished ? `${lengthChange.toFixed(2)}%` : '-'}</td>
+                        <td class="px-4 py-4 text-center">
+                            ${isFinished ? `
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    data-sample-id="${sample.id}"
+                                    data-correct-value="${massChange.toFixed(1)}"
+                                    aria-label="Percentage change in mass for ${sample.solution}"
+                                    class="w-24 text-center p-1 rounded-md border text-sm text-gray-900 dark:text-gray-200 ${getValidationClass(state.validationStates[massKey])}"
+                                    value="${state.userInputs[massKey] || ''}"
+                                    placeholder="Enter %"
+                                />
+                            ` : '-'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            DOMElements.resultsTableContainer.innerHTML = `
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">Experiment Results</h3>
+                     <button id="expand-table-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition p-1 rounded-full" aria-label="Expand results table">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 1v-4m0 0h-4m4 0l-5 5" />
+                        </svg>
+                     </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                            <tr>
+                                <th scope="col" class="px-4 py-3">Solution</th>
+                                <th scope="col" class="px-4 py-3 text-center">Initial Length (cm)</th>
+                                <th scope="col" class="px-4 py-3 text-center">Initial Mass (g)</th>
+                                <th scope="col" class="px-4 py-3 text-center">Final Length (cm)</th>
+                                <th scope="col" class="px-4 py-3 text-center">Final Mass (g)</th>
+                                <th scope="col" class="px-4 py-3 text-center">% Change Length</th>
+                                <th scope="col" class="px-4 py-3 text-center">% Change Mass</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                </div>
+            `;
+            // Re-attach event listeners after re-render
+             document.getElementById('expand-table-btn')?.addEventListener('click', () => {
+                openModal('Experiment Results', `<div class="overflow-x-auto">${DOMElements.resultsTableContainer.querySelector('table').outerHTML}</div>`)
+            });
+            DOMElements.resultsTableContainer.querySelectorAll('input[type="number"]').forEach(input => {
+                input.addEventListener('input', handleTableInputChange);
+            });
+        };
+        
+        const createChart = (ctx, type, data, options) => new Chart(ctx, { type, data, options });
+
+        const initializeCharts = () => {
+            const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            const textColor = isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)';
+            Chart.defaults.color = textColor;
+
+            const commonOptions = (yLabel) => ({
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        title: { display: true, text: 'Time (s)' },
+                        grid: { color: gridColor },
+                    },
+                    y: {
+                        title: { display: true, text: yLabel },
+                        grid: { color: gridColor },
+                        ticks: {
+                            stepSize: 0.05
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            });
+
+            const initialData = {
+                labels: [],
+                datasets: Object.values(SolutionType).map(solution => ({
+                    label: solution,
+                    data: [],
+                    borderColor: CHART_COLORS[solution],
+                    tension: 0.1,
+                    pointRadius: 0
+                }))
+            };
+            
+            if (state.charts.lengthChart) state.charts.lengthChart.destroy();
+            state.charts.lengthChart = createChart(document.getElementById('length-chart').getContext('2d'), 'line', JSON.parse(JSON.stringify(initialData)), commonOptions('Length (cm)'));
+            
+            if (state.charts.massChart) state.charts.massChart.destroy();
+            state.charts.massChart = createChart(document.getElementById('mass-chart').getContext('2d'), 'line', JSON.parse(JSON.stringify(initialData)), commonOptions('Mass (g)'));
+        };
+
+        const updateLineCharts = () => {
+            const lastMeasurement = state.measurements[state.measurements.length - 1];
+            if (!lastMeasurement) return;
+
+            const { time } = lastMeasurement;
+            
+            state.charts.lengthChart.data.labels.push(time.toFixed(2));
+            state.charts.massChart.data.labels.push(time.toFixed(2));
+
+            Object.values(SolutionType).forEach((solution, i) => {
+                state.charts.lengthChart.data.datasets[i].data.push(lastMeasurement[`${solution}_length`]);
+                state.charts.massChart.data.datasets[i].data.push(lastMeasurement[`${solution}_mass`]);
+            });
+
+            state.charts.lengthChart.update();
+            state.charts.massChart.update();
+        };
+
+        const renderFinalMassChart = () => {
+             const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            
+            DOMElements.finalChartWrapper.classList.remove('hidden');
+            const getConcentration = (solution) => ({ [SolutionType.WATER]: 0, [SolutionType.SUGAR_LOW]: 0.25, [SolutionType.SUGAR_HIGH]: 0.5 }[solution]);
+
+            const rawData = state.potatoSamples.map(sample => ({
+                x: getConcentration(sample.solution),
+                y: calculateChange(sample.initialMass, sample.currentMass),
+                name: sample.solution,
+            })).sort((a, b) => a.x - b.x);
+
+            // Linear regression
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            rawData.forEach(p => { sumX += p.x; sumY += p.y; sumXY += p.x * p.y; sumX2 += p.x * p.x; });
+            const n = rawData.length;
+            const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+            const minX = rawData[0].x;
+            const maxX = rawData[rawData.length - 1].x;
+            const lineData = [
+                {x: minX, y: slope * minX + intercept},
+                {x: maxX, y: slope * maxX + intercept}
+            ];
+            
+            const data = {
+                datasets: [
+                    {
+                        label: 'Experimental Results',
+                        data: rawData,
+                        backgroundColor: rawData.map(d => CHART_COLORS[d.name]),
+                        type: 'scatter',
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                    },
+                    {
+                        label: 'Line of Best Fit',
+                        data: lineData,
+                        borderColor: '#e11d48',
+                        type: 'line',
+                        tension: 0.1,
+                        pointRadius: 0,
+                        borderDash: [5, 5]
+                    }
+                ]
+            };
+
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom',
+                        title: { display: true, text: 'Sugar Concentration (M)' },
+                        grid: { color: gridColor },
+                        min: 0,
+                        max: 0.55
+                    },
+                    y: {
+                        title: { display: true, text: '% Change in Mass' },
+                        grid: { color: gridColor },
+                        ticks: { callback: value => `${value.toFixed(0)}%` }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                if (context.dataset.type === 'scatter') {
+                                    return ` ${context.raw.name}: ${context.parsed.y.toFixed(2)}%`;
+                                }
+                                return ` Trendline: ${context.parsed.y.toFixed(2)}%`;
+                            }
+                        }
+                    }
+                }
+            };
+            
+            if (state.charts.finalMassChart) state.charts.finalMassChart.destroy();
+            state.charts.finalMassChart = createChart(document.getElementById('final-mass-chart').getContext('2d'), 'scatter', data, options);
+        };
+        
+        // --- EVENT HANDLERS ---
+        const handleStart = () => {
+            resetSimulation();
+            state.simulationState = SimulationState.RUNNING;
+            updateUIState();
+            
+            const initialMeasurement = {
+                time: 0,
+                ...state.potatoSamples.reduce((acc, sample) => {
+                    acc[`${sample.solution}_length`] = sample.initialLength;
+                    acc[`${sample.solution}_mass`] = sample.initialMass;
+                    return acc;
+                }, {})
+            };
+            state.measurements.push(initialMeasurement);
+            initializeCharts();
+            updateLineCharts();
+
+            state.intervalId = setInterval(simulationTick, TICK_INTERVAL);
+        };
+
+        const simulationTick = () => {
+            state.elapsedTime += TICK_INTERVAL / 1000;
+            if (state.elapsedTime >= SIMULATION_DURATION) {
+                state.elapsedTime = SIMULATION_DURATION;
+                clearInterval(state.intervalId);
+                state.intervalId = null;
+                state.simulationState = SimulationState.FINISHED;
+            }
+
+            const progress = state.elapsedTime / SIMULATION_DURATION;
+            const easedProgress = 1 - Math.pow(1 - progress, 3);
+            
+            state.potatoSamples = state.potatoSamples.map(sample => {
+                const effect = OSMOSIS_EFFECTS[sample.solution];
+                const lengthChange = sample.initialLength * effect.length * easedProgress;
+                const massChange = sample.initialMass * effect.mass * easedProgress;
+                return {
+                    ...sample,
+                    currentLength: sample.initialLength + lengthChange,
+                    currentMass: sample.initialMass + massChange,
+                };
+            });
+
+            const newMeasurement = {
+                time: state.elapsedTime,
+                ...state.potatoSamples.reduce((acc, sample) => {
+                    acc[`${sample.solution}_length`] = sample.currentLength;
+                    acc[`${sample.solution}_mass`] = sample.currentMass;
+                    return acc;
+                }, {})
+            };
+            state.measurements.push(newMeasurement);
+
+            updateTestTubes();
+            updateLineCharts();
+            updateUIState();
+
+            if (state.simulationState === SimulationState.FINISHED) {
+                renderFinalMassChart();
+                renderResultsTable();
+            }
+        };
+        
+        const resetSimulation = () => {
+            if (state.intervalId) clearInterval(state.intervalId);
+            state = {
+                ...state,
+                simulationState: SimulationState.IDLE,
+                potatoSamples: createInitialSamples(),
+                measurements: [],
+                elapsedTime: 0,
+                intervalId: null,
+                userInputs: {},
+                validationStates: {},
+            };
+            renderTestTubes(DOMElements.testTubesContainer);
+            initializeCharts();
+            updateUIState();
+        };
+
+        const handleTableInputChange = (e) => {
+            const { sampleId, correctValue } = e.target.dataset;
+            const key = `${sampleId}-mass`;
+            const value = e.target.value;
+
+            state.userInputs[key] = value;
+            if (value.trim() === '' || value === '-') {
+                state.validationStates[key] = 'pristine';
+            } else {
+                const userValue = parseFloat(value);
+                state.validationStates[key] = !isNaN(userValue) && userValue.toFixed(1) === correctValue ? 'correct' : 'incorrect';
+            }
+            renderResultsTable();
+            DOMElements.resultsTableContainer.querySelector(`[data-sample-id="${sampleId}"]`).focus();
+        };
+        
+        const updateUIState = () => {
+            // Buttons
+            DOMElements.startBtn.disabled = state.simulationState === SimulationState.RUNNING;
+            DOMElements.startBtn.textContent = state.simulationState === SimulationState.RUNNING ? 'Running...' : 'Start Experiment';
+
+            // Progress Bar
+            if (state.simulationState === SimulationState.RUNNING) {
+                DOMElements.progressBarContainer.classList.remove('hidden');
+                const progress = (state.elapsedTime / SIMULATION_DURATION) * 100;
+                DOMElements.progressBar.style.width = `${progress}%`;
+                DOMElements.progressText.textContent = `Simulating "Overnight"... ${Math.round(progress)}%`;
+            } else {
+                DOMElements.progressBarContainer.classList.add('hidden');
+            }
+
+            // Final Chart
+             DOMElements.finalChartWrapper.classList.toggle('hidden', state.simulationState !== SimulationState.FINISHED);
+            
+            // Table
+            renderResultsTable();
+        };
+        
+        // --- INITIALIZATION ---
+        const init = () => {
+            DOMElements.startBtn.addEventListener('click', handleStart);
+            DOMElements.resetBtn.addEventListener('click', resetSimulation);
+            DOMElements.modal.addEventListener('click', closeModal);
+            DOMElements.modalCloseBtn.addEventListener('click', closeModal);
+            DOMElements.modalContent.addEventListener('click', (e) => e.stopPropagation());
+
+             // Modal expand buttons
+            DOMElements.expandSimBtn.addEventListener('click', () => {
+                const container = document.createElement('div');
+                container.className = 'flex flex-col sm:flex-row justify-around items-center gap-8 p-4';
+                renderTestTubes(container);
+                openModal('Live Simulation', container.outerHTML);
+            });
+            
+            const createModalChart = (canvasId, originalChart, onTransitionEnd = false) => {
+                const renderChart = () => {
+                    const modalCtx = document.getElementById(canvasId)?.getContext('2d');
+                    if (modalCtx && originalChart) {
+                        const newOptions = { ...originalChart.options, maintainAspectRatio: false };
+                        createChart(modalCtx, originalChart.config.type, JSON.parse(JSON.stringify(originalChart.data)), newOptions);
+                    }
+                };
+            
+                if (onTransitionEnd) {
+                    const modalContent = DOMElements.modalContent;
+                    const onEnd = () => {
+                        renderChart();
+                        modalContent.removeEventListener('transitionend', onEnd);
+                    };
+                    modalContent.addEventListener('transitionend', onEnd);
+                } else {
+                    renderChart();
+                }
+            };
+
+            DOMElements.expandLengthChartBtn.addEventListener('click', () => {
+                openModal('Length Change Over Time', '<div class="h-[70vh]"><canvas id="modal-length-chart"></canvas></div>');
+                createModalChart('modal-length-chart', state.charts.lengthChart, true);
+            });
+            
+            DOMElements.expandMassChartBtn.addEventListener('click', () => {
+                openModal('Mass Change Over Time', '<div class="h-[70vh]"><canvas id="modal-mass-chart"></canvas></div>');
+                createModalChart('modal-mass-chart', state.charts.massChart, true);
+            });
+            
+            DOMElements.expandFinalChartBtn.addEventListener('click', () => {
+                // Only show the final chart if the simulation has finished and the chart exists
+                if (state.simulationState === SimulationState.FINISHED && state.charts.finalMassChart) {
+                    openModal('Analysis: Mass Change vs. Solution Concentration', '<div class="h-[70vh]"><canvas id="modal-final-chart"></canvas></div>');
+                    createModalChart('modal-final-chart', state.charts.finalMassChart, true);
+                } else {
+                    // Provide feedback if the user tries to open the chart too early
+                    openModal(
+                        'Analysis Not Available', 
+                        '<p class="text-center p-8">The analysis graph is generated after the simulation is complete. Please start the experiment first.</p>'
+                    );
+                }
+            });
+
+            resetSimulation();
+        };
+
+        init();
+    </script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>

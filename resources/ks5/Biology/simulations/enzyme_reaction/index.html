@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trypsin Enzyme Practical Simulation</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #ecf0f1;
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+  }
+  
+  #container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 8px;
+    padding: 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  
+  h1 {
+    color: white;
+    background: #2c3e50;
+    text-align: center;
+    margin: 0 0 25px 0;
+    padding: 20px;
+    font-size: 24px;
+    font-weight: 600;
+  }
+  
+  /* Section Headers with Expand Icons */
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 25px;
+    padding: 12px 15px;
+    background: #34495e;
+    color: white;
+    border-radius: 5px 5px 0 0;
+  }
+  
+  .section-title {
+    font-weight: bold;
+    font-size: 16px;
+  }
+  
+  .expand-icon {
+    cursor: pointer;
+    font-size: 20px;
+    padding: 5px;
+    border-radius: 3px;
+    transition: background 0.3s;
+    user-select: none;
+  }
+  
+  .expand-icon:hover {
+    background: rgba(255,255,255,0.2);
+  }
+  
+  /* Modal Styles */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+  }
+  
+  .modal-overlay.active {
+    display: flex;
+  }
+  
+  .modal-content {
+    background: white;
+    border-radius: 8px;
+    width: 90%;
+    height: 90%;
+    max-width: 1200px;
+    max-height: 800px;
+    display: flex;
+    flex-direction: column;
+    animation: scaleIn 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  
+  .modal-header {
+    background: #2c3e50;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px 8px 0 0;
+  }
+  
+  .modal-body {
+    flex: 1;
+    overflow: auto;
+    padding: 20px;
+  }
+  
+  .close-modal-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.3s;
+  }
+  
+  .close-modal-btn:hover {
+    background: rgba(255,255,255,0.2);
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes scaleIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  
+  .control-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin: 0 25px 25px 25px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+  }
+  
+  .control-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #2c3e50;
+    font-size: 14px;
+  }
+  
+  button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    margin: 2px;
+    color: white;
+  }
+  
+  .temp-btn {
+    background: #95a5a6;
+  }
+  
+  .temp-btn:hover {
+    background: #7f8c8d;
+  }
+  
+  .temp-btn.active {
+    background: #e74c3c;
+  }
+  
+  .start-btn {
+    background: #27ae60;
+    color: white;
+    padding: 15px;
+    font-size: 16px;
+    margin-top: 10px;
+    grid-column: span 2;
+  }
+  
+  .start-btn:hover {
+    background: #229954;
+  }
+  
+  .start-btn:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+  }
+  
+  #speedSlider {
+    width: 100%;
+    margin: 5px 0;
+  }
+  
+  .visual-area {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 0 25px 25px 25px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+    min-height: 250px;
+  }
+  
+  .test-tube-container {
+    text-align: center;
+    background: white;
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  .test-tube {
+    width: 60px;
+    height: 120px;
+    background: linear-gradient(to bottom, #ffffff 0%, #ffffff 67%, #e0e0e0 67%, #e0e0e0 100%);
+    border: 4px solid #2c3e50;
+    border-bottom: 4px solid #2c3e50;
+    border-radius: 0 0 30px 30px;
+    position: relative;
+    margin: 0 auto;
+    overflow: hidden;
+    transition: all 0.1s linear;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+  }
+  
+  .test-tube::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 33%;
+    background: rgba(255, 255, 255, 0.9);
+    opacity: 1;
+    transition: opacity 0.1s linear;
+  }
+  
+  .colorimeter-display {
+    background: #2c3e50;
+    color: #00ff00;
+    padding: 8px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    margin-top: 10px;
+    font-size: 12px;
+    border: 2px solid #34495e;
+  }
+  
+  .results-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 0 25px 25px 25px;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    background: white;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  th, td {
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  th {
+    background: #34495e;
+    color: white;
+    font-weight: 600;
+  }
+  
+  tr:nth-child(even) {
+    background: #f8f9fa;
+  }
+  
+  #graphContainer {
+    background: white;
+    border-radius: 5px;
+    padding: 15px;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  .graph-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .graph-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+  }
+  
+  .toggle-switch {
+    position: relative;
+    width: 50px;
+    height: 25px;
+    background: #bdc3c7;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .toggle-switch.active {
+    background: #3498db;
+  }
+  
+  .toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2.5px;
+    left: 2.5px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: left 0.3s;
+  }
+  
+  .toggle-switch.active::after {
+    left: 27.5px;
+  }
+  
+  svg {
+    width: 100%;
+    height: 300px;
+  }
+  
+  .reset-btn {
+    background: #e74c3c;
+    color: white;
+    padding: 10px 20px;
+    margin-left: 10px;
+  }
+  
+  .reset-btn:hover {
+    background: #c0392b;
+  }
+  
+  .method-synopsis {
+    background: #e3f2fd;
+    border-left: 4px solid #3498db;
+    margin: 0 25px 25px 25px;
+    border-radius: 0;
+  }
+  
+  .method-content {
+    padding: 15px;
+  }
+  
+  .method-content p {
+    margin: 8px 0;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+<div id="container">
+  <h1>🧪 Enzyme-Controlled Reaction: Trypsin & Casein</h1>
+  
+  <!-- Modal Overlay -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span id="modalTitle">Expanded View</span>
+        <button class="close-modal-btn" id="closeModalBtn">&times;</button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Content will be cloned here -->
+      </div>
+    </div>
+  </div>
+  
+  <!-- Method Section -->
+  <div class="section-header">
+    <span class="section-title">📋 Method Synopsis</span>
+    <span class="expand-icon" data-target="methodSection" data-title="Method Synopsis">⛶</span>
+  </div>
+  <div class="method-synopsis" id="methodSection">
+    <div class="method-content">
+      <p><strong>Step 1:</strong> Select the temperatures you want to test (20°C, 30°C, 40°C, 50°C, 60°C or enter custom values).</p>
+      <p><strong>Step 2:</strong> Set up test tubes with milk powder solution, trypsin enzyme, and pH 7 buffer at each selected temperature.</p>
+      <p><strong>Step 3:</strong> Incubate tubes in water baths to equilibrate to target temperature.</p>
+      <p><strong>Step 4:</strong> Mix enzyme with substrate and immediately start timing. The white casein protein makes the solution cloudy.</p>
+      <p><strong>Step 5:</strong> As trypsin digests casein, the solution becomes clearer. The colorimeter measures this as decreasing absorbance (1.00 = cloudy, 0.30 = clear).</p>
+      <p><strong>Step 6:</strong> Record time taken to reach minimum absorbance - this is your reaction time.</p>
+      <p><strong>Status:</strong> <span id="statusText" style="color: #e74c3c; font-weight: bold;">Ready to start</span></p>
+    </div>
+  </div>
+  
+  <!-- Control Panel -->
+  <div class="control-panel">
+    <div class="control-group">
+      <label>Temperature Selection (Multi-select)</label>
+      <div>
+        <button class="temp-btn" data-temp="20">20°C</button>
+        <button class="temp-btn" data-temp="30">30°C</button>
+        <button class="temp-btn" data-temp="40">40°C</button>
+        <button class="temp-btn" data-temp="50">50°C</button>
+        <button class="temp-btn" data-temp="60">60°C</button>
+        <input type="number" id="customTemp" placeholder="Custom °C" min="0" max="80" style="width: 80px; padding: 8px; margin: 2px;">
+        <button id="addCustomBtn" style="background: #9b59b6; color: white;">Add Custom</button>
+      </div>
+    </div>
+    
+    <div class="control-group">
+      <label>Number of Repeats</label>
+      <select id="repeats" style="padding: 8px;">
+        <option value="1">1 Repeat</option>
+        <option value="2">2 Repeats</option>
+        <option value="3" selected>3 Repeats</option>
+      </select>
+    </div>
+    
+    <div class="control-group">
+      <label>Animation Speed: <span id="speedValue">1x</span></label>
+      <input type="range" id="speedSlider" min="0.5" max="5" step="0.5" value="1">
+    </div>
+    
+    <button class="start-btn" id="startBtn">▶ Start Experiment</button>
+    <button class="reset-btn" id="resetBtn">🔄 Reset All Data</button>
+  </div>
+  
+  <!-- Visual Area Section -->
+  <div class="section-header">
+    <span class="section-title">🔬 Simulation</span>
+    <span class="expand-icon" data-target="visualAreaSection" data-title="Simulation">⛶</span>
+  </div>
+  <div class="visual-area" id="visualAreaSection">
+    <p style="text-align: center; color: #999; grid-column: 1/-1;">Select temperatures to see test tubes</p>
+  </div>
+  
+  <!-- Results Section -->
+  <div class="section-header">
+    <span class="section-title">📊 Results Table</span>
+    <span class="expand-icon" data-target="resultsTableSection" data-title="Results Table">⛶</span>
+  </div>
+  <div class="results-section" id="resultsTableSection">
+    <div style="grid-column: 1/-1;">
+      <table id="resultsTable">
+        <thead id="tableHeader">
+          <tr>
+            <th>Temperature (°C)</th>
+            <th>R1 Time (s)</th>
+            <th>R2 Time (s)</th>
+            <th>R3 Time (s)</th>
+            <th>Avg Time (s)</th>
+            <th>Rate (s⁻¹)</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <!-- Graph Section -->
+  <div class="section-header">
+    <span class="section-title">📈 Graph</span>
+    <span class="expand-icon" data-target="graphSection" data-title="Graph">⛶</span>
+  </div>
+  <div id="graphSection">
+    <div class="results-section">
+      <div style="grid-column: 1/-1;">
+        <div id="graphContainer">
+          <div class="graph-controls">
+            <h3 id="graphTitle" style="margin: 0;">Rate vs Temperature</h3>
+            <div class="graph-toggle">
+              <span>Time</span>
+              <div class="toggle-switch active" id="graphToggle"></div>
+              <span>Rate</span>
+            </div>
+          </div>
+          <svg id="graph"></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+  // Data storage
+  let results = {};
+  let isRunning = false;
+  let selectedTemps = new Set();
+  let graphMode = 'rate'; // 'rate' or 'time'
+  let currentRepeats = 3;
+  let animationFrameIds = new Map(); // Track animation frames
+  
+  // Modal elements
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalBody = document.getElementById('modalBody');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  
+  // Modal functionality
+  function openModal(targetId, title) {
+    const targetElement = document.getElementById(targetId);
+    if (!targetElement) return;
+    
+    // Clone the content
+    const clonedContent = targetElement.cloneNode(true);
+    
+    // Clean up any existing SVG in the clone to prevent ID conflicts
+    const originalSvg = targetElement.querySelector('svg');
+    if (originalSvg) {
+      const clonedSvg = clonedContent.querySelector('svg');
+      if (clonedSvg) {
+        clonedSvg.innerHTML = originalSvg.innerHTML;
+      }
+    }
+    
+    modalBody.innerHTML = '';
+    modalBody.appendChild(clonedContent);
+    modalTitle.textContent = title;
+    modalOverlay.classList.add('active');
+    
+    // Disable body scroll
+    document.body.style.overflow = 'hidden';
+    
+    // Re-draw graph if it's the graph section
+    if (targetId === 'graphSection') {
+      const tempSvg = modalBody.querySelector('svg');
+      if (tempSvg) {
+        setTimeout(() => {
+          const originalGraph = document.getElementById('graph');
+          if (originalGraph) {
+            tempSvg.innerHTML = originalGraph.innerHTML;
+            // Adjust SVG size for modal
+            tempSvg.style.width = '100%';
+            tempSvg.style.height = '500px';
+          }
+        }, 100);
+      }
+    }
+    
+    // Re-setup any event listeners for the modal content
+    setupModalEventListeners();
+  }
+  
+  function closeModal() {
+    modalOverlay.classList.remove('active');
+    document.body.style.overflow = 'auto';
+  }
+  
+  // Setup event listeners for modal content
+  function setupModalEventListeners() {
+    const modalGraphToggle = modalBody.querySelector('#graphToggle');
+    if (modalGraphToggle) {
+      modalGraphToggle.addEventListener('click', function() {
+        this.classList.toggle('active');
+        // Update original toggle to match
+        const originalToggle = document.getElementById('graphToggle');
+        if (originalToggle) {
+          originalToggle.classList.toggle('active', this.classList.contains('active'));
+          graphMode = this.classList.contains('active') ? 'rate' : 'time';
+          const graphTitle = document.getElementById('graphTitle');
+          if (graphTitle) {
+            graphTitle.textContent = graphMode === 'rate' ? 'Rate vs Temperature' : 'Time vs Temperature';
+          }
+          drawGraph();
+          // Update modal graph
+          setTimeout(() => {
+            const modalSvg = modalBody.querySelector('svg');
+            const originalSvg = document.getElementById('graph');
+            if (modalSvg && originalSvg) {
+              modalSvg.innerHTML = originalSvg.innerHTML;
+              modalSvg.style.width = '100%';
+              modalSvg.style.height = '500px';
+            }
+          }, 100);
+        }
+      });
+    }
+  }
+  
+  // Expand icon click handlers
+  document.querySelectorAll('.expand-icon').forEach(icon => {
+    icon.addEventListener('click', function() {
+      const targetId = this.dataset.target;
+      const title = this.dataset.title;
+      openModal(targetId, title);
+    });
+  });
+  
+  // Close modal handlers
+  closeModalBtn.addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', function(e) {
+    if (e.target === modalOverlay) {
+      closeModal();
+    }
+  });
+  
+  // Keyboard escape to close modal
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
+      closeModal();
+    }
+  });
+  
+  // Temperature buttons - Click handler
+  const tempButtons = document.querySelectorAll('.temp-btn');
+  tempButtons.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const temp = parseInt(this.dataset.temp);
+      
+      // Toggle selection
+      if (selectedTemps.has(temp)) {
+        selectedTemps.delete(temp);
+        this.classList.remove('active');
+      } else {
+        selectedTemps.add(temp);
+        this.classList.add('active');
+      }
+      
+      // Update visuals
+      updateVisualArea();
+    });
+  });
+  
+  // Custom temperature
+  const addCustomBtn = document.getElementById('addCustomBtn');
+  if (addCustomBtn) {
+    addCustomBtn.addEventListener('click', function() {
+      const input = document.getElementById('customTemp');
+      if (!input) return;
+      
+      const temp = parseFloat(input.value);
+      if (!isNaN(temp) && temp >= 0 && temp <= 80) {
+        selectedTemps.add(temp);
+        input.value = '';
+        updateVisualArea();
+      }
+    });
+  }
+  
+  // Speed slider
+  const speedSlider = document.getElementById('speedSlider');
+  const speedValue = document.getElementById('speedValue');
+  if (speedSlider && speedValue) {
+    speedSlider.addEventListener('input', function() {
+      speedValue.textContent = this.value + 'x';
+    });
+  }
+  
+  // Graph toggle
+  const graphToggle = document.getElementById('graphToggle');
+  if (graphToggle) {
+    graphToggle.addEventListener('click', function() {
+      this.classList.toggle('active');
+      graphMode = this.classList.contains('active') ? 'rate' : 'time';
+      const graphTitle = document.getElementById('graphTitle');
+      if (graphTitle) {
+        graphTitle.textContent = graphMode === 'rate' ? 'Rate vs Temperature' : 'Time vs Temperature';
+      }
+      drawGraph();
+    });
+  }
+  
+  // Reaction time model with variation
+  function calculateReactionTime(temp) {
+    const tempData = {
+      20: 60, 30: 35, 40: 20, 50: 30, 60: 80
+    };
+    
+    const temps = Object.keys(tempData).map(Number).sort((a,b) => a-b);
+    let baseTime;
+    
+    if (temp <= temps[0]) baseTime = tempData[temps[0]] * 1.5;
+    else if (temp >= temps[temps.length-1]) baseTime = tempData[temps[temps.length-1]] * 1.5;
+    else {
+      for (let i = 0; i < temps.length - 1; i++) {
+        if (temp >= temps[i] && temp <= temps[i+1]) {
+          const ratio = (temp - temps[i]) / (temps[i+1] - temps[i]);
+          baseTime = tempData[temps[i]] + ratio * (tempData[temps[i+1]] - tempData[temps[i]]);
+          break;
+        }
+      }
+    }
+    
+    // Add ±15% random variation
+    const variation = 0.85 + Math.random() * 0.3;
+    return baseTime * variation;
+  }
+  
+  // Update visual area with test tubes
+  function updateVisualArea() {
+    const visualArea = document.getElementById('visualAreaSection');
+    if (!visualArea) return;
+    
+    visualArea.innerHTML = '';
+    
+    if (selectedTemps.size === 0) {
+      visualArea.innerHTML = 
+        '<p style="text-align: center; color: #999; grid-column: 1/-1;">Select temperatures to see test tubes</p>';
+      return;
+    }
+    
+    Array.from(selectedTemps).sort((a,b) => a-b).forEach(temp => {
+      const container = document.createElement('div');
+      container.className = 'test-tube-container';
+      container.dataset.temp = temp;
+      
+      container.innerHTML = `
+        <h4>${temp.toFixed(1)}°C</h4>
+        <div class="test-tube" id="tube-${temp}"></div>
+        <div class="colorimeter-display">
+          Absorbance: <span id="abs-${temp}">1.00</span>
+        </div>
+        <div class="colorimeter-display" style="margin-top: 5px;">
+          Status: <span id="status-${temp}">Ready</span>
+        </div>
+      `;
+      
+      visualArea.appendChild(container);
+    });
+  }
+  
+  // Update table header based on repeats
+  function updateTableHeader() {
+    const thead = document.getElementById('tableHeader');
+    if (!thead) return;
+    
+    let headerHTML = '<tr><th>Temperature (°C)</th>';
+    for (let i = 1; i <= currentRepeats; i++) {
+      headerHTML += `<th>R${i} Time (s)</th>`;
+    }
+    headerHTML += '<th>Avg Time (s)</th><th>Rate (s⁻¹)</th></tr>';
+    thead.innerHTML = headerHTML;
+  }
+  
+  // Start experiment
+  const startBtn = document.getElementById('startBtn');
+  if (startBtn) {
+    startBtn.addEventListener('click', async function() {
+      if (isRunning || selectedTemps.size === 0) {
+        if (selectedTemps.size === 0) alert('Please select at least one temperature');
+        return;
+      }
+      
+      const repeatsSelect = document.getElementById('repeats');
+      currentRepeats = repeatsSelect ? parseInt(repeatsSelect.value) : 3;
+      
+      // Update table header
+      updateTableHeader();
+      
+      // Clear any existing animation frame trackers
+      animationFrameIds.clear();
+      
+      isRunning = true;
+      this.disabled = true;
+      this.textContent = '⏳ Running...';
+      
+      // Initialize results for selected temps
+      selectedTemps.forEach(temp => {
+        if (!results[temp]) results[temp] = [];
+      });
+      
+      const statusText = document.getElementById('statusText');
+      if (statusText) {
+        statusText.textContent = 'Setting up experiments...';
+      }
+      
+      // Show test tubes
+      updateVisualArea();
+      
+      // Run repeats
+      for (let r = 0; r < currentRepeats; r++) {
+        if (statusText) {
+          statusText.textContent = `Running repeat ${r + 1} of ${currentRepeats}...`;
+        }
+        
+        // Run all temperatures simultaneously
+        await Promise.all(
+          Array.from(selectedTemps).map(temp => 
+            runSingleExperiment(temp, parseFloat(speedSlider.value), r + 1)
+          )
+        );
+        
+        // Wait between repeats
+        if (r < currentRepeats - 1) {
+          if (statusText) {
+            statusText.textContent = 'Preparing next repeat...';
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000 / parseFloat(speedSlider.value)));
+        }
+      }
+      
+      if (statusText) {
+        statusText.textContent = 'Experiment complete!';
+      }
+      
+      isRunning = false;
+      this.disabled = false;
+      this.textContent = '▶ Start Experiment';
+    });
+  }
+  
+  // Run single experiment
+  function runSingleExperiment(temp, speed, repeatNum) {
+    return new Promise(resolve => {
+      const reactionTime = calculateReactionTime(temp) * 1000 / speed;
+      const testTube = document.getElementById(`tube-${temp}`);
+      const absorbanceEl = document.getElementById(`abs-${temp}`);
+      const statusEl = document.getElementById(`status-${temp}`);
+      
+      // Reset visual
+      if (testTube) {
+        testTube.style.opacity = 1;
+      }
+      if (absorbanceEl) {
+        absorbanceEl.textContent = '1.00';
+      }
+      if (statusEl) {
+        statusEl.textContent = `R${repeatNum} Running`;
+      }
+      
+      const startTime = Date.now();
+      let frameId;
+      
+      function animate() {
+        // Check if experiment was cancelled
+        if (!isRunning) {
+          resolve();
+          return;
+        }
+        
+        const now = Date.now();
+        const progress = Math.min((now - startTime) / reactionTime, 1);
+        
+        // Check if elements still exist
+        if (!testTube || !absorbanceEl || !statusEl) {
+          resolve();
+          return;
+        }
+        
+        // Update absorbance
+        const absorbance = (1 - progress * 0.7).toFixed(2);
+        absorbanceEl.textContent = absorbance;
+        
+        // Update tube opacity
+        testTube.style.opacity = 0.3 + (1 - progress) * 0.7;
+        
+        if (now < startTime + reactionTime) {
+          frameId = requestAnimationFrame(animate);
+          animationFrameIds.set(temp, frameId); // Store frame ID for cancellation
+        } else {
+          // Record result
+          if (!results[temp]) results[temp] = [];
+          results[temp].push({
+            time: (reactionTime / 1000).toFixed(1),
+            rate: (1 / (reactionTime / 1000)).toFixed(3)
+          });
+          
+          // Real-time updates
+          updateTable();
+          drawGraph();
+          
+          statusEl.textContent = `R${repeatNum} Complete`;
+          animationFrameIds.delete(temp); // Clean up
+          resolve();
+        }
+      }
+      
+      animate();
+    });
+  }
+  
+  // Update results table in real-time
+  function updateTable() {
+    const tbody = document.getElementById('tableBody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    Object.entries(results).sort((a,b) => a[0] - b[0]).forEach(([temp, data]) => {
+      const row = document.createElement('tr');
+      const times = data.map(d => parseFloat(d.time));
+      const avgTime = times.length > 0 ? times.reduce((a,b) => a + b, 0) / times.length : 0;
+      const avgRate = avgTime > 0 ? 1 / avgTime : 0;
+      
+      row.innerHTML = `<td>${parseFloat(temp).toFixed(1)}</td>`;
+      
+      // Add repeat columns dynamically
+      for (let i = 0; i < currentRepeats; i++) {
+        row.innerHTML += `<td>${times[i]?.toFixed(1) || '--'}</td>`;
+      }
+      
+      row.innerHTML += `<td>${avgTime.toFixed(1)}</td><td>${avgRate.toFixed(3)}</td>`;
+      tbody.appendChild(row);
+    });
+  }
+  
+  // Draw graph with proper Y-axis labels and smooth updates
+  function drawGraph() {
+    const svg = document.getElementById('graph');
+    if (!svg) return;
+    
+    if (Object.keys(results).length === 0) {
+      svg.innerHTML = '';
+      return;
+    }
+    
+    const width = svg.clientWidth || 500;
+    const height = 300;
+    const margin = {top: 20, right: 20, bottom: 40, left: 60};
+    const chartWidth = width - margin.left - margin.right;
+    const chartHeight = height - margin.top - margin.bottom;
+    
+    // Prepare data points
+    const points = Object.entries(results).map(([temp, data]) => {
+      const times = data.map(d => parseFloat(d.time));
+      const avgTime = times.length > 0 ? times.reduce((a,b) => a + b, 0) / times.length : 0;
+      const avgRate = avgTime > 0 ? 1 / avgTime : 0;
+      return {
+        temp: parseFloat(temp),
+        time: avgTime,
+        rate: avgRate
+      };
+    }).sort((a,b) => a.temp - b.temp);
+    
+    if (points.length === 0) return;
+    
+    // Scales - always start x at 0
+    const xMin = 0;
+    const xMax = Math.max(70, ...points.map(p => p.temp));
+    const yMax = graphMode === 'rate' 
+      ? Math.max(0.08, ...points.map(p => p.rate)) * 1.1
+      : Math.max(20, ...points.map(p => p.time)) * 1.1;
+    
+    function xScale(temp) {
+      return margin.left + (temp - xMin) / (xMax - xMin) * chartWidth;
+    }
+    
+    function yScale(y) {
+      return height - margin.bottom - (y / yMax) * chartHeight;
+    }
+    
+    // Clear existing content
+    svg.innerHTML = '';
+    
+    // Axes
+    const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    xAxis.setAttribute('class', 'x-axis');
+    xAxis.setAttribute('x1', margin.left);
+    xAxis.setAttribute('y1', height - margin.bottom);
+    xAxis.setAttribute('x2', width - margin.right);
+    xAxis.setAttribute('y2', height - margin.bottom);
+    xAxis.setAttribute('stroke', '#333');
+    xAxis.setAttribute('stroke-width', 2);
+    svg.appendChild(xAxis);
+    
+    const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    yAxis.setAttribute('class', 'y-axis');
+    yAxis.setAttribute('x1', margin.left);
+    yAxis.setAttribute('y1', margin.top);
+    yAxis.setAttribute('x2', margin.left);
+    yAxis.setAttribute('y2', height - margin.bottom);
+    yAxis.setAttribute('stroke', '#333');
+    yAxis.setAttribute('stroke-width', 2);
+    svg.appendChild(yAxis);
+    
+    // Labels
+    const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    xLabel.setAttribute('class', 'x-label');
+    xLabel.setAttribute('x', width / 2);
+    xLabel.setAttribute('y', height - 5);
+    xLabel.setAttribute('text-anchor', 'middle');
+    xLabel.setAttribute('fill', '#333');
+    xLabel.textContent = 'Temperature (°C)';
+    svg.appendChild(xLabel);
+    
+    const yLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    yLabel.setAttribute('class', 'y-label');
+    yLabel.setAttribute('x', 20);
+    yLabel.setAttribute('y', height / 2);
+    yLabel.setAttribute('text-anchor', 'middle');
+    yLabel.setAttribute('fill', '#333');
+    yLabel.setAttribute('transform', `rotate(-90, 20, ${height / 2})`);
+    yLabel.textContent = graphMode === 'rate' ? 'Rate (s⁻¹)' : 'Time (s)';
+    svg.appendChild(yLabel);
+    
+    // Grid lines and ticks
+    const interval = xMax <= 20 ? 5 : xMax <= 60 ? 10 : 20;
+    for (let temp = 0; temp <= xMax; temp += interval) {
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('class', 'grid-line');
+      line.setAttribute('x1', xScale(temp));
+      line.setAttribute('y1', margin.top);
+      line.setAttribute('x2', xScale(temp));
+      line.setAttribute('y2', height - margin.bottom);
+      line.setAttribute('stroke', '#ddd');
+      line.setAttribute('stroke-width', 1);
+      svg.appendChild(line);
+      
+      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      label.setAttribute('class', 'tick-label');
+      label.setAttribute('x', xScale(temp));
+      label.setAttribute('y', height - margin.bottom + 20);
+      label.setAttribute('text-anchor', 'middle');
+      label.setAttribute('fill', '#666');
+      label.setAttribute('font-size', '12');
+      label.textContent = temp;
+      svg.appendChild(label);
+    }
+    
+    const yTicks = 5;
+    for (let i = 0; i <= yTicks; i++) {
+      const value = (yMax / yTicks) * i;
+      const y = yScale(value);
+      
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('class', 'grid-line');
+      line.setAttribute('x1', margin.left);
+      line.setAttribute('y1', y);
+      line.setAttribute('x2', width - margin.right);
+      line.setAttribute('y2', y);
+      line.setAttribute('stroke', '#eee');
+      line.setAttribute('stroke-width', 1);
+      svg.appendChild(line);
+      
+      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      label.setAttribute('class', 'tick-label');
+      label.setAttribute('x', margin.left - 10);
+      label.setAttribute('y', y + 5);
+      label.setAttribute('text-anchor', 'end');
+      label.setAttribute('fill', '#666');
+      label.setAttribute('font-size', '12');
+      label.textContent = value.toFixed(graphMode === 'rate' ? 3 : 1);
+      svg.appendChild(label);
+    }
+    
+    // Data path and points
+    const yValues = points.map(p => graphMode === 'rate' ? p.rate : p.time);
+    
+    if (points.length > 0) {
+      // Draw path if we have multiple points
+      if (points.length > 1) {
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('class', 'graph-path');
+        let d = `M ${xScale(points[0].temp)} ${yScale(yValues[0])}`;
+        for (let i = 1; i < points.length; i++) {
+          d += ` L ${xScale(points[i].temp)} ${yScale(yValues[i])}`;
+        }
+        path.setAttribute('d', d);
+        path.setAttribute('stroke', '#e74c3c');
+        path.setAttribute('stroke-width', 3);
+        path.setAttribute('fill', 'none');
+        svg.appendChild(path);
+      }
+      
+      // Draw points
+      points.forEach((point, i) => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('class', 'graph-point');
+        circle.setAttribute('cx', xScale(point.temp));
+        circle.setAttribute('cy', yScale(yValues[i]));
+        circle.setAttribute('r', 6);
+        circle.setAttribute('fill', '#27ae60');
+        circle.setAttribute('stroke', 'white');
+        circle.setAttribute('stroke-width', 2);
+        svg.appendChild(circle);
+      });
+    }
+  }
+  
+  // Reset functionality
+  const resetBtn = document.getElementById('resetBtn');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', function() {
+      if (confirm('Reset all data and selections?')) {
+        // Cancel any ongoing animations
+        isRunning = false;
+        animationFrameIds.forEach(frameId => {
+          cancelAnimationFrame(frameId);
+        });
+        animationFrameIds.clear();
+        
+        // Clear data
+        results = {};
+        selectedTemps.clear();
+        currentRepeats = 3;
+        
+        // Reset UI
+        updateTableHeader();
+        updateTable();
+        drawGraph();
+        updateVisualArea();
+        
+        // Reset temperature buttons
+        document.querySelectorAll('.temp-btn').forEach(b => b.classList.remove('active'));
+        
+        // Reset custom temp input
+        const customTemp = document.getElementById('customTemp');
+        if (customTemp) customTemp.value = '';
+        
+        // Reset status
+        const statusText = document.getElementById('statusText');
+        if (statusText) statusText.textContent = 'Ready to start';
+        
+        // Re-enable start button
+        const startBtn = document.getElementById('startBtn');
+        if (startBtn) {
+          startBtn.disabled = false;
+          startBtn.textContent = '▶ Start Experiment';
+        }
+      }
+    });
+  }
+  
+  // Initialize
+  updateTableHeader();
+  updateVisualArea();
+  drawGraph();
+});
+</script>
+</body>
+</html>

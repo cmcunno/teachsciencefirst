@@ -1,0 +1,334 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive Leaf Chromatography Lab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-gray-100 dark:bg-gray-900">
+    <div id="root"></div>
+
+    <script type="module">
+        // --- ICONS (SVG STRINGS) ---
+        const ICONS = {
+            Play: `<svg xmlns="http://www.w.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`,
+            Pause: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`,
+            RotateCcw: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`,
+        };
+
+        // --- CONSTANTS ---
+        const PIGMENTS = {
+            CAROTENES: { name: 'Carotenes', color: '#ffab00', rf: 0.92 },
+            XANTHOPHYLLS: { name: 'Xanthophylls', color: '#ffd500', rf: 0.45 },
+            CHLOROPHYLL_A: { name: 'Chlorophyll a', color: '#3d8b3d', rf: 0.65 },
+            CHLOROPHYLL_B: { name: 'Chlorophyll b', color: '#8db600', rf: 0.30 },
+        };
+
+        const LEAVES = [
+            { name: 'Sun-loving Spinach', color: '#006400', description: 'Typical healthy green leaf from a plant grown in full sun.', pigments: [PIGMENTS.CAROTENES, PIGMENTS.XANTHOPHYLLS, PIGMENTS.CHLOROPHYLL_A, PIGMENTS.CHLOROPHYLL_B] },
+            { name: 'Shade-tolerant Fern', color: '#228B22', description: 'A leaf from a plant adapted to low-light conditions, with more chlorophyll b.', pigments: [PIGMENTS.XANTHOPHYLLS, { ...PIGMENTS.CHLOROPHYLL_A, rf: 0.63 }, { ...PIGMENTS.CHLOROPHYLL_B, rf: 0.35 }] },
+            { name: 'Autumn Maple', color: '#D95B28', description: 'An autumn leaf where chlorophyll has broken down, revealing accessory pigments.', pigments: [PIGMENTS.CAROTENES, PIGMENTS.XANTHOPHYLLS] },
+            { name: 'Variegated Coleus', color: '#800020', description: 'A decorative leaf with red pigments (anthocyanins, not separated here) and some chlorophyll.', pigments: [PIGMENTS.CAROTENES, PIGMENTS.XANTHOPHYLLS, { ...PIGMENTS.CHLOROPHYLL_A, rf: 0.60 }] },
+        ];
+
+        const SIMULATION_DURATION = 20000;
+        const PAPER_HEIGHT_MM = 100;
+        const ORIGIN_LINE_PERCENT = 10;
+        
+        // --- STATE ---
+        let state = {
+            leafA: LEAVES[0],
+            leafB: LEAVES[1],
+            simulationStatus: 'idle', // 'idle' | 'running' | 'paused' | 'finished'
+            progress: 0, // 0-100
+            startTime: null,
+            elapsedTime: 0,
+            userInputRfValues: { A: {}, B: {} }, // { A: { 'Carotenes': '0.95' }, B: {} }
+            validationStatus: { A: {}, B: {} }, // { A: { 'Carotenes': 'correct' }, B: {} }
+        };
+        let animationFrameId = null;
+
+        // --- RENDER FUNCTIONS ---
+        function renderChromatographyTube(leaf, progress) {
+            const solventFrontPosition = ORIGIN_LINE_PERCENT + (100 - ORIGIN_LINE_PERCENT) * (progress / 100);
+            
+            const pigmentSpotsHTML = leaf.pigments.map(pigment => {
+                const distanceTravelledPercent = (solventFrontPosition - ORIGIN_LINE_PERCENT) * pigment.rf;
+                const currentPosition = ORIGIN_LINE_PERCENT + distanceTravelledPercent;
+                return `<div
+                    class="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full transition-all duration-100 ease-linear opacity-80"
+                    style="background-color: ${pigment.color}; bottom: ${currentPosition}%;">
+                </div>`;
+            }).join('');
+
+            return `
+                <div class="w-24 h-full bg-gray-200/50 dark:bg-gray-700/50 border-2 border-gray-300 dark:border-gray-600 rounded-t-xl rounded-b-full relative overflow-hidden flex justify-center pt-4">
+                    <div class="w-12 h-[95%] bg-gray-50 dark:bg-gray-300 rounded-sm shadow-inner relative">
+                        <!-- Origin Line -->
+                        <div class="absolute w-full h-px bg-gray-400 dark:bg-gray-600" style="bottom: ${ORIGIN_LINE_PERCENT}%;">
+                             <span class="absolute -left-3 -translate-y-1/2 text-xs text-gray-500 dark:text-gray-400">0</span>
+                        </div>
+
+                        <!-- Pigment Start Point -->
+                        <div class="absolute left-1/2 -translate-x-1/2 w-2 h-2 rounded-full" style="background-color: ${leaf.color}; bottom: ${ORIGIN_LINE_PERCENT}%; transform: translate(-50%, 50%);"></div>
+
+                        ${pigmentSpotsHTML}
+
+                        <!-- Solvent Front -->
+                        <div class="absolute w-full h-px bg-blue-400 dark:bg-blue-600 transition-all duration-100 ease-linear" style="bottom: ${solventFrontPosition}%;">
+                             <span class="absolute -right-5 -translate-y-1/2 text-xs text-blue-500 dark:text-blue-400">${Math.round((solventFrontPosition - ORIGIN_LINE_PERCENT) / (100 - ORIGIN_LINE_PERCENT) * (PAPER_HEIGHT_MM - (ORIGIN_LINE_PERCENT/100 * PAPER_HEIGHT_MM)))}mm</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderResultsTable(leaf, progress, leafId) {
+            const solventFrontTravel = (PAPER_HEIGHT_MM - (ORIGIN_LINE_PERCENT / 100 * PAPER_HEIGHT_MM)) * (progress / 100);
+
+            const isFinished = state.simulationStatus === 'finished';
+
+            const getValidationClass = (pigmentName) => {
+                const status = state.validationStatus[leafId][pigmentName];
+                if (status === 'correct') return 'bg-green-100 dark:bg-green-900 border-green-500';
+                if (status === 'incorrect') return 'bg-red-100 dark:bg-red-900 border-red-500';
+                return 'bg-white dark:bg-gray-700';
+            };
+            
+            const rowsHTML = leaf.pigments.map(pigment => {
+                const pigmentTravel = solventFrontTravel * pigment.rf;
+                const calculatedRf = solventFrontTravel > 0 ? (pigmentTravel / solventFrontTravel).toFixed(2) : '0.00';
+                
+                return `
+                    <tr class="border-b border-gray-200 dark:border-gray-700">
+                        <td class="p-2 flex items-center"><div class="w-3 h-3 rounded-full mr-2" style="background-color: ${pigment.color};"></div>${pigment.name}</td>
+                        <td class="p-2 text-center">${pigmentTravel.toFixed(1)}</td>
+                        <td class="p-2 text-center">${solventFrontTravel.toFixed(1)}</td>
+                        <td class="p-2 text-center">
+                            ${isFinished ? `
+                                <input 
+                                    type="number" 
+                                    step="0.01" 
+                                    class="w-20 p-1 text-center rounded border-2 dark:text-white ${getValidationClass(pigment.name)}"
+                                    placeholder="?"
+                                    data-leaf="${leafId}"
+                                    data-pigment="${pigment.name}"
+                                    value="${state.userInputRfValues[leafId][pigment.name] || ''}"
+                                >
+                            ` : '...'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            return `
+                <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow-md">
+                    <h3 class="font-bold text-lg mb-2 text-gray-800 dark:text-gray-200 flex items-center">
+                        <div class="w-4 h-4 rounded-full mr-2" style="background-color: ${leaf.color};"></div>
+                        Results: ${leaf.name}
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-600 dark:text-gray-300">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
+                                <tr>
+                                    <th class="p-2">Pigment</th>
+                                    <th class="p-2 text-center">Distance (mm)</th>
+                                    <th class="p-2 text-center">Solvent Front (mm)</th>
+                                    <th class="p-2 text-center" title="Distance travelled by pigment / Distance travelled by solvent">Rf Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHTML}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderControls() {
+            const isRunning = state.simulationStatus === 'running';
+            const isFinished = state.simulationStatus === 'finished';
+
+            const leafOptions = (selectedLeafName) => LEAVES.map(leaf => 
+                `<option value="${leaf.name}" ${leaf.name === selectedLeafName ? 'selected' : ''}>${leaf.name}</option>`
+            ).join('');
+
+            return `
+                <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow-md col-span-1 md:col-span-2">
+                    <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-200">Controls & Setup</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="leafA-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Leaf Sample A</label>
+                            <select id="leafA-select" class="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white" ${isRunning ? 'disabled' : ''}>
+                                ${leafOptions(state.leafA.name)}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="leafB-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Leaf Sample B</label>
+                            <select id="leafB-select" class="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white" ${isRunning ? 'disabled' : ''}>
+                                ${leafOptions(state.leafB.name)}
+                            </select>
+                        </div>
+                    </div>
+                     <div class="flex items-center space-x-2">
+                        <button id="start-pause-btn" class="flex items-center justify-center w-24 px-4 py-2 bg-emerald-600 text-white font-semibold rounded-lg shadow-md hover:bg-emerald-700 disabled:bg-gray-400 transition-colors">
+                            ${isRunning ? ICONS.Pause : ICONS.Play}
+                            <span class="ml-2">${isRunning ? 'Pause' : isFinished ? 'Done' : 'Start'}</span>
+                        </button>
+                        <button id="reset-btn" class="flex items-center justify-center w-24 px-4 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 transition-colors">
+                            ${ICONS.RotateCcw}
+                            <span class="ml-2">Reset</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function render() {
+            const root = document.getElementById('root');
+            root.innerHTML = `
+                <main class="container mx-auto p-4 md:p-8">
+                    <header class="text-center mb-8">
+                        <h1 class="text-4xl font-extrabold text-gray-800 dark:text-white tracking-tight">Interactive Leaf Chromatography Lab</h1>
+                        <p class="mt-2 text-lg text-gray-600 dark:text-gray-300">A simulation of A-level Biology practical No. 7: Investigating leaf pigments.</p>
+                    </header>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                        <!-- Simulation Area -->
+                        <div class="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+                             <h2 class="text-2xl font-bold mb-4 text-center text-gray-800 dark:text-gray-200">Simulation</h2>
+                             <div class="flex justify-center items-end h-96 space-x-8">
+                                ${renderChromatographyTube(state.leafA, state.progress)}
+                                ${renderChromatographyTube(state.leafB, state.progress)}
+                             </div>
+                             <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-6">
+                                <div class="bg-emerald-500 h-2.5 rounded-full" style="width: ${state.progress}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Data & Controls Area -->
+                        <div class="lg:col-span-2 space-y-8">
+                           ${renderControls()}
+                           ${renderResultsTable(state.leafA, state.progress, 'A')}
+                           ${renderResultsTable(state.leafB, state.progress, 'B')}
+                        </div>
+                    </div>
+                </main>
+            `;
+            attachEventListeners();
+        }
+
+        // --- SIMULATION LOGIC ---
+        function animate(timestamp) {
+            if (!state.startTime) state.startTime = timestamp;
+            const runtime = timestamp - state.startTime;
+            const currentProgress = Math.min((runtime / SIMULATION_DURATION) * 100, 100);
+            state.progress = currentProgress;
+
+            render();
+
+            if (currentProgress < 100) {
+                animationFrameId = requestAnimationFrame(animate);
+            } else {
+                state.simulationStatus = 'finished';
+                cancelAnimationFrame(animationFrameId);
+                render();
+            }
+        }
+        
+        function startSimulation() {
+            if (state.simulationStatus === 'finished') return;
+            state.simulationStatus = 'running';
+            state.startTime = null; // Reset startTime to use elapsed time
+            requestAnimationFrame(timestamp => {
+                state.startTime = timestamp - state.elapsedTime;
+                animate(timestamp);
+            });
+        }
+
+        function pauseSimulation() {
+            state.simulationStatus = 'paused';
+            state.elapsedTime += performance.now() - state.startTime;
+            cancelAnimationFrame(animationFrameId);
+            render();
+        }
+
+        function resetSimulation() {
+            state.simulationStatus = 'idle';
+            state.progress = 0;
+            state.startTime = null;
+            state.elapsedTime = 0;
+            state.userInputRfValues = { A: {}, B: {} };
+            state.validationStatus = { A: {}, B: {} };
+            cancelAnimationFrame(animationFrameId);
+            render();
+        }
+
+        function handleStartPauseClick() {
+            if (state.simulationStatus === 'running') {
+                pauseSimulation();
+            } else if (state.simulationStatus !== 'finished') {
+                startSimulation();
+            }
+        }
+        
+        function handleLeafChange(leafId, newLeafName) {
+            const newLeaf = LEAVES.find(l => l.name === newLeafName);
+            if(leafId === 'A') {
+                state.leafA = newLeaf;
+            } else {
+                state.leafB = newLeaf;
+            }
+            resetSimulation();
+        }
+
+        function handleRfInputChange(leafId, pigmentName, value) {
+            state.userInputRfValues[leafId][pigmentName] = value;
+            
+            const leaf = leafId === 'A' ? state.leafA : state.leafB;
+            const pigment = leaf.pigments.find(p => p.name === pigmentName);
+            
+            if (pigment) {
+                // If the input is empty, reset the validation status. Otherwise, validate.
+                if (value.trim() === '') {
+                    state.validationStatus[leafId][pigmentName] = undefined;
+                } else {
+                    // Allow a small tolerance for rounding
+                    const isCorrect = Math.abs(parseFloat(value) - pigment.rf) < 0.02;
+                    state.validationStatus[leafId][pigmentName] = isCorrect ? 'correct' : 'incorrect';
+                }
+            }
+            
+            render();
+        }
+
+        // --- EVENT LISTENERS ---
+        function attachEventListeners() {
+            document.getElementById('start-pause-btn')?.addEventListener('click', handleStartPauseClick);
+            document.getElementById('reset-btn')?.addEventListener('click', resetSimulation);
+            document.getElementById('leafA-select')?.addEventListener('change', (e) => handleLeafChange('A', e.target.value));
+            document.getElementById('leafB-select')?.addEventListener('change', (e) => handleLeafChange('B', e.target.value));
+            
+            document.querySelectorAll('input[type="number"]').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const { leaf, pigment } = e.target.dataset;
+                    handleRfInputChange(leaf, pigment, e.target.value);
+                });
+            });
+        }
+
+        // --- INITIALIZATION ---
+        function initApp() {
+            render();
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>

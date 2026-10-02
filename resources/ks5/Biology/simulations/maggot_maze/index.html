@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maggot Maze Chi-Squared Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="./style.css" />
+   
+
+
+</head>
+<body class="bg-gray-100 dark:bg-gray-900">
+    <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans">
+        <header class="bg-white dark:bg-gray-800 shadow-md">
+            <div class="container mx-auto px-4 py-4 md:py-6">
+                <h1 class="text-3xl md:text-5xl font-bold text-center text-emerald-600 dark:text-emerald-400">
+                    A-Level Biology: Maggot Turning Behaviour
+                </h1>
+                <p class="text-center text-gray-600 dark:text-gray-400 mt-2 text-lg">
+                    An interactive tool to explore and analyze the results of the maze practical.
+                </p>
+            </div>
+        </header>
+
+        <main class="container mx-auto px-4 py-8">
+            <div class="w-full max-w-7xl mx-auto">
+                <div class="flex justify-center border-b border-gray-200 dark:border-gray-700 mb-8">
+                    <button id="simulation-tab" class="flex items-center justify-center px-4 py-3 border-b-2 font-medium text-sm transition-colors duration-200 focus:outline-none border-emerald-500 text-emerald-600 dark:text-emerald-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.362-3.797z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214C14.242 4.242 12.68 3.5 11.01 3.5c-2.485 0-4.75.99-6.425 2.656C4.24 6.54 3.5 7.99 3.5 9.6c0 1.58.625 3.085 1.722 4.214m12.118-8.214A8.252 8.252 0 0012 21 8.25 8.25 0 0017.962 7.048 8.287 8.287 0 0115 9.6a8.983 8.983 0 00-3.362-3.797z" />
+                        </svg>
+                        Simulation
+                    </button>
+                    <button id="calculator-tab" class="flex items-center justify-center px-4 py-3 border-b-2 font-medium text-sm transition-colors duration-200 focus:outline-none border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75V18m-7.5-6.75h.008v.008H8.25v-.008zm0 3h.008v.008H8.25v-.008zm0 3h.008v.008H8.25v-.008zm3-6h.008v.008H11.25v-.008zm0 3h.008v.008H11.25v-.008zm0 3h.008v.008H11.25v-.008zm3-6h.008v.008H14.25v-.008zm0 3h.008v.008H14.25v-.008zM4.5 21V3.543c0-1.09.894-1.98 1.98-1.98h10.04c1.086 0 1.98.89 1.98 1.98V21M4.5 21h15" />
+                        </svg>
+                        Chi-Squared Calculator
+                    </button>
+                </div>
+
+                <!-- Simulation View -->
+                <div id="simulation-view">
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+                        <!-- 1. Conditions -->
+                        <div class="lg:col-span-1">
+                            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 md:p-10 h-full">
+                                <h2 class="text-3xl font-semibold mb-4 text-center text-emerald-600 dark:text-emerald-400">1. Conditions</h2>
+                                <fieldset id="conditions-fieldset" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-x-6 gap-y-6">
+                                    <!-- Left Arm -->
+                                    <div>
+                                        <h3 class="font-semibold text-center mb-2 text-lg">Left Arm</h3>
+                                        <div data-side="left" data-condition="light">
+                                            <span class="text-gray-700 dark:text-gray-300 text-sm font-medium">Light</span>
+                                            <div class="mt-1 flex rounded-md shadow-sm">
+                                                <button type="button" data-value="light" class="relative inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:z-10 transition-colors rounded-l-md">Light</button>
+                                                <button type="button" data-value="dark" class="relative inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:z-10 transition-colors rounded-r-md -ml-px">Dark</button>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2" data-side="left" data-condition="moisture">
+                                            <span class="text-gray-700 dark:text-gray-300 text-sm font-medium">Moisture</span>
+                                            <div class="mt-1 flex rounded-md shadow-sm">
+                                                <button type="button" data-value="wet" class="relative inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:z-10 transition-colors rounded-l-md">Wet</button>
+                                                <button type="button" data-value="dry" class="relative inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:z-10 transition-colors rounded-r-md -ml-px">Dry</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Right Arm -->
+                                    <div>
+                                        <h3 class="font-semibold text-center mb-2 text-lg">Right Arm</h3>
+                                        <div data-side="right" data-condition="light">
+                                            <span class="text-gray-700 dark:text-gray-300 text-sm font-medium">Light</span>
+                                            <div class="mt-1 flex rounded-md shadow-sm">
+                                                <button type="button" data-value="light" class="relative inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:z-10 transition-colors rounded-l-md">Light</button>
+                                                <button type="button" data-value="dark" class="relative inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:z-10 transition-colors rounded-r-md -ml-px">Dark</button>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2" data-side="right" data-condition="moisture">
+                                            <span class="text-gray-700 dark:text-gray-300 text-sm font-medium">Moisture</span>
+                                            <div class="mt-1 flex rounded-md shadow-sm">
+                                                <button type="button" data-value="wet" class="relative inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:z-10 transition-colors rounded-l-md">Wet</button>
+                                                <button type="button" data-value="dry" class="relative inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:z-10 transition-colors rounded-r-md -ml-px">Dry</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                        <!-- 2. Simulation -->
+                        <div class="lg:col-span-2">
+                             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 md:p-10 h-full">
+                                <h2 class="text-3xl font-semibold mb-4 text-center text-emerald-600 dark:text-emerald-400">2. Simulation</h2>
+                                <div class="relative w-96 h-[420px] mx-auto bg-gray-200 dark:bg-gray-700 rounded-lg p-2 shadow-inner">
+                                    <!-- Maze Structure -->
+                                    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 h-[210px] bg-gray-300 dark:bg-gray-600"></div>
+                                    <div class="absolute top-1/2 -translate-y-1/2 left-0 w-full h-12 flex" aria-hidden="true">
+                                        <div id="maze-light-left" class="h-full rounded-l-md" style="width: calc(50% - 28px); background-color: rgb(254, 240, 138);"></div>
+                                        <div class="h-full bg-gray-300 dark:bg-gray-600" style="width: 56px;"></div>
+                                        <div id="maze-light-right" class="h-full rounded-r-md" style="width: calc(50% - 28px); background-color: rgb(75, 85, 99);"></div>
+                                    </div>
+                                    <!-- Conditions Icons -->
+                                    <div id="maze-moisture-left" class="absolute top-[calc(50%-16px)] left-12 text-blue-500 dark:text-blue-400 hidden">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 11.25C7.5 14.28 12 18.75 12 18.75s4.5-4.47 4.5-7.5c0-2.485-2.015-4.5-4.5-4.5s-4.5 2.015-4.5 4.5z" /></svg>
+                                    </div>
+                                    <div id="maze-moisture-right" class="absolute top-[calc(50%-16px)] right-12 text-blue-500 dark:text-blue-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 11.25C7.5 14.28 12 18.75 12 18.75s4.5-4.47 4.5-7.5c0-2.485-2.015-4.5-4.5-4.5s-4.5 2.015-4.5 4.5z" /></svg>
+                                    </div>
+                                    <!-- Maggot Animation Container -->
+                                    <div id="maggot-container" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-12"></div>
+                                    <!-- Labels -->
+                                    <div class="absolute top-1/2 -translate-y-full -mt-6 left-20 text-base font-semibold text-gray-500 dark:text-gray-400">Left</div>
+                                    <div class="absolute top-1/2 -translate-y-full -mt-6 right-20 text-base font-semibold text-gray-500 dark:text-gray-400">Right</div>
+                                    <div class="absolute bottom-2 left-1/2 -translate-x-1/2 text-center">
+                                        <span class="text-base font-bold text-gray-500 dark:text-gray-400">Start (X)</span>
+                                    </div>
+                                </div>
+                                <div class="mt-6 space-y-4">
+                                    <div class="flex items-center justify-center space-x-4">
+                                        <button id="run-pause-resume-btn" class="bg-emerald-500 hover:bg-emerald-600 w-40 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 text-lg">Run Simulation</button>
+                                        <button id="reset-btn" disabled class="bg-gray-500 hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 text-lg">Reset</button>
+                                    </div>
+                                    <p id="maggot-counter" class="text-center font-mono text-emerald-600 dark:text-emerald-400 text-lg h-7"></p>
+                                    <div class="pt-2 px-4">
+                                        <label for="speed-control" class="block text-base font-medium text-gray-700 dark:text-gray-300 text-center mb-1">
+                                            Animation Speed: <span id="speed-value" class="font-semibold">1.0x</span>
+                                        </label>
+                                        <input id="speed-control" type="range" min="0.5" max="2.5" step="0.1" value="1" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 3. Results -->
+                        <div class="lg:col-span-1">
+                            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 md:p-10 h-full">
+                                <h2 id="results-title" class="text-3xl font-semibold mb-4 text-center text-emerald-600 dark:text-emerald-400">3. Results</h2>
+                                <div id="results-container">
+                                    <div id="results-placeholder" class="text-center text-gray-500 dark:text-gray-400 flex flex-col items-center justify-center h-full min-h-[200px]">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2.25 2.25 0 00-2.242-2.242-2.25 2.25 0 00-2.242 2.242-2.25 2.25 0 002.242 2.242-2.25 2.25 0 002.242-2.242zM12 21a9 9 0 100-18 9 9 0 000 18z"></path></svg>
+                                        <p class="font-semibold text-lg">Ready for Experiment</p>
+                                        <p class="text-base mt-2">Set the conditions and click "Run Simulation" to generate results.</p>
+                                    </div>
+                                    <div id="results-table-container" class="hidden">
+                                        <p class="mb-4 text-center text-gray-600 dark:text-gray-400">Results from a sample of 20 maggots.</p>
+                                        <div class="overflow-x-auto">
+                                            <table class="w-full text-left border-collapse">
+                                                <thead class="bg-gray-100 dark:bg-gray-700">
+                                                    <tr>
+                                                        <th class="p-3 font-semibold text-base">Turn Direction</th>
+                                                        <th class="p-3 font-semibold text-base text-center">Count (Observed)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr class="border-b border-gray-200 dark:border-gray-600">
+                                                        <td class="p-3 text-lg">Left</td>
+                                                        <td id="results-left-count" class="p-3 text-center font-mono text-2xl">0</td>
+                                                    </tr>
+                                                    <tr class="border-b border-gray-200 dark:border-gray-600">
+                                                        <td class="p-3 text-lg">Right</td>
+                                                        <td id="results-right-count" class="p-3 text-center font-mono text-2xl">0</td>
+                                                    </tr>
+                                                </tbody>
+                                                <tfoot class="bg-gray-100 dark:bg-gray-700 font-bold">
+                                                    <tr>
+                                                        <td class="p-3 text-lg">Total</td>
+                                                        <td id="results-total-count" class="p-3 text-center font-mono text-2xl">0</td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                        <p id="results-footer-text" class="mt-4 text-base text-gray-500 dark:text-gray-400 hidden">
+                                          Switch to the Chi-Squared Calculator to test for statistical significance.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calculator View -->
+                <div id="calculator-view" class="hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Data Entry -->
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 md:p-10 h-full">
+                            <h2 class="text-3xl font-semibold mb-6 text-center text-emerald-600 dark:text-emerald-400">Enter Your Data</h2>
+                            <div class="space-y-6">
+                                <div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                                    <h3 class="font-semibold text-blue-800 dark:text-blue-200 text-lg">Experimental Context</h3>
+                                    <div class="mt-2 text-base text-blue-700 dark:text-blue-300 space-y-1">
+                                        <p><span class="font-semibold">Conditions:</span> <span id="calculator-conditions-text">Left: light/dry, Right: dark/wet</span></p>
+                                        <p><span class="font-semibold">Null Hypothesis (H₀):</span> <span id="calculator-null-hypothesis"></span></p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="obs-left" class="block text-base font-medium text-gray-700 dark:text-gray-300">Observed Left Turns</label>
+                                    <input type="number" id="obs-left" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 text-lg" placeholder="e.g., 8">
+                                </div>
+                                <div>
+                                    <label for="obs-right" class="block text-base font-medium text-gray-700 dark:text-gray-300">Observed Right Turns</label>
+                                    <input type="number" id="obs-right" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 text-lg" placeholder="e.g., 12">
+                                </div>
+                                <div class="bg-gray-100 dark:bg-gray-700/50 p-4 rounded-lg">
+                                    <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-lg">Calculated Values</h3>
+                                    <div class="mt-2 text-base text-gray-600 dark:text-gray-400">
+                                        <p>Total Observed: <span id="calc-total-observed" class="font-mono">0</span></p>
+                                        <p>Expected Left/Right (each): <span id="calc-expected" class="font-mono">0.0</span></p>
+                                    </div>
+                                </div>
+                                <button id="calculate-btn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 text-xl">
+                                    Calculate Chi-Squared
+                                </button>
+                                <p id="calculator-error" class="text-sm text-red-500 mt-2 h-5"></p>
+                            </div>
+                        </div>
+                        <!-- Results -->
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 md:p-10 h-full">
+                            <h2 class="text-3xl font-semibold mb-6 text-center text-emerald-600 dark:text-emerald-400">Results</h2>
+                            <div id="chi-squared-placeholder" class="text-center text-gray-500 dark:text-gray-400 flex flex-col items-center justify-center h-full min-h-[300px]">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M12 17h.01M15 14h.01M15 17h.01M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <p class="text-lg">Your results will be displayed here.</p>
+                                <p class="text-base mt-2">Enter your data and click the calculate button.</p>
+                            </div>
+                            <div id="chi-squared-results-container" class="hidden space-y-4 text-center">
+                                <div>
+                                    <p class="text-base text-gray-500 dark:text-gray-400">Chi-Squared Value (χ²)</p>
+                                    <p id="chi-squared-value" class="text-7xl font-bold text-emerald-600 dark:text-emerald-400">0.000</p>
+                                </div>
+                                <div class="flex justify-around pt-6">
+                                    <div>
+                                        <p class="text-base text-gray-500 dark:text-gray-400">Degrees of Freedom</p>
+                                        <p id="dof-value" class="text-4xl font-semibold">1</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-base text-gray-500 dark:text-gray-400">Critical Value (p=0.05)</p>
+                                        <p id="critical-value" class="text-4xl font-semibold">3.841</p>
+                                    </div>
+                                </div>
+                                <div id="significance-block" class="p-6 rounded-lg mt-8">
+                                    <h3 id="significance-title" class="text-2xl font-bold"></h3>
+                                    <p id="significance-text" class="mt-2 text-base"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="text-center py-4 text-sm text-gray-500 dark:text-gray-400 mt-8">
+            <p>Built for educational purposes. Happy experimenting!</p>
+        </footer>
+    </div>
+    <script type="module" src="./index.js"></script>
+
+</body>
+</html>

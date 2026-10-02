@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reaction Time Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-gray-900 text-white font-sans antialiased">
+    <div class="min-h-screen bg-gray-900 text-white flex flex-col font-sans">
+        <header class="w-full bg-gray-900 shadow-md sticky top-0 z-10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h1 class="text-2xl md:text-3xl font-bold text-center py-4 text-blue-300">Reaction Time Suite</h1>
+                <nav id="tabs" class="flex justify-center border-b border-gray-700">
+                    <button data-tab-target="#click-test" class="tab-button active-tab">Click Speed Test</button>
+                    <button data-tab-target="#dnd-test" class="tab-button">Experiment Sequencer</button>
+                </nav>
+            </div>
+        </header>
+
+        <main class="flex-grow w-full max-w-7xl mx-auto p-4 md:p-6 flex flex-col">
+            <div id="click-test" class="tab-content active-content">
+                <!-- Reaction Click Test -->
+                <div class="flex-grow flex flex-col items-center justify-center p-4">
+                    <h2 class="text-2xl font-bold mb-2">Reaction Time Test</h2>
+                    <p class="text-gray-300 mb-6 text-center">Click the box to begin. When it turns green, click as fast as you can!</p>
+                    <div id="reaction-box" class="w-full max-w-2xl h-64 md:h-80 flex flex-col justify-center items-center rounded-2xl cursor-pointer select-none transition-colors duration-200 ease-in-out shadow-lg transform hover:scale-105 bg-blue-600">
+                        <h3 id="instruction-text" class="text-3xl md:text-4xl font-bold text-white">Click to Start</h3>
+                        <p id="result-text" class="mt-4 text-lg text-white opacity-90"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dnd-test" class="tab-content hidden">
+                <!-- Drag and Drop Test -->
+                <div class="flex flex-col flex-grow w-full h-full min-h-0">
+                    <h2 class="text-xl md:text-2xl font-bold text-center mb-4">D&D Reaction Time Method</h2>
+                    <div class="flex-grow flex flex-col md:flex-row gap-4 min-h-0">
+                        <div id="source-container" class="w-full md:w-64 flex-shrink-0 bg-gray-800 border border-gray-700 p-4 rounded-lg overflow-y-auto">
+                            <h3 class="text-lg font-semibold text-center mb-4">Available Items</h3>
+                        </div>
+                        <div class="flex-grow flex justify-center items-center bg-gray-800/50 rounded-lg p-2 overflow-hidden">
+                            <div class="relative w-[1024px] h-[768px] scale-[0.5] sm:scale-[0.6] md:scale-[0.8] lg:scale-100 transform-origin-center origin-top-left md:origin-center">
+                                <img src="https://image-v2.cdn.app.senecalearning.com/courseImages/biology/5.2.2%20Reaction%20time%20experiment,h_400,q_80,w_640.png" alt="Reaction time experiment diagram" class="w-full h-full object-contain" />
+                                <div id="zone_0" data-accepts="item_0" class="drop-zone" style="width: 206px; height: 88px; top: 20px; left: 20px;"></div>
+                                <div id="zone_1" data-accepts="item_1" class="drop-zone" style="width: 206px; height: 88px; top: 120px; left: 20px;"></div>
+                                <div id="zone_2" data-accepts="item_2" class="drop-zone" style="width: 206px; height: 88px; top: 220px; left: 20px;"></div>
+                                <div id="zone_3" data-accepts="item_3" class="drop-zone" style="width: 206px; height: 88px; top: 320px; left: 20px;"></div>
+                                <div id="zone_4" data-accepts="item_4" class="drop-zone" style="width: 206px; height: 88px; top: 420px; left: 20px;"></div>
+                                <div id="zone_5" data-accepts="item_5" class="drop-zone" style="width: 206px; height: 88px; top: 520px; left: 20px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0 flex justify-center gap-4 mt-4">
+                        <button id="check-answers-btn" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-md font-semibold transition-colors">Check Answers</button>
+                        <button id="reset-dnd-btn" class="px-6 py-2 bg-gray-600 hover:bg-gray-700 rounded-md font-semibold transition-colors">Reset Activity</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .tab-button {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: color 0.2s;
+            border-radius: 0.5rem 0.5rem 0 0;
+            outline: none;
+            color: #9ca3af; /* text-gray-400 */
+        }
+        .tab-button:hover {
+            color: #ffffff;
+        }
+        .tab-button.active-tab {
+            background-color: #1f2937; /* bg-gray-800 */
+            color: #ffffff;
+            border-bottom: 2px solid #60a5fa; /* border-blue-400 */
+        }
+        .draggable-item {
+            padding: 0.5rem;
+            color: white;
+            border-radius: 0.375rem;
+            cursor: grab;
+            text-align: center;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            font-size: 0.875rem;
+            transition: background-color 0.2s;
+            background-color: #2563eb; /* bg-blue-600 */
+        }
+        .source-item {
+            margin-bottom: 0.75rem;
+        }
+        .dropped-item {
+            width: 100%;
+            height: 100%;
+        }
+        .draggable-item.dragging {
+            opacity: 0.5;
+        }
+        .drop-zone {
+            position: absolute;
+            border: 2px dashed #4b5563; /* border-gray-500 */
+            background-color: rgba(0, 0, 0, 0.1);
+            transition: background-color 0.2s;
+            border-radius: 0.375rem;
+        }
+        .drop-zone.drag-over {
+            background-color: rgba(37, 99, 235, 0.5); /* bg-blue-900/50 */
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Tabbing Logic ---
+            const tabs = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const target = document.querySelector(tab.dataset.tabTarget);
+
+                    tabs.forEach(t => t.classList.remove('active-tab'));
+                    tab.classList.add('active-tab');
+
+                    tabContents.forEach(tc => tc.classList.add('hidden'));
+                    target.classList.remove('hidden');
+                });
+            });
+
+            // --- Reaction Click Test Logic ---
+            const reactionBox = document.getElementById('reaction-box');
+            const instructionText = document.getElementById('instruction-text');
+            const resultText = document.getElementById('result-text');
+
+            let gameState = 'initial';
+            let timerTimeout = null;
+            let startTime = 0;
+
+            const stateConfigs = {
+                initial: { bgColor: 'bg-blue-600', instruction: 'Click to Start' },
+                waiting: { bgColor: 'bg-red-600', instruction: 'Wait for green...' },
+                reacting: { bgColor: 'bg-green-500', instruction: 'CLICK NOW!' },
+                result: { bgColor: 'bg-blue-600', instruction: 'Your reaction time:' }
+            };
+
+            function updateReactionUI() {
+                const config = stateConfigs[gameState];
+                reactionBox.className = reactionBox.className.replace(/bg-\w+-\d+/g, config.bgColor);
+                instructionText.textContent = config.instruction;
+                resultText.textContent = '';
+            }
+
+            function startWaitPhase() {
+                gameState = 'waiting';
+                updateReactionUI();
+                const randomDelay = Math.random() * 4000 + 1000;
+                timerTimeout = setTimeout(() => {
+                    gameState = 'reacting';
+                    updateReactionUI();
+                    startTime = performance.now();
+                }, randomDelay);
+            }
+
+            reactionBox.addEventListener('click', () => {
+                switch (gameState) {
+                    case 'initial':
+                    case 'result':
+                        startWaitPhase();
+                        break;
+                    case 'waiting':
+                        clearTimeout(timerTimeout);
+                        gameState = 'result';
+                        updateReactionUI();
+                        instructionText.textContent = 'Too soon!';
+                        resultText.textContent = 'Click to try again.';
+                        break;
+                    case 'reacting':
+                        const endTime = performance.now();
+                        const reactionTime = Math.round(endTime - startTime);
+                        gameState = 'result';
+                        updateReactionUI();
+                        instructionText.textContent = `Your reaction time: ${reactionTime} ms`;
+                        resultText.textContent = 'Click to play again.';
+                        break;
+                }
+            });
+
+            // --- Drag and Drop Test Logic ---
+            const sourceContainer = document.getElementById('source-container');
+            const dropZones = document.querySelectorAll('.drop-zone');
+            const checkBtn = document.getElementById('check-answers-btn');
+            const resetBtn = document.getElementById('reset-dnd-btn');
+
+            const INITIAL_ITEMS = [
+                { id: 'item_0', text: 'Your partner holds the a ruler vertically' },
+                { id: 'item_1', text: 'You place your index finger and thumb around the zero mark' },
+                { id: 'item_2', text: 'Your partner releases the ruler, you pinch the ruler as fast you can' },
+                { id: 'item_3', text: 'Record the length on the ruler where you caught it' },
+                { id: 'item_4', text: 'Repeat 10 times and average it' },
+                { id: 'item_5', text: 'Swap and repeat' }
+            ];
+
+            function shuffle(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            function initializeDnd() {
+                sourceContainer.innerHTML = '<h3 class="text-lg font-semibold text-center mb-4">Available Items</h3>';
+                dropZones.forEach(zone => zone.innerHTML = '');
+                const shuffledItems = shuffle([...INITIAL_ITEMS]);
+                shuffledItems.forEach(item => {
+                    const itemEl = document.createElement('div');
+                    itemEl.id = item.id;
+                    itemEl.textContent = item.text;
+                    itemEl.className = 'draggable-item source-item';
+                    itemEl.draggable = true;
+                    sourceContainer.appendChild(itemEl);
+                });
+                addDragListeners();
+            }
+
+            function addDragListeners() {
+                document.querySelectorAll('.draggable-item').forEach(item => {
+                    item.addEventListener('dragstart', handleDragStart);
+                    item.addEventListener('dragend', handleDragEnd);
+                });
+            }
+
+            function handleDragStart(e) {
+                e.dataTransfer.setData('text/plain', e.target.id);
+                e.target.classList.add('dragging');
+            }
+
+            function handleDragEnd(e) {
+                e.target.classList.remove('dragging');
+            }
+
+            [...dropZones, sourceContainer].forEach(container => {
+                container.addEventListener('dragover', handleDragOver);
+                container.addEventListener('dragenter', handleDragEnter);
+                container.addEventListener('dragleave', handleDragLeave);
+                container.addEventListener('drop', handleDrop);
+            });
+            
+            function handleDragOver(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            }
+
+            function handleDragEnter(e) {
+                e.preventDefault();
+                if (e.currentTarget.classList.contains('drop-zone') || e.currentTarget.id === 'source-container') {
+                    e.currentTarget.classList.add('drag-over');
+                }
+            }
+
+            function handleDragLeave(e) {
+                if (e.currentTarget.classList.contains('drop-zone') || e.currentTarget.id === 'source-container') {
+                    e.currentTarget.classList.remove('drag-over');
+                }
+            }
+
+            function handleDrop(e) {
+                e.preventDefault();
+                e.currentTarget.classList.remove('drag-over');
+                const id = e.dataTransfer.getData('text/plain');
+                const draggable = document.getElementById(id);
+                if (!draggable) return;
+
+                const target = e.currentTarget;
+                
+                // If dropping on a zone that already has an item, move that item back to source
+                if (target.classList.contains('drop-zone') && target.children.length > 0) {
+                    const existingItem = target.children[0];
+                    existingItem.classList.remove('dropped-item');
+                    existingItem.classList.add('source-item');
+                    sourceContainer.appendChild(existingItem);
+                }
+
+                draggable.classList.remove('source-item');
+                draggable.classList.add('dropped-item');
+                target.appendChild(draggable);
+                clearFeedback();
+            }
+
+            function clearFeedback() {
+                document.querySelectorAll('.draggable-item').forEach(item => {
+                    item.style.backgroundColor = ''; // Revert to stylesheet color
+                });
+            }
+
+            checkBtn.addEventListener('click', () => {
+                clearFeedback();
+                dropZones.forEach(zone => {
+                    const item = zone.querySelector('.draggable-item');
+                    if (item) {
+                        if (item.id === zone.dataset.accepts) {
+                            item.style.backgroundColor = '#16a34a'; // bg-green-600
+                        } else {
+                            item.style.backgroundColor = '#dc2626'; // bg-red-600
+                        }
+                    }
+                });
+            });
+
+            resetBtn.addEventListener('click', initializeDnd);
+
+            // Initial setup
+            initializeDnd();
+        });
+    </script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>

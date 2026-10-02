@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Microcirculation Simulator</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: rgba(15, 23, 42, 0.85); /* Darker, slightly transparent */
+            --text-color: #e2e8f0;
+            --accent-color: #38bdf8;
+            --danger-color: #ef4444;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Layout */
+        #sim-wrapper {
+            position: relative;
+            width: 98vw;
+            max-width: 1400px;
+            height: 650px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #334155;
+            background: #000;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        /* --- Top Controls (Moved from Bottom) --- */
+        #ui-layer {
+            position: absolute;
+            top: 20px; /* Top positioning */
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 25px;
+            padding: 12px 25px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(8px);
+            border-radius: 50px; /* Pill shape */
+            border: 1px solid rgba(255,255,255,0.15);
+            z-index: 10;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 160px;
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+        }
+
+        .value-display {
+            color: var(--accent-color);
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: var(--accent-color);
+            height: 4px;
+        }
+
+        /* Actions Section */
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding-left: 20px;
+            margin-left: 5px;
+            border-left: 1px solid rgba(255,255,255,0.15);
+            height: 100%;
+        }
+
+        button {
+            padding: 8px 18px;
+            border-radius: 20px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+
+        #btn-toggle { background: var(--accent-color); color: #0f172a; }
+        #btn-toggle:hover { background: #7dd3fc; }
+        
+        #btn-reset { background: rgba(255,255,255,0.1); color: #fff; }
+        #btn-reset:hover { background: rgba(255,255,255,0.2); }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            color: #cbd5e1;
+            user-select: none;
+        }
+
+        /* --- Bottom Legend (Single Line) --- */
+        #legend {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            
+            background: var(--panel-bg);
+            padding: 10px 30px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.75rem;
+            pointer-events: none;
+            z-index: 5;
+            backdrop-filter: blur(5px);
+            white-space: nowrap;
+        }
+
+        .legend-item { display: flex; align-items: center; gap: 6px; color: #cbd5e1; }
+        .legend-separator { width: 1px; height: 14px; background: rgba(255,255,255,0.2); margin: 0 5px; }
+        
+        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block;}
+        .bar { width: 14px; height: 4px; border-radius: 2px; display: inline-block;}
+
+        /* Tooltip */
+        #tooltip {
+            position: absolute;
+            pointer-events: none;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--accent-color);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #fff;
+            display: none;
+            z-index: 20;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+            white-space: pre-line;
+            line-height: 1.5;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="sim-wrapper">
+        <canvas id="simCanvas"></canvas>
+        
+        <div id="tooltip"></div>
+
+        <!-- Controls (Top Center) -->
+        <div id="ui-layer">
+            <div class="control-group">
+                <div class="control-header">
+                    <span>Arteriole HP</span>
+                    <span id="disp-hp" class="value-display">4.5 kPa</span>
+                </div>
+                <input type="range" id="slider-hp" min="3.0" max="6.0" step="0.1" value="4.5">
+            </div>
+
+            <div class="control-group">
+                <div class="control-header">
+                    <span>Protein (OP)</span>
+                    <span id="disp-prot" class="value-display">High</span>
+                </div>
+                <input type="range" id="slider-prot" min="1.0" max="5.0" step="0.1" value="3.3">
+            </div>
+
+            <div class="actions">
+                <button id="btn-toggle">Pause</button>
+                <button id="btn-reset">Reset</button>
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="chk-forces" checked> Forces
+                </label>
+            </div>
+        </div>
+
+        <!-- Legend (Bottom Center, Single Line) -->
+        <div id="legend">
+            <div class="legend-item"><span class="dot" style="background:#ef4444; box-shadow:0 0 5px #ef4444"></span> RBC</div>
+            <div class="legend-item"><span class="dot" style="background:#a855f7; box-shadow:0 0 5px #a855f7"></span> Protein</div>
+            <div class="legend-item"><span class="dot" style="background:#38bdf8"></span> Water</div>
+            <div class="legend-item"><span class="dot" style="background:#fbbf24"></span> Solute</div>
+            
+            <div class="legend-separator"></div>
+            
+            <div class="legend-item"><span class="bar" style="background:#f472b6;"></span> HP (Out)</div>
+            <div class="legend-item"><span class="bar" style="background:#a855f7;"></span> OP (In)</div>
+            <div class="legend-item"><span class="bar" style="background:#22c55e;"></span> Net Force</div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONSTANTS & CONFIG ---
+        const CANVAS = document.getElementById('simCanvas');
+        const CTX = CANVAS.getContext('2d');
+        const TOOLTIP = document.getElementById('tooltip');
+
+        const CONFIG = {
+            VESSEL_HEIGHT: 130, // Pixels
+            WALL_THICKNESS: 4,
+            ARROW_SCALE: 15,    // Pixels per kPa
+            PARTICLE_COUNTS: {
+                RBC: 40,
+                WATER: 300,
+                SOLUTE: 150,
+                TISSUE_SEED: 150 
+            },
+            SPEED: {
+                // Slowed down 50% settings
+                FLOW: 1.25,     
+                DRIFT: 0.4,     
+                DIFFUSION: 0.25 
+            },
+            COLORS: {
+                RBC: '#ef4444',
+                PROTEIN: '#a855f7',
+                WATER: '#38bdf8',
+                SOLUTE: '#fbbf24',
+                HP: '#f472b6',    
+                OP: '#a855f7',    
+                NET_OUT: '#22c55e', 
+                NET_IN: '#3b82f6'   
+            }
+        };
+
+        // --- STATE ---
+        let state = {
+            width: 0,
+            height: 0,
+            centerY: 0,
+            vesselTop: 0,
+            vesselBottom: 0,
+            artHP: 4.5,
+            protLevel: 3.3,
+            venHP: 1.5,
+            paused: false,
+            mouse: { x: -1, y: -1, active: false }
+        };
+
+        let particles = [];
+
+        // --- INITIALIZATION ---
+        function init() {
+            resize();
+            window.addEventListener('resize', resize);
+            
+            // Controls
+            document.getElementById('slider-hp').addEventListener('input', updatePhysics);
+            document.getElementById('slider-prot').addEventListener('input', updatePhysics);
+            document.getElementById('btn-toggle').addEventListener('click', () => {
+                state.paused = !state.paused;
+                document.getElementById('btn-toggle').textContent = state.paused ? "Resume" : "Pause";
+            });
+            document.getElementById('btn-reset').addEventListener('click', resetSim);
+            
+            // Mouse Interaction
+            CANVAS.addEventListener('mousemove', (e) => {
+                const rect = CANVAS.getBoundingClientRect();
+                state.mouse.x = e.clientX - rect.left;
+                state.mouse.y = e.clientY - rect.top;
+                state.mouse.active = true;
+                updateTooltip();
+            });
+            CANVAS.addEventListener('mouseleave', () => {
+                state.mouse.active = false;
+                TOOLTIP.style.display = 'none';
+            });
+
+            // Start
+            updatePhysics();
+            resetSim();
+            loop();
+        }
+
+        function resize() {
+            CANVAS.width = CANVAS.parentElement.offsetWidth;
+            CANVAS.height = CANVAS.parentElement.offsetHeight;
+            state.width = CANVAS.width;
+            state.height = CANVAS.height;
+            state.centerY = state.height / 2;
+            state.vesselTop = state.centerY - (CONFIG.VESSEL_HEIGHT / 2);
+            state.vesselBottom = state.centerY + (CONFIG.VESSEL_HEIGHT / 2);
+        }
+
+        function updatePhysics() {
+            state.artHP = parseFloat(document.getElementById('slider-hp').value);
+            state.protLevel = parseFloat(document.getElementById('slider-prot').value);
+            
+            // Venule pressure drops based on arteriole (simple model)
+            state.venHP = Math.max(1.0, state.artHP * 0.35);
+
+            // Update Labels
+            document.getElementById('disp-hp').textContent = state.artHP.toFixed(1) + ' kPa';
+            
+            let protText = "Normal";
+            if(state.protLevel < 2.0) protText = "Low";
+            else if(state.protLevel > 4.5) protText = "High";
+            document.getElementById('disp-prot').textContent = `${state.protLevel.toFixed(1)} kPa`;
+
+            // Adjust Protein particles dynamically
+            adjustProteinParticles();
+        }
+
+        // --- PARTICLE SYSTEM ---
+        class Particle {
+            constructor(type, startLocation = 'inside') {
+                this.type = type;
+                this.radius = this.getRadius();
+                this.color = CONFIG.COLORS[type.toUpperCase()];
+                this.glow = type === 'PROTEIN' || type === 'RBC';
+                this.reset(startLocation);
+            }
+
+            getRadius() {
+                switch(this.type) {
+                    case 'rbc': return 7;
+                    case 'protein': return 4;
+                    case 'water': return 2.5;
+                    case 'solute': return 2.5;
+                    default: return 2;
+                }
+            }
+
+            reset(location) {
+                this.state = location; 
+                if (location === 'inside') {
+                    this.x = Math.random() * state.width;
+                    this.y = state.vesselTop + 5 + Math.random() * (CONFIG.VESSEL_HEIGHT - 10);
+                } else {
+                    this.x = Math.random() * state.width;
+                    const isTop = Math.random() > 0.5;
+                    if(isTop) this.y = Math.random() * state.vesselTop;
+                    else this.y = state.vesselBottom + Math.random() * (state.height - state.vesselBottom);
+                }
+                this.vx = 0; this.vy = 0;
+            }
+
+            update() {
+                const xRatio = this.x / state.width;
+                const safeRatio = Math.max(0, Math.min(1, xRatio));
+                const localHP = state.artHP - (safeRatio * (state.artHP - state.venHP));
+                const localNet = localHP - state.protLevel;
+
+                if (this.state === 'inside') {
+                    // Flow & Diffusion
+                    this.vx = CONFIG.SPEED.FLOW * (0.8 + Math.random() * 0.4);
+                    this.vy += (Math.random() - 0.5) * CONFIG.SPEED.DIFFUSION;
+                    this.vy *= 0.9; // Dampen vertical
+
+                    // Wall Collisions
+                    if (this.y < state.vesselTop + this.radius) { 
+                        this.y = state.vesselTop + this.radius; 
+                        this.vy *= -1; 
+                    }
+                    if (this.y > state.vesselBottom - this.radius) { 
+                        this.y = state.vesselBottom - this.radius; 
+                        this.vy *= -1; 
+                    }
+
+                    // FILTRATION
+                    if (this.type !== 'rbc' && this.type !== 'protein') {
+                        if (localNet > 0) { 
+                            if (Math.random() < localNet * 0.005) {
+                                this.state = 'outside';
+                                const distTop = Math.abs(this.y - state.vesselTop);
+                                const distBot = Math.abs(this.y - state.vesselBottom);
+                                const dir = (distTop < distBot) ? -1 : 1;
+                                this.vy = dir * (0.3 + localNet * 0.15); 
+                            }
+                        }
+                    }
+
+                } else { // Outside
+                    // Drift & Brownian
+                    this.vx = CONFIG.SPEED.DRIFT + (Math.random() - 0.5) * CONFIG.SPEED.DIFFUSION;
+                    this.vy += (Math.random() - 0.5) * CONFIG.SPEED.DIFFUSION;
+                    this.vx *= 0.95; this.vy *= 0.95;
+
+                    // Outer Bounds
+                    if (this.y < 0) { this.y = 0; this.vy *= -1; }
+                    if (this.y > state.height) { this.y = state.height; this.vy *= -1; }
+
+                    // REABSORPTION
+                    if (localNet < 0) {
+                        const distTop = Math.abs(this.y - state.vesselTop);
+                        const distBot = Math.abs(this.y - state.vesselBottom);
+                        const isClose = distTop < 25 || distBot < 25;
+
+                        if (isClose) {
+                            if (Math.random() < Math.abs(localNet) * 0.02) {
+                                this.state = 'inside';
+                                this.y = (distTop < distBot) ? state.vesselTop + 5 : state.vesselBottom - 5;
+                                this.vx = CONFIG.SPEED.FLOW; 
+                                this.vy = 0;
+                            }
+                        }
+                    }
+                }
+
+                // Apply & Wrap
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x > state.width + 20) {
+                    this.reset('inside'); 
+                    this.x = -20;
+                } else if (this.x < -20) {
+                    this.x = state.width + 10; 
+                }
+            }
+
+            draw() {
+                CTX.beginPath();
+                CTX.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                CTX.fillStyle = this.color;
+                if (this.glow) {
+                    CTX.shadowBlur = 10;
+                    CTX.shadowColor = this.color;
+                } else {
+                    CTX.shadowBlur = 0;
+                }
+                CTX.fill();
+                CTX.shadowBlur = 0;
+            }
+        }
+
+        function resetSim() {
+            particles = [];
+            for(let i=0; i<CONFIG.PARTICLE_COUNTS.RBC; i++) particles.push(new Particle('rbc', 'inside'));
+            for(let i=0; i<CONFIG.PARTICLE_COUNTS.WATER; i++) particles.push(new Particle('water', 'inside'));
+            for(let i=0; i<CONFIG.PARTICLE_COUNTS.SOLUTE; i++) particles.push(new Particle('solute', 'inside'));
+            for(let i=0; i<CONFIG.PARTICLE_COUNTS.TISSUE_SEED; i++) {
+                 particles.push(new Particle('water', 'outside'));
+                 if(Math.random() > 0.5) particles.push(new Particle('solute', 'outside'));
+            }
+            adjustProteinParticles();
+        }
+
+        function adjustProteinParticles() {
+            particles = particles.filter(p => p.type !== 'protein');
+            const count = Math.floor(state.protLevel * 15);
+            for(let i=0; i<count; i++) particles.push(new Particle('protein', 'inside'));
+        }
+
+        // --- DRAWING ---
+        function loop() {
+            if (!state.paused) {
+                CTX.clearRect(0, 0, state.width, state.height);
+                drawBackground();
+                drawArrows();
+                particles.forEach(p => { p.update(); p.draw(); });
+            }
+            requestAnimationFrame(loop);
+        }
+
+        function drawBackground() {
+            // Background labels - Moved higher to avoid bottom legend
+            CTX.fillStyle = "rgba(255,255,255,0.03)";
+            CTX.font = "bold 80px Inter";
+            CTX.textAlign = "center";
+            CTX.textBaseline = "middle";
+            CTX.fillText("CAPILLARY", state.width/2, state.centerY);
+
+            CTX.font = "bold 50px Inter";
+            // Placed at height - 100 to avoid overlapping the new bottom-center legend
+            CTX.fillText("TISSUE FLUID", state.width/2, state.height - 100);
+
+            // Vessel Walls
+            const gradTop = CTX.createLinearGradient(0, 0, state.width, 0);
+            gradTop.addColorStop(0, '#ef4444');
+            gradTop.addColorStop(1, '#3b82f6');
+
+            CTX.globalAlpha = 0.2;
+            CTX.fillStyle = gradTop;
+            CTX.fillRect(0, state.vesselTop, state.width, CONFIG.VESSEL_HEIGHT);
+            CTX.globalAlpha = 1.0;
+
+            CTX.lineWidth = CONFIG.WALL_THICKNESS;
+            CTX.strokeStyle = gradTop;
+            
+            CTX.beginPath(); CTX.moveTo(0, state.vesselTop); CTX.lineTo(state.width, state.vesselTop); CTX.stroke();
+            CTX.beginPath(); CTX.moveTo(0, state.vesselBottom); CTX.lineTo(state.width, state.vesselBottom); CTX.stroke();
+            
+            // Equilibrium Line
+            const pressureDiff = state.artHP - state.venHP;
+            if (pressureDiff !== 0) {
+                const ratio = (state.artHP - state.protLevel) / pressureDiff;
+                if(ratio > 0 && ratio < 1) {
+                    const x = ratio * state.width;
+                    CTX.setLineDash([5, 5]);
+                    CTX.strokeStyle = "rgba(255,255,255,0.3)";
+                    CTX.lineWidth = 1;
+                    CTX.beginPath();
+                    CTX.moveTo(x, state.vesselTop - 20);
+                    CTX.lineTo(x, state.vesselBottom + 20);
+                    CTX.stroke();
+                    CTX.setLineDash([]);
+                    CTX.font = "12px Inter";
+                    CTX.fillStyle = "#94a3b8";
+                    CTX.fillText("Equilibrium", x, state.vesselTop - 30);
+                }
+            }
+        }
+
+        function drawArrows() {
+            if (!document.getElementById('chk-forces').checked) return;
+            const steps = 8;
+            for (let i = 0; i < steps; i++) {
+                const ratio = 0.08 + (i / (steps - 1)) * 0.84;
+                const x = ratio * state.width;
+                const y = state.vesselTop - 10;
+                const locHP = state.artHP - (ratio * (state.artHP - state.venHP));
+                const locOP = state.protLevel;
+                const locNet = locHP - locOP;
+                drawVectorGroup(x, y, locHP, locOP, locNet);
+            }
+        }
+
+        function drawVectorGroup(x, bottomY, hp, op, net) {
+            const barW = 8; const gap = 4;
+            const hHP = hp * CONFIG.ARROW_SCALE;
+            drawArrow(x - barW - gap, bottomY, hHP, CONFIG.COLORS.HP, 'up');
+            const hOP = op * CONFIG.ARROW_SCALE;
+            drawArrow(x, bottomY, hOP, CONFIG.COLORS.OP, 'down');
+            const hNet = Math.max(10, Math.abs(net) * CONFIG.ARROW_SCALE);
+            const color = net >= 0 ? CONFIG.COLORS.NET_OUT : CONFIG.COLORS.NET_IN;
+            const dir = net >= 0 ? 'up' : 'down';
+            drawArrow(x + barW + gap, bottomY, hNet, color, dir, true);
+        }
+
+        function drawArrow(x, anchorY, height, color, dir, glow=false) {
+            CTX.fillStyle = color;
+            if(glow) { CTX.shadowBlur = 10; CTX.shadowColor = color; }
+            const headH = 8; const w = 8;
+            const bodyH = Math.max(0, height - headH);
+
+            CTX.beginPath();
+            if (dir === 'up') {
+                CTX.rect(x - w/2, anchorY - bodyH, w, bodyH);
+                CTX.moveTo(x - w, anchorY - bodyH); CTX.lineTo(x + w, anchorY - bodyH); CTX.lineTo(x, anchorY - height);
+            } else {
+                CTX.rect(x - w/2, anchorY - height, w, bodyH);
+                CTX.moveTo(x - w, anchorY - headH); CTX.lineTo(x + w, anchorY - headH); CTX.lineTo(x, anchorY);
+            }
+            CTX.fill();
+            CTX.shadowBlur = 0;
+        }
+
+        function updateTooltip() {
+            if (!state.mouse.active) return;
+            const ratio = Math.max(0, Math.min(1, state.mouse.x / state.width));
+            const locHP = state.artHP - (ratio * (state.artHP - state.venHP));
+            const locNet = locHP - state.protLevel;
+
+            let type = locNet > 0 ? "FILTRATION" : "REABSORPTION";
+            let color = locNet > 0 ? CONFIG.COLORS.NET_OUT : CONFIG.COLORS.NET_IN;
+
+            TOOLTIP.style.left = (state.mouse.x + 15) + 'px';
+            TOOLTIP.style.top = (state.mouse.y + 15) + 'px';
+            TOOLTIP.style.display = 'block';
+            TOOLTIP.style.borderColor = color;
+            
+            TOOLTIP.innerHTML = `
+                <strong style="color:${color}">${type}</strong><br>
+                <span style="color:${CONFIG.COLORS.HP}">Hydrostatic: ${locHP.toFixed(1)} kPa</span><br>
+                <span style="color:${CONFIG.COLORS.OP}">Osmotic: ${state.protLevel.toFixed(1)} kPa</span><br>
+                ----------------<br>
+                <strong>Net Force: ${Math.abs(locNet).toFixed(1)} kPa</strong>
+            `;
+        }
+
+        // Start
+        init();
+
+    </script>
+</body>
+</html>
