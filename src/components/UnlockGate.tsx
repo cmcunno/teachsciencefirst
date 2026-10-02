@@ -58,7 +58,7 @@ export const UnlockGate: React.FC<UnlockGateProps> = ({ onUnlock }) => {
         <div className="flex items-center gap-2.5">
           <FlaskConical className="w-5 h-5 text-cyan-400" />
           <span className="text-sm font-semibold tracking-tight text-slate-100">
-            Pyrex Science Teaching Portal
+            Teach Science First
           </span>
         </div>
         <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
@@ -80,10 +80,10 @@ export const UnlockGate: React.FC<UnlockGateProps> = ({ onUnlock }) => {
                 <span>SHA-256 Protected</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-50 font-display">
-                Personal Science Teaching Portal
+                Teach Science First
               </h1>
               <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
-                A private gateway for physics, chemistry, biology, and space sciences. Unlocking grants instant access to interactive simulation repositories, each opening its full <code className="text-cyan-300 font-mono bg-slate-900 px-1.5 py-0.5 rounded text-xs border border-slate-800">index.html</code> in a dedicated tab.
+                A dedicated portal for physics, chemistry, biology, and space sciences. Unlocking grants instant access to interactive simulation repositories, each opening its full <code className="text-cyan-300 font-mono bg-slate-900 px-1.5 py-0.5 rounded text-xs border border-slate-800">index.html</code> in a dedicated tab.
               </p>
             </div>
 
@@ -108,11 +108,11 @@ export const UnlockGate: React.FC<UnlockGateProps> = ({ onUnlock }) => {
             <div className="grid grid-cols-2 gap-3 text-xs text-slate-400">
               <div className="p-3 bg-slate-900/60 border border-slate-800/60 rounded-lg">
                 <div className="text-slate-200 font-medium mb-1">Interactive Repos</div>
-                <div>Physics kinematics, periodic orbits, optics ray tracing & genetics.</div>
+                <div>24 KS3, KS4 & KS5 biology, chemistry & physics teaching modules.</div>
               </div>
               <div className="p-3 bg-slate-900/60 border border-slate-800/60 rounded-lg">
-                <div className="text-slate-200 font-medium mb-1">Single-Tab Launch</div>
-                <div>Every module's index.html opens safely in a fresh workspace tab.</div>
+                <div className="text-slate-200 font-medium mb-1">Folder Structure Nav</div>
+                <div>Full hierarchy: Key Stage → Subject → Concepts & Simulations.</div>
               </div>
             </div>
           </div>
