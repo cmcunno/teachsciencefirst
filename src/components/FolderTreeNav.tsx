@@ -15,6 +15,7 @@ import {
   Search
 } from 'lucide-react';
 import { ScienceResource, KeyStage, ScienceDiscipline, ResourceCategory } from '../types';
+import { resolveResourceUrl } from '../utils/url';
 
 interface FolderTreeNavProps {
   resources: ScienceResource[];
@@ -379,7 +380,7 @@ export const FolderTreeNav: React.FC<FolderTreeNavProps> = ({
 
                                                     {/* Open in new tab */}
                                                     <a
-                                                      href={res.url}
+                                                      href={resolveResourceUrl(res.url)}
                                                       target="_blank"
                                                       rel="noopener noreferrer"
                                                       onClick={(e) => e.stopPropagation()}

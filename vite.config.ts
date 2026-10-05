@@ -13,12 +13,23 @@ function copyResourcesPlugin() {
       if (fs.existsSync(src)) {
         fs.cpSync(src, dest, { recursive: true });
       }
+      // GitHub Pages support:
+      // 1. .nojekyll disables Jekyll processing so folders with underscores or assets aren't ignored
+      const noJekyllPath = path.resolve(import.meta.dirname, 'dist/.nojekyll');
+      fs.writeFileSync(noJekyllPath, '');
+      // 2. 404.html fallback for SPA on GitHub Pages
+      const indexPath = path.resolve(import.meta.dirname, 'dist/index.html');
+      const fallback404 = path.resolve(import.meta.dirname, 'dist/404.html');
+      if (fs.existsSync(indexPath)) {
+        fs.copyFileSync(indexPath, fallback404);
+      }
     },
   };
 }
 
 export default defineConfig(() => {
   return {
+    base: './',
     publicDir: false as const,
     plugins: [react(), tailwindcss(), copyResourcesPlugin()],
     resolve: {

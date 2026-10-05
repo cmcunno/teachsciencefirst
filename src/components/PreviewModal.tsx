@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { X, ExternalLink, RefreshCw, Folder, FileCode2 } from 'lucide-react';
 import { ScienceResource } from '../types';
+import { resolveResourceUrl } from '../utils/url';
 
 interface PreviewModalProps {
   repo: ScienceResource | null;
@@ -20,10 +21,12 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({ repo, onClose }) => 
 
   if (!repo) return null;
 
+  const resolvedUrl = resolveResourceUrl(repo.url);
+
   const handleReload = () => {
     const iframe = document.getElementById('preview-frame') as HTMLIFrameElement;
     if (iframe) {
-      iframe.src = iframe.src;
+      iframe.src = resolvedUrl;
     }
   };
 
@@ -56,7 +59,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({ repo, onClose }) => 
 
             {/* Crucial: Open in new tab from the preview */}
             <a
-              href={repo.url}
+              href={resolvedUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
@@ -80,7 +83,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({ repo, onClose }) => 
         <div className="flex-1 bg-slate-950 relative">
           <iframe
             id="preview-frame"
-            src={repo.url}
+            src={resolvedUrl}
             title={repo.title}
             className="w-full h-full border-0"
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups"

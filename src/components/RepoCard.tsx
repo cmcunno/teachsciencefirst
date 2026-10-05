@@ -12,6 +12,7 @@ import {
   Atom
 } from 'lucide-react';
 import { ScienceResource } from '../types';
+import { resolveResourceUrl, getFullResourceUrl } from '../utils/url';
 
 interface RepoCardProps {
   repo: ScienceResource;
@@ -25,11 +26,12 @@ export const RepoCard: React.FC<RepoCardProps> = ({
   onToggleFavorite,
 }) => {
   const [copied, setCopied] = useState(false);
+  const resolvedUrl = resolveResourceUrl(repo.url);
 
   const handleCopy = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    const fullUrl = `${window.location.origin}${repo.url}`;
+    const fullUrl = getFullResourceUrl(repo.url);
     navigator.clipboard.writeText(fullUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -91,7 +93,7 @@ export const RepoCard: React.FC<RepoCardProps> = ({
         {/* Primary Title */}
         <h3 className="text-base sm:text-lg font-bold text-slate-100 group-hover:text-cyan-300 transition-colors leading-snug mb-2">
           <a
-            href={repo.url}
+            href={resolvedUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="hover:underline flex items-start justify-between gap-1.5"
@@ -126,7 +128,7 @@ export const RepoCard: React.FC<RepoCardProps> = ({
       <div className="pt-3.5 border-t border-slate-800/80 flex items-center justify-between gap-2 mt-auto">
         {/* Primary Action: Open index.html in New Tab */}
         <a
-          href={repo.url}
+          href={resolvedUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="flex-1 py-2 px-3 bg-cyan-600/95 hover:bg-cyan-500 text-slate-950 font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm whitespace-nowrap"
