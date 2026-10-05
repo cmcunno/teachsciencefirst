@@ -182,19 +182,6 @@
     "fileName": "index.html"
   },
   {
-    "id": "res-ks4-physics-simulations-g-m-tube",
-    "title": "Visual GM Counter Simulation with Connection",
-    "keyStage": "KS4",
-    "stageLevel": "KS4 / GCSE (Ages 14-16)",
-    "subject": "Physics",
-    "category": "Simulations",
-    "slug": "g m-tube",
-    "description": "Geiger-Müller counter simulation with alpha, beta, gamma radioactive sources and variable material shielding (paper, aluminum, lead).",
-    "url": "/resources/ks4/Physics/simulations/g m-tube/index.html",
-    "path": "resources/ks4/Physics/simulations/g m-tube/index.html",
-    "fileName": "index.html"
-  },
-  {
     "id": "res-ks4-physics-simulations-half-life",
     "title": "Radioactive Decay Simulation",
     "keyStage": "KS4",

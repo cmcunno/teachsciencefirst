@@ -233,22 +233,6 @@ export const INITIAL_REPOSITORIES: ScienceResource[] = [
     authorNotes: "Core GCSE Physics practical demonstrating proportional extension and the limit of proportionality."
   },
   {
-    id: 'res-ks4-physics-simulations-gm-tube',
-    title: 'Visual GM Counter Simulation',
-    keyStage: 'KS4',
-    stageLevel: 'KS4 / GCSE (Ages 14-16)',
-    subject: 'Physics',
-    category: 'Simulations',
-    slug: 'g m-tube',
-    description: 'Geiger-Müller counter simulation with Alpha (α), Beta (β), and Gamma (γ) ionizing radiation sources, background radiation subtraction, and material shielding (paper, Al, Pb).',
-    url: '/resources/ks4/Physics/simulations/g m-tube/index.html',
-    path: 'resources/ks4/Physics/simulations/g m-tube/index.html',
-    fileName: 'index.html',
-    isLocalRepo: true,
-    isFavorite: true,
-    authorNotes: 'Interactive radiation bench with click counter audio and distance attenuation.'
-  },
-  {
     id: 'res-ks4-physics-simulations-half-life',
     title: 'Radioactive Decay Simulation',
     keyStage: 'KS4',

@@ -32,7 +32,7 @@ import { PreviewModal } from './components/PreviewModal';
 import { FolderTreeNav } from './components/FolderTreeNav';
 
 const STORAGE_KEY_AUTH = 'pyrex_science_auth_v1';
-const STORAGE_KEY_REPOS = 'teach_science_first_resources_v4';
+const STORAGE_KEY_REPOS = 'teach_science_first_resources_v5';
 
 export default function App() {
   // Authentication State
@@ -50,13 +50,19 @@ export default function App() {
   // Resources State - loaded from resources/ structure
   const [repositories, setRepositories] = useState<ScienceResource[]>(() => {
     try {
-      // 1. Try primary storage key v4
+      const isGmCounter = (r: any) =>
+        r?.id === 'res-ks4-physics-simulations-gm-tube' ||
+        r?.id === 'res-ks4-physics-simulations-g-m-tube' ||
+        r?.slug === 'g m-tube' ||
+        r?.path?.includes('g m-tube');
+
+      // 1. Try primary storage key v5
       const saved = localStorage.getItem(STORAGE_KEY_REPOS);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.path?.startsWith('resources/')) {
           const validCategories = new Set(['Concepts', 'Simulations']);
-          const cleaned = parsed.filter((r: any) => validCategories.has(r.category));
+          const cleaned = parsed.filter((r: any) => validCategories.has(r.category) && !isGmCounter(r));
           const existingIds = new Set(cleaned.map((r: any) => r.id));
           const missingDefaults = INITIAL_REPOSITORIES.filter(r => !existingIds.has(r.id));
           if (missingDefaults.length > 0) {
@@ -66,13 +72,14 @@ export default function App() {
         }
       }
 
-      // 2. Fallback check legacy v3 cache & merge new resources
-      const legacySaved = localStorage.getItem('teach_science_first_resources_v3');
+      // 2. Fallback check legacy v4 or v3 caches & merge/clean resources
+      const legacyKey = localStorage.getItem('teach_science_first_resources_v4') ? 'teach_science_first_resources_v4' : 'teach_science_first_resources_v3';
+      const legacySaved = localStorage.getItem(legacyKey);
       if (legacySaved) {
         const parsed = JSON.parse(legacySaved);
         if (Array.isArray(parsed) && parsed.length > 0) {
           const validCategories = new Set(['Concepts', 'Simulations']);
-          const cleaned = parsed.filter((r: any) => validCategories.has(r.category));
+          const cleaned = parsed.filter((r: any) => validCategories.has(r.category) && !isGmCounter(r));
           const existingIds = new Set(cleaned.map((r: any) => r.id));
           const missingDefaults = INITIAL_REPOSITORIES.filter(r => !existingIds.has(r.id));
           return [...cleaned, ...missingDefaults];
@@ -463,7 +470,7 @@ export default function App() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search 25 labs, practicals, keywords (e.g. 'osmosis', 'half-life', 'trypsin')..."
+                  placeholder={`Search ${repositories.length} labs, practicals, keywords (e.g. 'osmosis', 'half-life', 'trypsin')...`}
                   className="w-full pl-9 pr-12 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 placeholder:text-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
                 />
                 <div className="absolute right-2.5 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-1 text-[10px] text-slate-500 font-mono bg-slate-950 px-1 py-0.2 rounded border border-slate-800">
