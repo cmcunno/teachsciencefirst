@@ -1435,7 +1435,16 @@
 
         graphCtx.clearRect(0, 0, width, height);
 
-        const margin = { top: 25, right: 30, bottom: 45, left: 55 };
+        const isFocused = (activeFocusedPanel === 'graph');
+        const numFont = isFocused ? '600 16px "JetBrains Mono", monospace' : '600 13px "JetBrains Mono", monospace';
+        const axisTitleFont = isFocused ? 'bold 14px sans-serif' : 'bold 12px sans-serif';
+
+        const margin = { 
+          top: 25, 
+          right: 30, 
+          bottom: isFocused ? 54 : 48, 
+          left: isFocused ? 68 : 60 
+        };
         const plotW = width - margin.left - margin.right;
         const plotH = height - margin.top - margin.bottom;
 
@@ -1472,35 +1481,41 @@
         graphCtx.lineTo(margin.left + plotW, margin.top + plotH);
         graphCtx.stroke();
 
-        graphCtx.fillStyle = '#94a3b8';
-        graphCtx.font = '10px monospace';
+        // Y-axis numbers (Force, N) - Enlarged, crisp and high-contrast
+        graphCtx.fillStyle = '#cbd5e1';
+        graphCtx.font = numFont;
         graphCtx.textAlign = 'right';
+        graphCtx.textBaseline = 'middle';
 
         for (let f = 0; f <= maxForceN; f += 2) {
           const y = yToPx(f);
-          graphCtx.fillText(`${f}`, margin.left - 8, y + 3);
+          graphCtx.fillText(`${f}`, margin.left - 9, y);
           graphCtx.beginPath();
-          graphCtx.moveTo(margin.left - 4, y);
+          graphCtx.moveTo(margin.left - 5, y);
           graphCtx.lineTo(margin.left, y);
           graphCtx.stroke();
         }
 
+        // X-axis numbers (Extension, m) - Enlarged, crisp and high-contrast
         graphCtx.textAlign = 'center';
+        graphCtx.textBaseline = 'top';
         for (let e = 0; e <= maxExtM + 0.01; e += 0.05) {
           const x = xToPx(e);
-          graphCtx.fillText(e.toFixed(2), x, margin.top + plotH + 16);
+          graphCtx.fillText(e.toFixed(2), x, margin.top + plotH + 8);
           graphCtx.beginPath();
           graphCtx.moveTo(x, margin.top + plotH);
-          graphCtx.lineTo(x, margin.top + plotH + 4);
+          graphCtx.lineTo(x, margin.top + plotH + 5);
           graphCtx.stroke();
         }
 
-        graphCtx.fillStyle = '#e2e8f0';
-        graphCtx.font = 'bold 11px sans-serif';
-        graphCtx.fillText('Extension, e (m)', margin.left + plotW / 2, margin.top + plotH + 36);
+        // Axis Titles
+        graphCtx.fillStyle = '#f8fafc';
+        graphCtx.font = axisTitleFont;
+        graphCtx.textBaseline = 'alphabetic';
+        graphCtx.fillText('Extension, e (m)', margin.left + plotW / 2, margin.top + plotH + (isFocused ? 44 : 40));
 
         graphCtx.save();
-        graphCtx.translate(16, margin.top + plotH / 2);
+        graphCtx.translate(isFocused ? 20 : 16, margin.top + plotH / 2);
         graphCtx.rotate(-Math.PI / 2);
         graphCtx.textAlign = 'center';
         graphCtx.fillText('Force, F (N)', 0, 0);
