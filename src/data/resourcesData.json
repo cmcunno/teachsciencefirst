@@ -169,6 +169,19 @@
     "fileName": "index.html"
   },
   {
+    "id": "res-ks4-physics-concepts-hookes-law",
+    "title": "Hooke's Law & Spring Extension",
+    "keyStage": "KS4",
+    "stageLevel": "KS4 / GCSE (Ages 14-16)",
+    "subject": "Physics",
+    "category": "Concepts",
+    "slug": "hookes_law",
+    "description": "Interactive spring extension laboratory exploring Hooke's Law (F = k·e), slotted masses, ruler readings, and force-extension graph with elastic limit.",
+    "url": "/resources/ks4/Physics/concepts/hookes_law/index.html",
+    "path": "resources/ks4/Physics/concepts/hookes_law/index.html",
+    "fileName": "index.html"
+  },
+  {
     "id": "res-ks4-physics-simulations-g-m-tube",
     "title": "Visual GM Counter Simulation with Connection",
     "keyStage": "KS4",

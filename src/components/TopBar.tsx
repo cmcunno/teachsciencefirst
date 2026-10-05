@@ -11,13 +11,6 @@ interface TopBarProps {
   totalApps: number;
 }
 
-const KEY_STAGES: { id: KeyStage | 'All'; label: string; sub: string }[] = [
-  { id: 'All', label: 'All Stages', sub: '24 Apps' },
-  { id: 'KS3', label: 'KS3', sub: 'Ages 11-14' },
-  { id: 'KS4', label: 'KS4 / GCSE', sub: 'Ages 14-16' },
-  { id: 'KS5', label: 'KS5 / A-Level', sub: 'Ages 16-18' },
-];
-
 export const TopBar: React.FC<TopBarProps> = ({
   currentKeyStage,
   onSelectKeyStage,
@@ -26,6 +19,13 @@ export const TopBar: React.FC<TopBarProps> = ({
   onLock,
   totalApps
 }) => {
+  const keyStages: { id: KeyStage | 'All'; label: string; sub: string }[] = [
+    { id: 'All', label: 'All Stages', sub: `${totalApps} Apps` },
+    { id: 'KS3', label: 'KS3', sub: 'Ages 11-14' },
+    { id: 'KS4', label: 'KS4 / GCSE', sub: 'Ages 14-16' },
+    { id: 'KS5', label: 'KS5 / A-Level', sub: 'Ages 16-18' },
+  ];
+
   return (
     <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-md border-b border-slate-800 shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
@@ -50,7 +50,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 
         {/* Zone 2: Key Stage Navigation Links */}
         <nav className="hidden md:flex items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl">
-          {KEY_STAGES.map((ks) => {
+          {keyStages.map((ks) => {
             const isActive = currentKeyStage === ks.id;
             return (
               <button
@@ -102,7 +102,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 
       {/* Mobile navigation tab strip for Key Stages */}
       <div className="md:hidden border-t border-slate-800/80 px-4 py-2 flex items-center gap-1 overflow-x-auto no-scrollbar">
-        {KEY_STAGES.map((ks) => {
+        {keyStages.map((ks) => {
           const isActive = currentKeyStage === ks.id;
           return (
             <button

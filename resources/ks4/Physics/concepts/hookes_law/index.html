@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hooke's Law &amp; Spring Extension - GCSE Physics</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* Teaching Modal Focus Style: Dominates the screen without cloning or empty windows */
+    #modalBackdrop {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(2, 6, 23, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 45;
+      display: none;
+    }
+    #modalBackdrop.active {
+      display: block;
+    }
+
+    .panel-card.teaching-modal-active {
+      position: fixed !important;
+      top: 1rem !important;
+      bottom: 1rem !important;
+      left: 1rem !important;
+      right: 1rem !important;
+      max-width: 1680px !important;
+      max-height: 94vh !important;
+      margin: auto !important;
+      z-index: 50 !important;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.98), 0 0 0 2px rgba(99, 102, 241, 0.7) !important;
+      background-color: #0f172a !important;
+      border-color: #6366f1 !important;
+      display: flex !important;
+    }
+
+    @media (min-width: 640px) {
+      .panel-card.teaching-modal-active {
+        top: 2rem !important;
+        bottom: 2rem !important;
+        left: 2rem !important;
+        right: 2rem !important;
+      }
+    }
+
+    .panel-card.teaching-modal-active .card-normal-header {
+      display: none !important;
+    }
+    .panel-card.teaching-modal-active .card-focus-header {
+      display: flex !important;
+    }
+    .panel-card.teaching-modal-active #graphCanvasContainer {
+      height: 100% !important;
+      flex: 1 1 0% !important;
+      min-height: 0 !important;
+    }
+    .panel-card.teaching-modal-active #tableScrollContainer {
+      max-height: 55vh !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col select-none overflow-x-hidden">
+
+  <!-- Background Dimmer for Teaching Focus Modal -->
+  <div id="modalBackdrop"></div>
+
+  <!-- Top Navigation & Control Header -->
+  <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 shrink-0 flex flex-wrap items-center justify-between gap-3 shadow-md z-30">
+    
+    <!-- Left Section: Title + Help & Theory Toggle (Opposite/Left Side) -->
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 ring-1 ring-cyan-400/30">
+        <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">Hooke's Law &amp; Spring Extension</h1>
+          <span class="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800/60">KS4 / GCSE Physics</span>
+        </div>
+        <p class="text-xs text-slate-400">Interactive spring mechanics: <span class="text-cyan-300 font-mono font-medium">F = k · e</span></p>
+      </div>
+
+      <!-- Quick Theory & Help Drawer Toggle (Opposite/Left Side) -->
+      <button id="toggleHelpDrawerBtn" class="ml-2 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-950/60 hover:bg-amber-900/80 text-xs font-medium text-amber-300 border border-amber-700/60 transition shadow-sm" title="Toggle quick theory and help guide">
+        <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+        <span>Theory &amp; Help</span>
+      </button>
+    </div>
+
+    <!-- Center/Right Section: Panel Visibility Toolbar & Teaching Mode -->
+    <div class="flex flex-wrap items-center gap-2">
+
+      <!-- Panel Visibility Filter Pill Group -->
+      <div class="flex items-center gap-1 bg-slate-950/80 border border-slate-800 p-1 rounded-xl text-xs">
+        <span class="text-[11px] font-semibold text-slate-400 px-2 hidden sm:inline">Panels:</span>
+
+        <button id="toggleApparatusPill" class="panel-pill active px-2.5 py-1 rounded-lg font-medium text-xs transition flex items-center gap-1.5 bg-cyan-600 text-white shadow-sm" data-panel="apparatus">
+          <span>🔬 Apparatus</span>
+        </button>
+
+        <button id="toggleGraphPill" class="panel-pill active px-2.5 py-1 rounded-lg font-medium text-xs transition flex items-center gap-1.5 bg-cyan-600 text-white shadow-sm" data-panel="graph">
+          <span>📈 Graph</span>
+        </button>
+
+        <button id="toggleTablePill" class="panel-pill active px-2.5 py-1 rounded-lg font-medium text-xs transition flex items-center gap-1.5 bg-cyan-600 text-white shadow-sm" data-panel="table">
+          <span>📊 Results Table</span>
+        </button>
+
+        <button id="restoreAllPanelsBtn" class="px-2 py-1 rounded-lg font-medium text-[11px] text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition" title="Show all panels">
+          Restore All
+        </button>
+      </div>
+
+      <!-- Teaching Focus Mode Dropdown / Button -->
+      <button id="openTeachingModeBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-md shadow-indigo-600/30 transition">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+        </svg>
+        <span>Teaching Focus Mode</span>
+      </button>
+
+      <!-- Reset Lab Button -->
+      <button id="resetAllBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-xs font-medium text-rose-300 border border-rose-800/60 transition">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        <span class="hidden sm:inline">Reset Lab</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Collapsible Quick Theory & Formula Drawer (Left side) -->
+  <div id="helpDrawer" class="hidden bg-slate-900/95 border-b border-slate-800 px-4 py-3 shadow-lg z-20">
+    <div class="max-w-[1700px] mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+        <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
+          <div class="font-bold text-cyan-300 flex items-center gap-1 mb-1">
+            <span>Hooke's Law Formula</span>
+          </div>
+          <p class="text-slate-300 font-mono text-xs">F = k · e</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">Force (N) = Spring Constant (N/m) × Extension (m)</p>
+        </div>
+
+        <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
+          <div class="font-bold text-emerald-400 flex items-center gap-1 mb-1">
+            <span>Spring Constant (Gradient)</span>
+          </div>
+          <p class="text-slate-300 font-mono text-xs">k = ΔF / Δe</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">Calculated from the straight-line linear slope before point P.</p>
+        </div>
+
+        <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
+          <div class="font-bold text-amber-400 flex items-center gap-1 mb-1">
+            <span>Limit of Proportionality (P)</span>
+          </div>
+          <p class="text-slate-300 text-[11px]">Beyond point P (~7 N), plastic deformation occurs and the line curves.</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 self-end md:self-center shrink-0">
+        <button id="openFullTheoryModalBtn" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition">
+          Full Detailed Theory Guide →
+        </button>
+        <button id="closeHelpDrawerBtn" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition" title="Hide help drawer">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Responsive Main Container -->
+  <main id="mainContainer" class="flex-1 p-3 sm:p-4 max-w-[1700px] w-full mx-auto flex flex-col justify-center transition-all duration-300">
+
+    <!-- Active Panels Wrapper (Grid / Flex auto-arranges and centers) -->
+    <div id="panelsGrid" class="w-full grid grid-cols-1 lg:grid-cols-12 gap-4 transition-all duration-300 items-start">
+
+      <!-- ============================================================== -->
+      <!-- MAJOR DIV 1: Lab Apparatus (Stand, Spring, Ruler, Masses)       -->
+      <!-- ============================================================== -->
+      <div id="apparatusCard" class="panel-card lg:col-span-5 flex flex-col bg-slate-900/90 rounded-2xl border border-slate-800 p-4 shadow-xl overflow-hidden transition-all duration-300">
+        
+        <!-- Normal Header Toolbar -->
+        <div class="card-normal-header flex items-center justify-between pb-3 border-b border-slate-800 mb-3 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="font-bold text-slate-100 text-sm">Apparatus Stand</span>
+          </div>
+
+          <!-- Controls & Actions: Legend Toggle, Teaching Modal, Hide Panel -->
+          <div class="flex items-center gap-2">
+            <!-- Toggle Readout Legend (Opposite Side) -->
+            <button id="toggleApparatusLegendBtn" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-medium border border-slate-700 transition flex items-center gap-1" title="Toggle floating readout legend">
+              <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              <span>Legend</span>
+            </button>
+
+            <!-- Focus / Modal Button -->
+            <button class="focus-modal-btn px-2.5 py-1 rounded-lg bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 text-xs font-semibold border border-indigo-700/60 transition flex items-center gap-1.5 shadow-sm" data-focus="apparatus" title="Bring Apparatus into full screen teaching modal">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+              </svg>
+              <span>Focus Modal</span>
+            </button>
+
+            <!-- Hide Panel Button -->
+            <button class="hide-panel-btn p-1 rounded bg-slate-800 hover:bg-rose-950/70 hover:text-rose-300 text-slate-400 text-xs border border-slate-700 transition" data-panel="apparatus" title="Hide Apparatus panel">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Active Focus Card Header (Displayed when dominating the screen) -->
+        <div class="card-focus-header hidden items-center justify-between pb-3 border-b border-indigo-500/40 mb-3 text-xs bg-indigo-950/40 -mx-4 -mt-4 p-4 rounded-t-2xl">
+          <div class="flex items-center gap-2.5">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-indigo-400 animate-ping"></span>
+            <span class="font-bold text-white text-sm">TEACHING FOCUS: <span class="text-indigo-300">Apparatus Stand</span></span>
+          </div>
+          <div class="flex items-center gap-2">
+            <!-- View Switcher inside Focus Mode -->
+            <div class="flex items-center gap-1 bg-slate-900 border border-slate-700/80 p-1 rounded-xl text-xs">
+              <button class="focus-switch-btn px-2.5 py-1 rounded-lg font-medium transition bg-cyan-600 text-white" data-target="apparatus">🔬 Apparatus</button>
+              <button class="focus-switch-btn px-2.5 py-1 rounded-lg font-medium transition text-slate-400 hover:text-white" data-target="graph">📈 Graph</button>
+              <button class="focus-switch-btn px-2.5 py-1 rounded-lg font-medium transition text-slate-400 hover:text-white" data-target="table">📊 Table</button>
+            </div>
+            <!-- Exit Focus Button -->
+            <button class="exit-focus-btn px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5">
+              <span>Exit Focus (Esc)</span>
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Apparatus Options Bar -->
+        <div class="flex items-center justify-between pb-2 mb-2 text-xs text-slate-400 shrink-0">
+          <label class="flex items-center gap-1.5 cursor-pointer text-[11px]">
+            <input type="checkbox" id="toggleDamping" checked class="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-0">
+            <span>Damped Oscillation</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer text-[11px]">
+            <input type="checkbox" id="togglePointerGuide" checked class="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-0">
+            <span>Fiducial Guide Hairline</span>
+          </label>
+        </div>
+
+        <!-- Live Interactive Physics Canvas Area -->
+        <div class="relative flex-1 min-h-[460px] bg-slate-950 rounded-xl border border-slate-800/90 overflow-hidden shadow-inner">
+          <canvas id="springCanvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+
+          <!-- Floating Readout Overlay (MOVED TO OPPOSITE SIDE: top-3 right-3) -->
+          <div id="apparatusReadoutOverlay" class="absolute top-3 right-3 bg-slate-900/90 backdrop-blur border border-slate-700/80 rounded-xl p-3 shadow-xl text-[11px] space-y-1.5 transition-all z-10">
+            <div class="flex items-center justify-between gap-3 text-slate-400 border-b border-slate-800 pb-1">
+              <span class="font-bold text-slate-200">Apparatus Readings</span>
+              <button id="closeReadoutBtn" class="text-slate-500 hover:text-slate-300" title="Hide this legend">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div class="flex justify-between gap-4 text-slate-400">
+              <span>Total Mass (m):</span>
+              <span id="readoutMass" class="font-mono font-semibold text-white">0 g</span>
+            </div>
+            <div class="flex justify-between gap-4 text-slate-400">
+              <span>Force (W = mg):</span>
+              <span id="readoutForce" class="font-mono font-semibold text-cyan-300">0.00 N</span>
+            </div>
+            <div class="flex justify-between gap-4 text-slate-400">
+              <span>Natural Length (L₀):</span>
+              <span class="font-mono font-semibold text-slate-300">15.0 cm</span>
+            </div>
+            <div class="flex justify-between gap-4 text-slate-400">
+              <span>Current Length (L):</span>
+              <span id="readoutLength" class="font-mono font-semibold text-amber-300">15.0 cm</span>
+            </div>
+            <div class="flex justify-between gap-4 text-slate-400 pt-1 border-t border-slate-800">
+              <span class="font-bold text-slate-200">Extension (e = L - L₀):</span>
+              <span id="readoutExtension" class="font-mono font-bold text-emerald-400">0.0 cm</span>
+            </div>
+          </div>
+
+          <!-- Limit of Proportionality Alert Badge -->
+          <div id="elasticLimitBadge" class="absolute bottom-3 left-3 right-3 hidden bg-amber-950/90 border border-amber-600/60 rounded-lg px-3 py-2 text-xs flex items-center gap-2 shadow-lg backdrop-blur z-10">
+            <svg class="w-5 h-5 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <div>
+              <span class="font-bold text-amber-300">Limit of Proportionality (P) Exceeded!</span>
+              <p class="text-[10px] text-amber-200/80">Hooke's Law no longer applies strictly. The spring is in the non-linear plastic region.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slotted Masses Selection Toolbar -->
+        <div class="mt-3 pt-3 border-t border-slate-800 flex flex-col gap-2.5 shrink-0">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-300">Add Slotted Masses to Hanger:</span>
+            <span class="text-[11px] text-slate-400">Max Load: 1200g</span>
+          </div>
+
+          <!-- Slotted Mass Buttons -->
+          <div class="grid grid-cols-4 gap-2">
+            <button data-add-mass="100" class="mass-btn flex flex-col items-center justify-center p-2 rounded-xl bg-slate-800 hover:bg-cyan-900/40 border border-slate-700 hover:border-cyan-500/50 transition active:scale-95 group">
+              <span class="w-7 h-3 rounded-sm bg-gradient-to-r from-slate-400 to-slate-200 border border-slate-300 shadow group-hover:from-cyan-300 group-hover:to-cyan-100"></span>
+              <span class="text-xs font-bold text-slate-200 mt-1.5">+100g</span>
+              <span class="text-[9px] text-slate-400 font-mono">0.98 N</span>
+            </button>
+            <button data-add-mass="200" class="mass-btn flex flex-col items-center justify-center p-2 rounded-xl bg-slate-800 hover:bg-cyan-900/40 border border-slate-700 hover:border-cyan-500/50 transition active:scale-95 group">
+              <span class="w-8 h-4 rounded-sm bg-gradient-to-r from-slate-400 to-slate-200 border border-slate-300 shadow group-hover:from-cyan-300 group-hover:to-cyan-100"></span>
+              <span class="text-xs font-bold text-slate-200 mt-1.5">+200g</span>
+              <span class="text-[9px] text-slate-400 font-mono">1.96 N</span>
+            </button>
+            <button data-add-mass="300" class="mass-btn flex flex-col items-center justify-center p-2 rounded-xl bg-slate-800 hover:bg-cyan-900/40 border border-slate-700 hover:border-cyan-500/50 transition active:scale-95 group">
+              <span class="w-9 h-5 rounded-sm bg-gradient-to-r from-slate-400 to-slate-200 border border-slate-300 shadow group-hover:from-cyan-300 group-hover:to-cyan-100"></span>
+              <span class="text-xs font-bold text-slate-200 mt-1.5">+300g</span>
+              <span class="text-[9px] text-slate-400 font-mono">2.94 N</span>
+            </button>
+            <button data-add-mass="500" class="mass-btn flex flex-col items-center justify-center p-2 rounded-xl bg-slate-800 hover:bg-cyan-900/40 border border-slate-700 hover:border-cyan-500/50 transition active:scale-95 group">
+              <span class="w-10 h-6 rounded-sm bg-gradient-to-r from-amber-400 to-amber-200 border border-amber-300 shadow group-hover:from-amber-300 group-hover:to-amber-100"></span>
+              <span class="text-xs font-bold text-amber-200 mt-1.5">+500g</span>
+              <span class="text-[9px] text-amber-300/80 font-mono">4.90 N</span>
+            </button>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-2">
+            <button id="removeLastMassBtn" class="flex-1 py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 transition flex items-center justify-center gap-1">
+              <svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Remove Top Mass
+            </button>
+            <button id="clearMassesBtn" class="py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-400 border border-slate-700 transition">
+              Clear All
+            </button>
+            <button id="recordReadingBtn" class="flex-1 py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Record Data Point
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- MAJOR DIV 2 & 3 CONTAINER (or independent panels when split)   -->
+      <!-- ============================================================== -->
+      <div id="rightStackContainer" class="lg:col-span-7 flex flex-col gap-4 transition-all duration-300">
+
+        <!-- ============================================================== -->
+        <!-- MAJOR DIV 2: Force vs. Extension Graph Panel                   -->
+        <!-- ============================================================== -->
+        <div id="graphCard" class="panel-card flex flex-col bg-slate-900/90 rounded-2xl border border-slate-800 p-4 shadow-xl transition-all duration-300">
+          
+          <!-- Normal Header Toolbar -->
+          <div class="card-normal-header flex flex-wrap items-center justify-between pb-3 border-b border-slate-800 mb-2 gap-2 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+              <span class="font-bold text-slate-100 text-sm">Force vs. Extension Graph</span>
+              <span class="text-[10px] text-slate-400 font-mono hidden sm:inline">(F = k · e)</span>
+            </div>
+
+            <!-- Controls: Toggle Legend, Focus Modal, Hide -->
+            <div class="flex items-center gap-2">
+              <!-- Toggle Graph Stats Legend (Opposite Side) -->
+              <button id="toggleGraphLegendBtn" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-medium border border-slate-700 transition flex items-center gap-1" title="Toggle graph stats legend">
+                <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span>Stats</span>
+              </button>
+
+              <!-- Focus Modal Button -->
+              <button class="focus-modal-btn px-2.5 py-1 rounded-lg bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 text-xs font-semibold border border-indigo-700/60 transition flex items-center gap-1.5 shadow-sm" data-focus="graph" title="Bring Graph into full screen teaching modal">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+                <span>Focus Modal</span>
+              </button>
+
+              <!-- Hide Panel Button -->
+              <button class="hide-panel-btn p-1 rounded bg-slate-800 hover:bg-rose-950/70 hover:text-rose-300 text-slate-400 text-xs border border-slate-700 transition" data-panel="graph" title="Hide Graph panel">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Focus Card Header (Displayed when dominating the screen) -->
+          <div class="card-focus-header hidden items-center justify-between pb-3 border-b border-indigo-500/40 mb-3 text-xs bg-indigo-950/40 -mx-4 -mt-4 p-4 rounded-t-2xl">
+            <div class="flex items-center gap-2.5">
+              <span class="inline-block w-2.5 h-2.5 rounded-full bg-indigo-400 animate-ping"></span>
+              <span class="font-bold text-white text-sm">TEACHING FOCUS: <span class="text-indigo-300">Force vs. Extension Graph</span></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1 bg-slate-900 border border-slate-700/80 p-1 rounded-xl text-xs">
+                <button class="focus-switch-btn px-2.5 py-1 rounded-lg font-medium transition text-slate-400 hover:text-white" data-target="apparatus">🔬 Apparatus</button>
+                <button class="focus-switch-btn px-2.5 py-1 rounded-lg font-medium transition bg-cyan-600 text-white" data-target="graph">📈 Graph</button>
+                <button class="focus-switch-btn px-2.5 py-1 rounded-lg font-medium transition text-slate-400 hover:text-white" data-target="table">📊 Table</button>
+              </div>
+              <button class="exit-focus-btn px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5">
+                <span>Exit Focus (Esc)</span>
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Graph Settings Bar -->
+          <div class="flex items-center justify-between pb-2 mb-1 text-xs shrink-0">
+            <div class="flex items-center gap-3">
+              <label class="flex items-center gap-1.5 text-slate-300 cursor-pointer text-[11px]">
+                <input type="checkbox" id="toggleBestFit" checked class="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-0">
+                <span class="font-medium text-cyan-300">Best Fit Line</span>
+              </label>
+              <label class="flex items-center gap-1.5 text-slate-300 cursor-pointer text-[11px]">
+                <input type="checkbox" id="toggleElasticLimitLine" checked class="rounded bg-slate-800 border-slate-700 text-amber-500 focus:ring-0">
+                <span class="font-medium text-amber-300">Proportional Limit (P)</span>
+              </label>
+            </div>
+            <button id="clearPointsBtn" class="text-rose-400 hover:text-rose-300 text-[11px] underline">Clear Points</button>
+          </div>
+
+          <!-- Graph Canvas Container -->
+          <div id="graphCanvasContainer" class="relative h-[350px] min-h-[350px] bg-slate-950 rounded-xl border border-slate-800/90 overflow-hidden shadow-inner p-2">
+            <canvas id="graphCanvas" class="w-full h-full block"></canvas>
+
+            <!-- Graph Stats Banner (MOVED TO OPPOSITE SIDE: top-4 left-4) -->
+            <div id="graphStatsBanner" class="absolute top-4 left-4 bg-slate-900/90 backdrop-blur border border-slate-700/80 rounded-xl p-3 text-[11px] shadow-xl flex flex-col gap-1.5 transition-all z-10">
+              <div class="flex items-center justify-between gap-3 text-slate-400 border-b border-slate-800 pb-1">
+                <span class="font-bold text-slate-200">Analysis Legend</span>
+                <button id="closeStatsBtn" class="text-slate-500 hover:text-slate-300" title="Hide this legend">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div class="flex justify-between gap-4 text-slate-400">
+                <span>Points Plotted:</span>
+                <span id="statPointCount" class="font-mono font-bold text-white">0</span>
+              </div>
+              <div class="flex justify-between gap-4 text-slate-400">
+                <span>Calculated Gradient (k):</span>
+                <span id="statGradient" class="font-mono font-bold text-cyan-300">-- N/m</span>
+              </div>
+              <div class="flex justify-between gap-4 text-slate-400">
+                <span>Accepted Spring Constant:</span>
+                <span class="font-mono font-bold text-slate-300">25.0 N/m</span>
+              </div>
+              <div class="flex justify-between gap-4 text-slate-400 pt-1 border-t border-slate-800">
+                <span>Elastic Energy (½ke²):</span>
+                <span id="statEnergy" class="font-mono font-bold text-emerald-400">0.00 J</span>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-[11px] text-slate-400 mt-2 flex items-center justify-between shrink-0">
+            <span>Tip: Record at least 3 points to determine the straight-line gradient.</span>
+            <span class="text-slate-500 font-mono">Gradient = Spring Constant k</span>
+          </p>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- MAJOR DIV 3: Experimental Results Table Panel                  -->
+        <!-- ============================================================== -->
+        <div id="tableCard" class="panel-card bg-slate-900/90 rounded-2xl border border-slate-800 p-4 shadow-xl transition-all duration-300">
+          
+          <!-- Normal Header Toolbar -->
+          <div class="card-normal-header flex items-center justify-between pb-2.5 border-b border-slate-800 mb-2 text-xs">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <span class="font-bold text-slate-100 text-sm">Results Table</span>
+            </div>
+
+            <!-- Controls: Export, Focus Modal, Hide -->
+            <div class="flex items-center gap-2">
+              <button id="exportCsvBtn" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-medium border border-slate-700 transition">
+                Export CSV
+              </button>
+
+              <!-- Focus Modal Button -->
+              <button class="focus-modal-btn px-2.5 py-1 rounded-lg bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 text-xs font-semibold border border-indigo-700/60 transition flex items-center gap-1.5 shadow-sm" data-focus="table" title="Bring Results Table into full screen teaching modal">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+                <span>Focus Modal</span>
+              </button>
+
+              <!-- Hide Panel Button -->
+              <button class="hide-panel-btn p-1 rounded bg-slate-800 hover:bg-rose-950/70 hover:text-rose-300 text-slate-400 text-xs border border-slate-700 transition" data-panel="table" title="Hide Table panel">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Focus Card Header (Displayed when dominating the screen) -->
+          <div class="card-focus-header hidden items-center justify-between pb-3 border-b border-indigo-500/40 mb-3 text-xs bg-indigo-950/40 -mx-4 -mt-4 p-4 rounded-t-2xl">
+            <div class="flex items-center gap-2.5">
+              <span class="inline-block w-2.5 h-2.5 rounded-full bg-indigo-400 animate-ping"></span>
+              <span class="font-bold text-white text-sm">TEACHING FOCUS: <span class="text-indigo-300">Results Data Table</span></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1 bg-slate-900 border border-slate-700/80 p-1 rounded-xl text-xs">
+                <button class="focus-switch-btn px-2.5 py-1 rounded-lg font-medium transition text-slate-400 hover:text-white" data-target="apparatus">🔬 Apparatus</button>
+                <button class="focus-switch-btn px-2.5 py-1 rounded-lg font-medium transition text-slate-400 hover:text-white" data-target="graph">📈 Graph</button>
+                <button class="focus-switch-btn px-2.5 py-1 rounded-lg font-medium transition bg-cyan-600 text-white" data-target="table">📊 Table</button>
+              </div>
+              <button class="exit-focus-btn px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5">
+                <span>Exit Focus (Esc)</span>
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div id="tableScrollContainer" class="max-h-[170px] overflow-y-auto rounded-lg border border-slate-800/80 transition-all">
+            <table class="w-full text-left text-xs font-mono">
+              <thead class="bg-slate-950 text-slate-400 text-[10px] uppercase sticky top-0 border-b border-slate-800">
+                <tr>
+                  <th class="py-2 px-3">#</th>
+                  <th class="py-2 px-3">Mass (g)</th>
+                  <th class="py-2 px-3">Force F (N)</th>
+                  <th class="py-2 px-3">Length L (cm)</th>
+                  <th class="py-2 px-3">Extension e (cm)</th>
+                  <th class="py-2 px-3">Extension e (m)</th>
+                  <th class="py-2 px-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="dataTableBody" class="divide-y divide-slate-800/60 text-slate-300">
+                <tr id="emptyTableRow">
+                  <td colspan="7" class="py-6 text-center text-slate-500 font-sans italic text-xs">
+                    No readings recorded yet. Add masses to the spring and click "Record Data Point".
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Empty State when all panels are hidden -->
+    <div id="allHiddenNotice" class="hidden flex-col items-center justify-center py-20 px-6 text-center bg-slate-900/60 rounded-3xl border border-slate-800 max-w-xl mx-auto my-auto shadow-2xl">
+      <div class="w-16 h-16 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-400 mb-4 shadow-inner">
+        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+        </svg>
+      </div>
+      <h3 class="text-lg font-bold text-white mb-2">All Major Panels Are Hidden</h3>
+      <p class="text-xs text-slate-400 mb-6 max-w-sm">Use the panel toggles at the top bar to display the Apparatus, Graph, or Results Table.</p>
+      <button id="restoreAllFromEmptyBtn" class="px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 font-semibold text-xs text-white shadow-lg shadow-cyan-600/30 transition">
+        Restore All 3 Panels
+      </button>
+    </div>
+
+  </main>
+
+  <!-- Theory & Guide Modal (Full Reference) -->
+  <div id="theoryModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <h2 class="text-base font-bold text-white">Hooke's Law - GCSE Physics Guide</h2>
+        </div>
+        <button id="closeTheoryBtn" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Content -->
+      <div class="p-6 overflow-y-auto space-y-4 text-xs text-slate-300 leading-relaxed">
+        <div class="bg-cyan-950/40 border border-cyan-800/60 rounded-xl p-4">
+          <h3 class="font-bold text-cyan-300 text-sm mb-1">Hooke's Law Statement</h3>
+          <p class="text-slate-200">
+            "The extension of an elastic object, such as a spring, is <strong>directly proportional</strong> to the force applied, provided that the <strong>limit of proportionality</strong> is not exceeded."
+          </p>
+          <div class="mt-3 flex items-center justify-center p-3 bg-slate-950 rounded-lg border border-cyan-900 font-mono text-cyan-300 text-sm">
+            F = k · e
+          </div>
+          <div class="grid grid-cols-3 gap-2 mt-2 text-[11px] text-slate-400 text-center font-mono">
+            <div><strong class="text-white">F</strong> = Force (N)</div>
+            <div><strong class="text-white">k</strong> = Spring constant (N/m)</div>
+            <div><strong class="text-white">e</strong> = Extension (m)</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3">
+            <h4 class="font-semibold text-white mb-1 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              Elastic Deformation
+            </h4>
+            <p class="text-slate-400 text-[11px]">
+              When the applied force is removed, the spring returns to its original natural length ($L_0$). The material behaves elastically below the elastic limit.
+            </p>
+          </div>
+          <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3">
+            <h4 class="font-semibold text-white mb-1 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+              Inelastic (Plastic) Deformation
+            </h4>
+            <p class="text-slate-400 text-[11px]">
+              Beyond the <strong>limit of proportionality (P)</strong>, the spring remains permanently stretched even when weights are unloaded.
+            </p>
+          </div>
+        </div>
+
+        <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3">
+          <h4 class="font-semibold text-white mb-1 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+            Gradient &amp; Elastic Energy
+          </h4>
+          <ul class="list-disc pl-4 space-y-1 text-slate-400 text-[11px]">
+            <li>On a <strong>Force against Extension graph</strong>, the straight line gradient equals the <strong>spring constant $k$</strong>: <span class="font-mono text-cyan-300">gradient = ΔF / Δe = k</span>.</li>
+            <li>The <strong>area beneath the line</strong> equals the <strong>elastic potential energy stored ($E_e$)</strong> in Joules: <span class="font-mono text-emerald-400">E_e = ½ · k · e² = ½ · F · e</span>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3 bg-slate-950 border-t border-slate-800 flex justify-end">
+        <button id="closeTheoryBtn2" class="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium text-xs transition">
+          Got it
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Simulation Script -->
+  <script>
+    (function() {
+      // --- Constants & Physical Parameters ---
+      const G = 9.80665;             // Gravitational field strength (N/kg)
+      const SPRING_K = 25.0;         // Spring constant (N/m)
+      const NATURAL_LENGTH_CM = 15.0;// Natural unstretched length (cm)
+      const PROPORTIONAL_LIMIT_N = 7.0; // Limit of proportionality (N) (~714 g)
+      const MAX_TOTAL_MASS_G = 1200; // Physical max on stand
+
+      // State
+      let slottedMasses = []; // Array of mass values added e.g. [100, 200]
+      let currentLengthCm = NATURAL_LENGTH_CM;
+      let targetLengthCm = NATURAL_LENGTH_CM;
+      let springVelocity = 0;
+      let isDamped = true;
+      let showPointerGuide = true;
+      let showBestFit = true;
+      let showElasticLimitLine = true;
+      let recordedPoints = []; // { id, massG, forceN, lengthCm, extensionCm, extensionM }
+
+      // Visibility state for major panels
+      let panelVisibility = {
+        apparatus: true,
+        graph: true,
+        table: true
+      };
+
+      // Current active teaching focus card: null | 'apparatus' | 'graph' | 'table'
+      let activeFocusedPanel = null;
+
+      // Legend visibility toggles
+      let showApparatusLegend = true;
+      let showGraphLegend = true;
+
+      // Canvases
+      const springCanvas = document.getElementById('springCanvas');
+      const springCtx = springCanvas.getContext('2d');
+      const graphCanvas = document.getElementById('graphCanvas');
+      const graphCtx = graphCanvas.getContext('2d');
+
+      // DOM Elements
+      const readoutMass = document.getElementById('readoutMass');
+      const readoutForce = document.getElementById('readoutForce');
+      const readoutLength = document.getElementById('readoutLength');
+      const readoutExtension = document.getElementById('readoutExtension');
+      const elasticLimitBadge = document.getElementById('elasticLimitBadge');
+      const dataTableBody = document.getElementById('dataTableBody');
+      const statPointCount = document.getElementById('statPointCount');
+      const statGradient = document.getElementById('statGradient');
+      const statEnergy = document.getElementById('statEnergy');
+
+      const apparatusReadoutOverlay = document.getElementById('apparatusReadoutOverlay');
+      const graphStatsBanner = document.getElementById('graphStatsBanner');
+
+      // Resize observer
+      function resizeCanvases() {
+        const dpr = window.devicePixelRatio || 1;
+        
+        // Spring canvas
+        if (springCanvas && springCanvas.parentElement) {
+          const w = springCanvas.parentElement.clientWidth;
+          const h = springCanvas.parentElement.clientHeight;
+          if (w > 0 && h > 0) {
+            springCanvas.width = Math.round(w * dpr);
+            springCanvas.height = Math.round(h * dpr);
+            springCtx.resetTransform && springCtx.resetTransform();
+            springCtx.scale(dpr, dpr);
+          }
+        }
+
+        // Graph canvas
+        if (graphCanvas && graphCanvas.parentElement) {
+          const w = graphCanvas.parentElement.clientWidth;
+          const h = graphCanvas.parentElement.clientHeight;
+          if (w > 0 && h > 0) {
+            graphCanvas.width = Math.round(w * dpr);
+            graphCanvas.height = Math.round(h * dpr);
+            graphCtx.resetTransform && graphCtx.resetTransform();
+            graphCtx.scale(dpr, dpr);
+          }
+        }
+
+        drawSpring();
+        drawGraph();
+      }
+
+      window.addEventListener('resize', resizeCanvases);
+
+      // Continuous ResizeObserver for fluid transitions and panel toggles
+      if (window.ResizeObserver) {
+        const resizeObs = new ResizeObserver(() => {
+          resizeCanvases();
+        });
+        if (springCanvas && springCanvas.parentElement) resizeObs.observe(springCanvas.parentElement);
+        if (graphCanvas && graphCanvas.parentElement) resizeObs.observe(graphCanvas.parentElement);
+      }
+
+      // --- Major Divs Visibility & Auto-Centering Layout Manager ---
+      const panelsGrid = document.getElementById('panelsGrid');
+      const apparatusCard = document.getElementById('apparatusCard');
+      const graphCard = document.getElementById('graphCard');
+      const tableCard = document.getElementById('tableCard');
+      const rightStackContainer = document.getElementById('rightStackContainer');
+      const allHiddenNotice = document.getElementById('allHiddenNotice');
+
+      function updatePanelsLayout() {
+        if (activeFocusedPanel) {
+          // If a card is in full focus mode, let the focus mode manage its styles
+          return;
+        }
+
+        const { apparatus, graph, table } = panelVisibility;
+        const visibleCount = (apparatus ? 1 : 0) + (graph ? 1 : 0) + (table ? 1 : 0);
+
+        // Update Pill UI
+        document.querySelectorAll('.panel-pill').forEach(btn => {
+          const panel = btn.getAttribute('data-panel');
+          const isVis = panelVisibility[panel];
+          if (isVis) {
+            btn.className = 'panel-pill active px-2.5 py-1 rounded-lg font-medium text-xs transition flex items-center gap-1.5 bg-cyan-600 text-white shadow-sm';
+          } else {
+            btn.className = 'panel-pill px-2.5 py-1 rounded-lg font-medium text-xs transition flex items-center gap-1.5 bg-slate-900 text-slate-400 hover:text-slate-200';
+          }
+        });
+
+        // Hide/Show Individual Cards
+        apparatusCard.style.display = apparatus ? 'flex' : 'none';
+        graphCard.style.display = graph ? 'flex' : 'none';
+        tableCard.style.display = table ? 'flex' : 'none';
+
+        // Check if all hidden
+        if (visibleCount === 0) {
+          panelsGrid.style.display = 'none';
+          allHiddenNotice.style.display = 'flex';
+          return;
+        } else {
+          panelsGrid.style.display = 'grid';
+          allHiddenNotice.style.display = 'none';
+        }
+
+        // Handle right stack container visibility
+        const rightStackVisible = graph || table;
+        rightStackContainer.style.display = rightStackVisible ? 'flex' : 'none';
+
+        // Dynamic Centering and Sizing
+        apparatusCard.className = 'panel-card flex flex-col bg-slate-900/90 rounded-2xl border border-slate-800 p-4 shadow-xl overflow-hidden transition-all duration-300';
+        rightStackContainer.className = 'flex flex-col gap-4 transition-all duration-300';
+        panelsGrid.className = 'w-full grid grid-cols-1 gap-4 transition-all duration-300 items-start';
+
+        // Dynamic Centering and Sizing: keep graph div dimensions completely stable when Results Table is toggled
+        if (apparatus && graph) {
+          // Apparatus & Graph active: Keep constant 5 / 7 column layout so Results Table never resizes Graph div
+          panelsGrid.classList.add('lg:grid-cols-12');
+          apparatusCard.classList.add('lg:col-span-5');
+          rightStackContainer.classList.add('lg:col-span-7');
+        } else if (apparatus && !graph) {
+          if (table) {
+            // Apparatus and Table visible: 5 / 7 split
+            panelsGrid.classList.add('lg:grid-cols-12');
+            apparatusCard.classList.add('lg:col-span-5');
+            rightStackContainer.classList.add('lg:col-span-7');
+          } else {
+            // Only Apparatus visible: Centered
+            panelsGrid.classList.add('max-w-4xl', 'mx-auto');
+            apparatusCard.classList.add('w-full', 'mx-auto');
+          }
+        } else if (!apparatus && graph) {
+          // Apparatus hidden, Graph visible: Keep steady centered width whether Table is visible or hidden
+          panelsGrid.classList.add('max-w-5xl', 'mx-auto');
+          rightStackContainer.classList.add('w-full', 'mx-auto');
+        } else if (!apparatus && !graph && table) {
+          // Only Table visible: Centered
+          panelsGrid.classList.add('max-w-4xl', 'mx-auto');
+          rightStackContainer.classList.add('w-full', 'mx-auto');
+        }
+
+        // Trigger immediate and post-transition resize
+        resizeCanvases();
+        setTimeout(resizeCanvases, 100);
+        setTimeout(resizeCanvases, 320);
+      }
+
+      function togglePanel(panelName) {
+        panelVisibility[panelName] = !panelVisibility[panelName];
+        updatePanelsLayout();
+      }
+
+      function restoreAllPanels() {
+        panelVisibility.apparatus = true;
+        panelVisibility.graph = true;
+        panelVisibility.table = true;
+        updatePanelsLayout();
+      }
+
+      // Event listeners for panel toggles
+      document.querySelectorAll('.panel-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const panel = btn.getAttribute('data-panel');
+          togglePanel(panel);
+        });
+      });
+
+      document.querySelectorAll('.hide-panel-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const panel = btn.getAttribute('data-panel');
+          togglePanel(panel);
+        });
+      });
+
+      document.getElementById('restoreAllPanelsBtn').addEventListener('click', restoreAllPanels);
+      document.getElementById('restoreAllFromEmptyBtn').addEventListener('click', restoreAllPanels);
+
+      // --- Legend Toggles ---
+      function updateLegendsVisibility() {
+        if (showApparatusLegend) {
+          apparatusReadoutOverlay.classList.remove('hidden');
+        } else {
+          apparatusReadoutOverlay.classList.add('hidden');
+        }
+
+        if (showGraphLegend) {
+          graphStatsBanner.classList.remove('hidden');
+        } else {
+          graphStatsBanner.classList.add('hidden');
+        }
+      }
+
+      document.getElementById('toggleApparatusLegendBtn').addEventListener('click', () => {
+        showApparatusLegend = !showApparatusLegend;
+        updateLegendsVisibility();
+      });
+      document.getElementById('closeReadoutBtn').addEventListener('click', () => {
+        showApparatusLegend = false;
+        updateLegendsVisibility();
+      });
+
+      document.getElementById('toggleGraphLegendBtn').addEventListener('click', () => {
+        showGraphLegend = !showGraphLegend;
+        updateLegendsVisibility();
+      });
+      document.getElementById('closeStatsBtn').addEventListener('click', () => {
+        showGraphLegend = false;
+        updateLegendsVisibility();
+      });
+
+      // Quick Help Drawer Toggle
+      const helpDrawer = document.getElementById('helpDrawer');
+      document.getElementById('toggleHelpDrawerBtn').addEventListener('click', () => {
+        helpDrawer.classList.toggle('hidden');
+      });
+      document.getElementById('closeHelpDrawerBtn').addEventListener('click', () => {
+        helpDrawer.classList.add('hidden');
+      });
+
+      // ==============================================================
+      // NATIVE CARD MODAL FOCUS SYSTEM (Dominates Screen, Never Empty!)
+      // ==============================================================
+      const modalBackdrop = document.getElementById('modalBackdrop');
+
+      function setFocusCard(cardType) {
+        // Exit any previous focus
+        [apparatusCard, graphCard, tableCard].forEach(card => {
+          card.classList.remove('teaching-modal-active');
+        });
+
+        if (!cardType) {
+          // Exit focus mode completely
+          activeFocusedPanel = null;
+          modalBackdrop.classList.remove('active');
+          document.body.classList.remove('overflow-hidden');
+          updatePanelsLayout();
+          setTimeout(resizeCanvases, 40);
+          return;
+        }
+
+        // Activate focus mode
+        activeFocusedPanel = cardType;
+        modalBackdrop.classList.add('active');
+        document.body.classList.add('overflow-hidden');
+
+        // Target card
+        let targetEl = null;
+        if (cardType === 'apparatus') targetEl = apparatusCard;
+        else if (cardType === 'graph') targetEl = graphCard;
+        else if (cardType === 'table') targetEl = tableCard;
+
+        if (targetEl) {
+          targetEl.classList.add('teaching-modal-active');
+          targetEl.style.display = 'flex';
+
+          // Update switcher buttons in the focus header
+          document.querySelectorAll('.focus-switch-btn').forEach(btn => {
+            const btnTarget = btn.getAttribute('data-target');
+            if (btnTarget === cardType) {
+              btn.className = 'focus-switch-btn px-2.5 py-1 rounded-lg font-medium transition bg-cyan-600 text-white';
+            } else {
+              btn.className = 'focus-switch-btn px-2.5 py-1 rounded-lg font-medium transition text-slate-400 hover:text-white';
+            }
+          });
+        }
+
+        // Recalculate canvases for high-res focus display
+        setTimeout(resizeCanvases, 40);
+      }
+
+      // Attach focus triggers
+      document.querySelectorAll('.focus-modal-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const target = btn.getAttribute('data-focus');
+          setFocusCard(target);
+        });
+      });
+
+      document.getElementById('openTeachingModeBtn').addEventListener('click', () => {
+        setFocusCard('apparatus');
+      });
+
+      // Focus switchers (switching view while inside focus mode)
+      document.querySelectorAll('.focus-switch-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const target = btn.getAttribute('data-target');
+          setFocusCard(target);
+        });
+      });
+
+      // Exit focus handlers
+      document.querySelectorAll('.exit-focus-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          setFocusCard(null);
+        });
+      });
+
+      modalBackdrop.addEventListener('click', () => {
+        setFocusCard(null);
+      });
+
+      // ESC key to exit focus
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (activeFocusedPanel) {
+            setFocusCard(null);
+          }
+          if (!theoryModal.classList.contains('hidden')) {
+            theoryModal.classList.add('hidden');
+          }
+        }
+      });
+
+      // --- Physics calculation helper ---
+      function calculateExtensionForMass(totalMassG) {
+        const totalKg = totalMassG / 1000.0;
+        const forceN = totalKg * G;
+
+        if (forceN <= PROPORTIONAL_LIMIT_N) {
+          const extM = forceN / SPRING_K;
+          return {
+            forceN,
+            extensionCm: extM * 100.0,
+            extensionM: extM,
+            isPlastic: false
+          };
+        } else {
+          const linearExtM = PROPORTIONAL_LIMIT_N / SPRING_K;
+          const deltaF = forceN - PROPORTIONAL_LIMIT_N;
+          const plasticExtraM = 0.015 * Math.pow(deltaF, 1.6);
+          const totalExtM = linearExtM + plasticExtraM;
+          return {
+            forceN,
+            extensionCm: totalExtM * 100.0,
+            extensionM: totalExtM,
+            isPlastic: true
+          };
+        }
+      }
+
+      function updateReadouts() {
+        const totalMassG = slottedMasses.reduce((a, b) => a + b, 0);
+        const { forceN, extensionCm } = calculateExtensionForMass(totalMassG);
+        
+        targetLengthCm = NATURAL_LENGTH_CM + extensionCm;
+
+        readoutMass.textContent = `${totalMassG} g`;
+        readoutForce.textContent = `${forceN.toFixed(2)} N`;
+        readoutLength.textContent = `${currentLengthCm.toFixed(1)} cm`;
+        readoutExtension.textContent = `${Math.max(0, currentLengthCm - NATURAL_LENGTH_CM).toFixed(1)} cm`;
+
+        if (forceN > PROPORTIONAL_LIMIT_N) {
+          elasticLimitBadge.classList.remove('hidden');
+        } else {
+          elasticLimitBadge.classList.add('hidden');
+        }
+
+        updateGraphStats();
+      }
+
+      // Mass handlers
+      function addMass(massValue) {
+        const totalCurrent = slottedMasses.reduce((a, b) => a + b, 0);
+        if (totalCurrent + massValue > MAX_TOTAL_MASS_G) {
+          alert('Maximum recommended stand load (1200g) reached. Unload some slotted masses to protect the spring!');
+          return;
+        }
+        slottedMasses.push(massValue);
+        springVelocity += 1.8 * Math.sqrt(massValue / 100.0);
+        updateReadouts();
+      }
+
+      function removeLastMass() {
+        if (slottedMasses.length === 0) return;
+        slottedMasses.pop();
+        springVelocity -= 1.5;
+        updateReadouts();
+      }
+
+      function clearAllMasses() {
+        slottedMasses = [];
+        springVelocity = -2.0;
+        updateReadouts();
+      }
+
+      window.__addMass = addMass;
+      window.__removeLastMass = removeLastMass;
+      window.__clearAllMasses = clearAllMasses;
+
+      // --- Spring Rendering Logic ---
+      function drawSpring() {
+        if (!springCanvas || !springCanvas.parentElement) return;
+        const width = springCanvas.parentElement.clientWidth;
+        const height = springCanvas.parentElement.clientHeight;
+        if (!width || !height) return;
+
+        // Auto-heal canvas pixel dimensions if out of sync
+        const dpr = window.devicePixelRatio || 1;
+        const targetBufferW = Math.round(width * dpr);
+        const targetBufferH = Math.round(height * dpr);
+        if (springCanvas.width !== targetBufferW || springCanvas.height !== targetBufferH) {
+          springCanvas.width = targetBufferW;
+          springCanvas.height = targetBufferH;
+          springCtx.resetTransform && springCtx.resetTransform();
+          springCtx.scale(dpr, dpr);
+        }
+
+        springCtx.clearRect(0, 0, width, height);
+
+        // Center apparatus dynamically and guarantee it NEVER clips or goes outside the container:
+        // Leftmost part is stand base (standX - 60).
+        // Rightmost part is ruler (standX + 159).
+        // Apparatus physical center is (standX + 50).
+        // Right side has floating legend (width ~ 210px) if visible.
+        const legendReserve = showApparatusLegend ? 220 : 0;
+        const availableW = Math.max(260, width - legendReserve);
+        let standX = Math.round((availableW / 2) - 50);
+
+        // Safety margins:
+        // 1. Keep left stand base (standX - 60) at least 30px away from the left edge of container:
+        standX = Math.max(90, standX);
+        // 2. Keep right ruler edge (standX + 160) inside available width if space permits:
+        if (width >= 480 && standX + 165 > width - legendReserve) {
+          standX = width - legendReserve - 165;
+        }
+
+        const clampY = 45;
+        const rulerX = standX + 115;
+        const rulerW = 44;
+        const rulerH = height - 70;
+
+        // 1. Lab Bench Base
+        springCtx.fillStyle = '#1e293b';
+        springCtx.fillRect(0, height - 26, width, 26);
+        springCtx.fillStyle = '#0f172a';
+        springCtx.fillRect(0, height - 26, width, 3);
+
+        // 2. Heavy Retort Stand Base & Rod
+        springCtx.fillStyle = '#334155';
+        springCtx.beginPath();
+        springCtx.roundRect(standX - 60, height - 34, 120, 10, 3);
+        springCtx.fill();
+        springCtx.strokeStyle = '#475569';
+        springCtx.stroke();
+
+        const rodGrad = springCtx.createLinearGradient(standX - 55, 0, standX - 45, 0);
+        rodGrad.addColorStop(0, '#64748b');
+        rodGrad.addColorStop(0.5, '#cbd5e1');
+        rodGrad.addColorStop(1, '#475569');
+        springCtx.fillStyle = rodGrad;
+        springCtx.fillRect(standX - 54, clampY - 15, 8, height - clampY - 15);
+
+        springCtx.fillStyle = '#1e293b';
+        springCtx.fillRect(standX - 58, clampY - 8, 16, 16);
+        springCtx.fillStyle = '#94a3b8';
+        springCtx.beginPath();
+        springCtx.arc(standX - 58, clampY, 3, 0, Math.PI * 2);
+        springCtx.fill();
+
+        const clampRodGrad = springCtx.createLinearGradient(0, clampY - 4, 0, clampY + 4);
+        clampRodGrad.addColorStop(0, '#94a3b8');
+        clampRodGrad.addColorStop(0.5, '#f1f5f9');
+        clampRodGrad.addColorStop(1, '#64748b');
+        springCtx.fillStyle = clampRodGrad;
+        springCtx.fillRect(standX - 50, clampY - 4, 60, 8);
+
+        springCtx.strokeStyle = '#94a3b8';
+        springCtx.lineWidth = 3;
+        springCtx.beginPath();
+        springCtx.arc(standX + 10, clampY + 6, 6, Math.PI, 0, true);
+        springCtx.stroke();
+
+        // 3. Ruler Scaling Parameters
+        const rulerZeroY = clampY + 14;
+        const cmToPx = (rulerH - 40) / 60.0;
+
+        springCtx.fillStyle = '#d97706';
+        springCtx.fillRect(rulerX, clampY - 5, rulerW, rulerH);
+        springCtx.fillStyle = '#b45309';
+        springCtx.fillRect(rulerX, clampY - 5, 2, rulerH);
+        springCtx.fillRect(rulerX + rulerW - 2, clampY - 5, 2, rulerH);
+
+        springCtx.fillStyle = '#0f172a';
+        springCtx.strokeStyle = '#1e293b';
+        springCtx.textAlign = 'right';
+        springCtx.font = '9px monospace';
+
+        for (let cm = 0; cm <= 60; cm++) {
+          const y = rulerZeroY + cm * cmToPx;
+          if (y > rulerH + clampY - 15) break;
+
+          springCtx.lineWidth = 1;
+          if (cm % 10 === 0) {
+            springCtx.beginPath();
+            springCtx.moveTo(rulerX, y);
+            springCtx.lineTo(rulerX + 18, y);
+            springCtx.stroke();
+            springCtx.fillText(`${cm}`, rulerX + rulerW - 4, y + 3);
+          } else if (cm % 5 === 0) {
+            springCtx.beginPath();
+            springCtx.moveTo(rulerX, y);
+            springCtx.lineTo(rulerX + 12, y);
+            springCtx.stroke();
+          } else {
+            springCtx.beginPath();
+            springCtx.moveTo(rulerX, y);
+            springCtx.lineTo(rulerX + 7, y);
+            springCtx.stroke();
+          }
+        }
+
+        springCtx.fillStyle = '#1e293b';
+        springCtx.font = 'bold 9px sans-serif';
+        springCtx.textAlign = 'center';
+        springCtx.fillText('cm', rulerX + rulerW / 2 + 6, clampY + 8);
+
+        // 4. Spring Geometry
+        const springTopX = standX + 10;
+        const springTopY = rulerZeroY;
+        const springPixelLength = currentLengthCm * cmToPx;
+        const springBottomY = springTopY + springPixelLength;
+
+        const numCoils = 18;
+        const coilRadius = 11;
+        const coilStep = (springPixelLength - 16) / numCoils;
+
+        springCtx.strokeStyle = '#94a3b8';
+        springCtx.lineWidth = 2.5;
+        springCtx.beginPath();
+        springCtx.moveTo(springTopX, springTopY);
+        springCtx.lineTo(springTopX, springTopY + 8);
+        springCtx.stroke();
+
+        springCtx.lineWidth = 2.5;
+        for (let i = 0; i < numCoils; i++) {
+          const y1 = springTopY + 8 + i * coilStep;
+          const y2 = y1 + coilStep;
+          const yMid = y1 + coilStep / 2;
+
+          springCtx.strokeStyle = '#475569';
+          springCtx.beginPath();
+          springCtx.moveTo(springTopX - coilRadius, y1);
+          springCtx.bezierCurveTo(springTopX - coilRadius, y1 - 2, springTopX + coilRadius, yMid - 2, springTopX + coilRadius, yMid);
+          springCtx.stroke();
+
+          const coilGrad = springCtx.createLinearGradient(springTopX - coilRadius, 0, springTopX + coilRadius, 0);
+          coilGrad.addColorStop(0, '#94a3b8');
+          coilGrad.addColorStop(0.5, '#f8fafc');
+          coilGrad.addColorStop(1, '#64748b');
+          springCtx.strokeStyle = coilGrad;
+          springCtx.beginPath();
+          springCtx.moveTo(springTopX + coilRadius, yMid);
+          springCtx.bezierCurveTo(springTopX + coilRadius, yMid + 2, springTopX - coilRadius, y2 + 2, springTopX - coilRadius, y2);
+          springCtx.stroke();
+        }
+
+        springCtx.strokeStyle = '#94a3b8';
+        springCtx.lineWidth = 2.5;
+        springCtx.beginPath();
+        springCtx.moveTo(springTopX - coilRadius, springTopY + 8 + numCoils * coilStep);
+        springCtx.lineTo(springTopX, springBottomY);
+        springCtx.stroke();
+
+        // 5. Fiducial Marker Pointer
+        const pointerY = springBottomY;
+        springCtx.strokeStyle = '#ef4444';
+        springCtx.lineWidth = 2;
+        springCtx.beginPath();
+        springCtx.moveTo(springTopX - 3, pointerY);
+        springCtx.lineTo(rulerX + 16, pointerY);
+        springCtx.stroke();
+
+        springCtx.fillStyle = '#ef4444';
+        springCtx.beginPath();
+        springCtx.moveTo(rulerX + 16, pointerY);
+        springCtx.lineTo(rulerX + 10, pointerY - 3.5);
+        springCtx.lineTo(rulerX + 10, pointerY + 3.5);
+        springCtx.closePath();
+        springCtx.fill();
+
+        if (showPointerGuide) {
+          springCtx.save();
+          springCtx.setLineDash([4, 4]);
+          springCtx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+          springCtx.lineWidth = 1;
+          springCtx.beginPath();
+          springCtx.moveTo(0, pointerY);
+          springCtx.lineTo(width, pointerY);
+          springCtx.stroke();
+          springCtx.restore();
+
+          const naturalZeroY = rulerZeroY + NATURAL_LENGTH_CM * cmToPx;
+          springCtx.save();
+          springCtx.setLineDash([2, 4]);
+          springCtx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+          springCtx.beginPath();
+          springCtx.moveTo(springTopX + coilRadius + 5, naturalZeroY);
+          springCtx.lineTo(rulerX, naturalZeroY);
+          springCtx.stroke();
+          springCtx.restore();
+
+          if (currentLengthCm > NATURAL_LENGTH_CM + 0.5) {
+            const extX = springTopX + coilRadius + 14;
+            springCtx.strokeStyle = '#10b981';
+            springCtx.lineWidth = 1.5;
+            springCtx.beginPath();
+            springCtx.moveTo(extX, naturalZeroY);
+            springCtx.lineTo(extX + 6, naturalZeroY);
+            springCtx.moveTo(extX + 3, naturalZeroY);
+            springCtx.lineTo(extX + 3, pointerY);
+            springCtx.moveTo(extX, pointerY);
+            springCtx.lineTo(extX + 6, pointerY);
+            springCtx.stroke();
+
+            springCtx.fillStyle = '#34d399';
+            springCtx.font = 'bold 10px monospace';
+            springCtx.textAlign = 'left';
+            const extCm = Math.max(0, currentLengthCm - NATURAL_LENGTH_CM).toFixed(1);
+            springCtx.fillText(`e=${extCm}cm`, extX + 9, (naturalZeroY + pointerY) / 2 + 3);
+          }
+        }
+
+        // 6. Mass Hanger & Slotted Masses
+        const hangerTopY = springBottomY;
+        springCtx.strokeStyle = '#94a3b8';
+        springCtx.lineWidth = 2;
+        springCtx.beginPath();
+        springCtx.arc(springTopX, hangerTopY + 5, 5, -Math.PI / 2, Math.PI / 2, false);
+        springCtx.stroke();
+
+        const rodLength = 60 + slottedMasses.length * 8;
+        springCtx.fillStyle = '#cbd5e1';
+        springCtx.fillRect(springTopX - 1.5, hangerTopY + 10, 3, rodLength);
+
+        const platformY = hangerTopY + 10 + rodLength;
+        springCtx.fillStyle = '#64748b';
+        springCtx.beginPath();
+        springCtx.roundRect(springTopX - 18, platformY, 36, 6, 2);
+        springCtx.fill();
+        springCtx.strokeStyle = '#94a3b8';
+        springCtx.stroke();
+
+        let currentMassStackY = platformY;
+        slottedMasses.forEach((m) => {
+          let discHeight = 7;
+          let discWidth = 32;
+          let discColor1 = '#94a3b8';
+          let discColor2 = '#475569';
+          let textColor = '#ffffff';
+
+          if (m === 200) {
+            discHeight = 10;
+            discWidth = 36;
+          } else if (m === 300) {
+            discHeight = 13;
+            discWidth = 40;
+          } else if (m === 500) {
+            discHeight = 16;
+            discWidth = 44;
+            discColor1 = '#f59e0b';
+            discColor2 = '#b45309';
+            textColor = '#0f172a';
+          }
+
+          currentMassStackY -= discHeight;
+
+          const massGrad = springCtx.createLinearGradient(springTopX - discWidth / 2, 0, springTopX + discWidth / 2, 0);
+          massGrad.addColorStop(0, discColor2);
+          massGrad.addColorStop(0.3, discColor1);
+          massGrad.addColorStop(0.7, '#f8fafc');
+          massGrad.addColorStop(1, discColor2);
+
+          springCtx.fillStyle = massGrad;
+          springCtx.beginPath();
+          springCtx.roundRect(springTopX - discWidth / 2, currentMassStackY, discWidth, discHeight, 2);
+          springCtx.fill();
+          springCtx.strokeStyle = '#334155';
+          springCtx.lineWidth = 1;
+          springCtx.stroke();
+
+          springCtx.fillStyle = '#0f172a';
+          springCtx.fillRect(springTopX - 2, currentMassStackY, 4, discHeight);
+
+          if (discHeight >= 9) {
+            springCtx.fillStyle = textColor;
+            springCtx.font = 'bold 8px monospace';
+            springCtx.textAlign = 'center';
+            springCtx.fillText(`${m}g`, springTopX + 11, currentMassStackY + discHeight - 3);
+          }
+        });
+      }
+
+      // --- Graph Rendering Logic ---
+      function drawGraph() {
+        if (!graphCanvas || !graphCanvas.parentElement) return;
+        const width = graphCanvas.parentElement.clientWidth;
+        const height = graphCanvas.parentElement.clientHeight;
+        if (!width || !height) return;
+
+        // Auto-heal canvas pixel dimensions if out of sync
+        const dpr = window.devicePixelRatio || 1;
+        const targetBufferW = Math.round(width * dpr);
+        const targetBufferH = Math.round(height * dpr);
+        if (graphCanvas.width !== targetBufferW || graphCanvas.height !== targetBufferH) {
+          graphCanvas.width = targetBufferW;
+          graphCanvas.height = targetBufferH;
+          graphCtx.resetTransform && graphCtx.resetTransform();
+          graphCtx.scale(dpr, dpr);
+        }
+
+        graphCtx.clearRect(0, 0, width, height);
+
+        const margin = { top: 25, right: 30, bottom: 45, left: 55 };
+        const plotW = width - margin.left - margin.right;
+        const plotH = height - margin.top - margin.bottom;
+
+        const maxExtM = 0.40;
+        const maxForceN = 12.0;
+
+        function xToPx(extM) { return margin.left + (extM / maxExtM) * plotW; }
+        function yToPx(forceN) { return margin.top + plotH - (forceN / maxForceN) * plotH; }
+
+        // Grid
+        graphCtx.strokeStyle = '#1e293b';
+        graphCtx.lineWidth = 1;
+        for (let e = 0.05; e <= maxExtM; e += 0.05) {
+          const x = xToPx(e);
+          graphCtx.beginPath();
+          graphCtx.moveTo(x, margin.top);
+          graphCtx.lineTo(x, margin.top + plotH);
+          graphCtx.stroke();
+        }
+        for (let f = 2; f <= maxForceN; f += 2) {
+          const y = yToPx(f);
+          graphCtx.beginPath();
+          graphCtx.moveTo(margin.left, y);
+          graphCtx.lineTo(margin.left + plotW, y);
+          graphCtx.stroke();
+        }
+
+        // Axes
+        graphCtx.strokeStyle = '#64748b';
+        graphCtx.lineWidth = 2;
+        graphCtx.beginPath();
+        graphCtx.moveTo(margin.left, margin.top);
+        graphCtx.lineTo(margin.left, margin.top + plotH);
+        graphCtx.lineTo(margin.left + plotW, margin.top + plotH);
+        graphCtx.stroke();
+
+        graphCtx.fillStyle = '#94a3b8';
+        graphCtx.font = '10px monospace';
+        graphCtx.textAlign = 'right';
+
+        for (let f = 0; f <= maxForceN; f += 2) {
+          const y = yToPx(f);
+          graphCtx.fillText(`${f}`, margin.left - 8, y + 3);
+          graphCtx.beginPath();
+          graphCtx.moveTo(margin.left - 4, y);
+          graphCtx.lineTo(margin.left, y);
+          graphCtx.stroke();
+        }
+
+        graphCtx.textAlign = 'center';
+        for (let e = 0; e <= maxExtM + 0.01; e += 0.05) {
+          const x = xToPx(e);
+          graphCtx.fillText(e.toFixed(2), x, margin.top + plotH + 16);
+          graphCtx.beginPath();
+          graphCtx.moveTo(x, margin.top + plotH);
+          graphCtx.lineTo(x, margin.top + plotH + 4);
+          graphCtx.stroke();
+        }
+
+        graphCtx.fillStyle = '#e2e8f0';
+        graphCtx.font = 'bold 11px sans-serif';
+        graphCtx.fillText('Extension, e (m)', margin.left + plotW / 2, margin.top + plotH + 36);
+
+        graphCtx.save();
+        graphCtx.translate(16, margin.top + plotH / 2);
+        graphCtx.rotate(-Math.PI / 2);
+        graphCtx.textAlign = 'center';
+        graphCtx.fillText('Force, F (N)', 0, 0);
+        graphCtx.restore();
+
+        // Limit of Proportionality (P)
+        if (showElasticLimitLine) {
+          const pExtM = PROPORTIONAL_LIMIT_N / SPRING_K;
+          const pX = xToPx(pExtM);
+          const pY = yToPx(PROPORTIONAL_LIMIT_N);
+
+          graphCtx.save();
+          graphCtx.setLineDash([3, 3]);
+          graphCtx.strokeStyle = 'rgba(245, 158, 11, 0.7)';
+          graphCtx.lineWidth = 1.5;
+          graphCtx.beginPath();
+          graphCtx.moveTo(margin.left, pY);
+          graphCtx.lineTo(pX, pY);
+          graphCtx.lineTo(pX, margin.top + plotH);
+          graphCtx.stroke();
+
+          graphCtx.fillStyle = '#f59e0b';
+          graphCtx.font = 'bold 10px sans-serif';
+          graphCtx.textAlign = 'left';
+          graphCtx.fillText('P (Limit of Proportionality)', pX + 6, pY - 8);
+
+          graphCtx.beginPath();
+          graphCtx.arc(pX, pY, 4, 0, Math.PI * 2);
+          graphCtx.fill();
+          graphCtx.restore();
+        }
+
+        // Line of Best Fit
+        if (showBestFit) {
+          const extAtMaxLinear = PROPORTIONAL_LIMIT_N / SPRING_K;
+          const x0 = xToPx(0);
+          const y0 = yToPx(0);
+          const x1 = xToPx(extAtMaxLinear);
+          const y1 = yToPx(PROPORTIONAL_LIMIT_N);
+
+          graphCtx.save();
+          graphCtx.fillStyle = 'rgba(6, 182, 212, 0.12)';
+          graphCtx.beginPath();
+          graphCtx.moveTo(x0, y0);
+          graphCtx.lineTo(x1, y1);
+          graphCtx.lineTo(x1, y0);
+          graphCtx.closePath();
+          graphCtx.fill();
+
+          graphCtx.strokeStyle = '#06b6d4';
+          graphCtx.lineWidth = 2.5;
+          graphCtx.beginPath();
+          graphCtx.moveTo(x0, y0);
+          graphCtx.lineTo(x1, y1);
+          graphCtx.stroke();
+
+          graphCtx.strokeStyle = 'rgba(245, 158, 11, 0.9)';
+          graphCtx.lineWidth = 2.5;
+          graphCtx.setLineDash([4, 2]);
+          graphCtx.beginPath();
+          graphCtx.moveTo(x1, y1);
+          for (let f = PROPORTIONAL_LIMIT_N; f <= 11.5; f += 0.2) {
+            const extra = 0.015 * Math.pow(f - PROPORTIONAL_LIMIT_N, 1.6);
+            const extCurve = extAtMaxLinear + extra;
+            graphCtx.lineTo(xToPx(extCurve), yToPx(f));
+          }
+          graphCtx.stroke();
+          graphCtx.restore();
+        }
+
+        // Recorded Points
+        recordedPoints.forEach((pt) => {
+          const px = xToPx(pt.extensionM);
+          const py = yToPx(pt.forceN);
+          graphCtx.strokeStyle = '#10b981';
+          graphCtx.lineWidth = 2;
+          const s = 5;
+          graphCtx.beginPath();
+          graphCtx.moveTo(px - s, py - s);
+          graphCtx.lineTo(px + s, py + s);
+          graphCtx.moveTo(px + s, py - s);
+          graphCtx.lineTo(px - s, py + s);
+          graphCtx.stroke();
+
+          graphCtx.fillStyle = 'rgba(16, 185, 129, 0.25)';
+          graphCtx.beginPath();
+          graphCtx.arc(px, py, 6, 0, Math.PI * 2);
+          graphCtx.fill();
+        });
+
+        // Ghost current position
+        const totalMassG = slottedMasses.reduce((a, b) => a + b, 0);
+        const { forceN, extensionM } = calculateExtensionForMass(totalMassG);
+        const curPx = xToPx(extensionM);
+        const curPy = yToPx(forceN);
+
+        if (curPx <= margin.left + plotW && curPy >= margin.top) {
+          graphCtx.save();
+          graphCtx.fillStyle = '#38bdf8';
+          graphCtx.beginPath();
+          graphCtx.arc(curPx, curPy, 4.5, 0, Math.PI * 2);
+          graphCtx.fill();
+          graphCtx.strokeStyle = '#ffffff';
+          graphCtx.lineWidth = 1.5;
+          graphCtx.stroke();
+          graphCtx.restore();
+        }
+      }
+
+      function updateGraphStats() {
+        statPointCount.textContent = `${recordedPoints.length}`;
+
+        const linearPoints = recordedPoints.filter(p => p.forceN <= PROPORTIONAL_LIMIT_N && p.extensionM > 0.001);
+        if (linearPoints.length >= 2) {
+          let sumFE = 0;
+          let sumEE = 0;
+          linearPoints.forEach(p => {
+            sumFE += p.forceN * p.extensionM;
+            sumEE += p.extensionM * p.extensionM;
+          });
+          const calculatedK = sumEE > 0 ? (sumFE / sumEE) : SPRING_K;
+          statGradient.textContent = `${calculatedK.toFixed(1)} N/m`;
+        } else {
+          statGradient.textContent = `${SPRING_K.toFixed(1)} N/m (preset)`;
+        }
+
+        const totalMassG = slottedMasses.reduce((a, b) => a + b, 0);
+        const { extensionM } = calculateExtensionForMass(totalMassG);
+        const energyJ = 0.5 * SPRING_K * (extensionM * extensionM);
+        statEnergy.textContent = `${energyJ.toFixed(3)} J`;
+      }
+
+      // --- Data Table Management ---
+      function recordDataPoint() {
+        const totalMassG = slottedMasses.reduce((a, b) => a + b, 0);
+        const { forceN, extensionCm, extensionM } = calculateExtensionForMass(totalMassG);
+        const lengthCm = NATURAL_LENGTH_CM + extensionCm;
+
+        const exists = recordedPoints.some(p => p.massG === totalMassG);
+        if (exists) {
+          const btn = document.getElementById('recordReadingBtn');
+          if (btn) {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<span class="text-amber-300 font-bold">Already Recorded!</span>`;
+            setTimeout(() => btn.innerHTML = originalText, 1200);
+          }
+          return;
+        }
+
+        const pointObj = {
+          id: Date.now(),
+          index: recordedPoints.length + 1,
+          massG: totalMassG,
+          forceN,
+          lengthCm,
+          extensionCm,
+          extensionM
+        };
+
+        recordedPoints.push(pointObj);
+        recordedPoints.sort((a, b) => a.massG - b.massG);
+
+        renderDataTable();
+        drawGraph();
+        updateGraphStats();
+
+        const btn = document.getElementById('recordReadingBtn');
+        if (btn) {
+          const orig = btn.innerHTML;
+          btn.innerHTML = `✓ Recorded!`;
+          setTimeout(() => btn.innerHTML = orig, 800);
+        }
+      }
+
+      function deleteDataPoint(id) {
+        recordedPoints = recordedPoints.filter(p => p.id !== id);
+        renderDataTable();
+        drawGraph();
+        updateGraphStats();
+      }
+
+      function clearAllPoints() {
+        if (recordedPoints.length === 0) return;
+        if (confirm('Clear all recorded experimental data points?')) {
+          recordedPoints = [];
+          renderDataTable();
+          drawGraph();
+          updateGraphStats();
+        }
+      }
+
+      function renderDataTable() {
+        if (recordedPoints.length === 0) {
+          dataTableBody.innerHTML = `
+            <tr id="emptyTableRow">
+              <td colspan="7" class="py-6 text-center text-slate-500 font-sans italic text-xs">
+                No readings recorded yet. Add masses to the spring and click "Record Data Point".
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        dataTableBody.innerHTML = recordedPoints.map((pt, idx) => `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-2 px-3 text-slate-500">${idx + 1}</td>
+            <td class="py-2 px-3 font-semibold text-white">${pt.massG}</td>
+            <td class="py-2 px-3 text-cyan-300">${pt.forceN.toFixed(2)}</td>
+            <td class="py-2 px-3 text-slate-300">${pt.lengthCm.toFixed(1)}</td>
+            <td class="py-2 px-3 text-emerald-400 font-bold">${pt.extensionCm.toFixed(1)}</td>
+            <td class="py-2 px-3 text-slate-400">${pt.extensionM.toFixed(3)}</td>
+            <td class="py-2 px-3 text-right">
+              <button onclick="window.__deletePoint(${pt.id})" class="text-slate-500 hover:text-rose-400 transition" title="Delete reading">
+                <svg class="w-3.5 h-3.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      window.__deletePoint = deleteDataPoint;
+      window.__clearAllPoints = clearAllPoints;
+      window.__recordDataPoint = recordDataPoint;
+
+      function exportCsv() {
+        if (recordedPoints.length === 0) {
+          alert('Record at least one data point before exporting CSV.');
+          return;
+        }
+        let csvContent = 'data:text/csv;charset=utf-8,';
+        csvContent += 'Trial,Mass (g),Weight Force (N),Length (cm),Extension (cm),Extension (m)\n';
+        recordedPoints.forEach((p, i) => {
+          csvContent += `${i + 1},${p.massG},${p.forceN.toFixed(3)},${p.lengthCm.toFixed(2)},${p.extensionCm.toFixed(2)},${p.extensionM.toFixed(4)}\n`;
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', 'hookes_law_gcse_results.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+      window.__exportCsv = exportCsv;
+
+      // --- Animation Loop ---
+      let lastTime = performance.now();
+
+      function animationTick(now) {
+        const dt = Math.min((now - lastTime) / 1000.0, 0.05);
+        lastTime = now;
+
+        if (isDamped) {
+          const totalMassKg = Math.max(0.1, slottedMasses.reduce((a, b) => a + b, 0) / 1000.0);
+          const displacement = currentLengthCm - targetLengthCm;
+          const k_eff = 35.0;
+          const damping_coeff = 4.5;
+
+          const springAcc = (-k_eff * displacement - damping_coeff * springVelocity) / Math.sqrt(totalMassKg);
+          springVelocity += springAcc * dt;
+          currentLengthCm += springVelocity * dt;
+
+          if (Math.abs(displacement) < 0.02 && Math.abs(springVelocity) < 0.05) {
+            currentLengthCm = targetLengthCm;
+            springVelocity = 0;
+          }
+        } else {
+          currentLengthCm = targetLengthCm;
+        }
+
+        readoutLength.textContent = `${currentLengthCm.toFixed(1)} cm`;
+        readoutExtension.textContent = `${Math.max(0, currentLengthCm - NATURAL_LENGTH_CM).toFixed(1)} cm`;
+
+        drawSpring();
+        drawGraph();
+
+        requestAnimationFrame(animationTick);
+      }
+
+      // Slotted Mass button event listeners
+      document.querySelectorAll('.mass-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const val = parseInt(btn.getAttribute('data-add-mass'), 10);
+          addMass(val);
+        });
+      });
+
+      document.getElementById('removeLastMassBtn').addEventListener('click', removeLastMass);
+      document.getElementById('clearMassesBtn').addEventListener('click', clearAllMasses);
+      document.getElementById('recordReadingBtn').addEventListener('click', recordDataPoint);
+      document.getElementById('clearPointsBtn').addEventListener('click', clearAllPoints);
+      document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
+
+      document.getElementById('toggleDamping').addEventListener('change', (e) => {
+        isDamped = e.target.checked;
+      });
+      document.getElementById('togglePointerGuide').addEventListener('change', (e) => {
+        showPointerGuide = e.target.checked;
+        drawSpring();
+      });
+      document.getElementById('toggleBestFit').addEventListener('change', (e) => {
+        showBestFit = e.target.checked;
+        drawGraph();
+      });
+      document.getElementById('toggleElasticLimitLine').addEventListener('change', (e) => {
+        showElasticLimitLine = e.target.checked;
+        drawGraph();
+      });
+
+      // Reset Lab
+      document.getElementById('resetAllBtn').addEventListener('click', () => {
+        if (confirm('Reset entire apparatus and clear all data?')) {
+          slottedMasses = [];
+          recordedPoints = [];
+          currentLengthCm = NATURAL_LENGTH_CM;
+          targetLengthCm = NATURAL_LENGTH_CM;
+          springVelocity = 0;
+          updateReadouts();
+          renderDataTable();
+          drawSpring();
+          drawGraph();
+        }
+      });
+
+      // Detailed Theory Modal
+      const theoryModal = document.getElementById('theoryModal');
+      document.getElementById('openFullTheoryModalBtn').addEventListener('click', () => {
+        theoryModal.classList.remove('hidden');
+      });
+      document.getElementById('closeTheoryBtn').addEventListener('click', () => {
+        theoryModal.classList.add('hidden');
+      });
+      document.getElementById('closeTheoryBtn2').addEventListener('click', () => {
+        theoryModal.classList.add('hidden');
+      });
+      theoryModal.addEventListener('click', (e) => {
+        if (e.target === theoryModal) theoryModal.classList.add('hidden');
+      });
+
+      // Init
+      setTimeout(() => {
+        resizeCanvases();
+        updateReadouts();
+        updatePanelsLayout();
+        updateLegendsVisibility();
+        requestAnimationFrame(animationTick);
+      }, 50);
+
+    })();
+  </script>
+</body>
+</html>

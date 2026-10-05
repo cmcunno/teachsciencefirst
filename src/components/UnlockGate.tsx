@@ -108,7 +108,7 @@ export const UnlockGate: React.FC<UnlockGateProps> = ({ onUnlock }) => {
             <div className="grid grid-cols-2 gap-3 text-xs text-slate-400">
               <div className="p-3 bg-slate-900/60 border border-slate-800/60 rounded-lg">
                 <div className="text-slate-200 font-medium mb-1">Interactive Repos</div>
-                <div>24 KS3, KS4 & KS5 biology, chemistry & physics teaching modules.</div>
+                <div>KS3, KS4 &amp; KS5 biology, chemistry &amp; physics teaching modules.</div>
               </div>
               <div className="p-3 bg-slate-900/60 border border-slate-800/60 rounded-lg">
                 <div className="text-slate-200 font-medium mb-1">Folder Structure Nav</div>

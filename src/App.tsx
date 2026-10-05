@@ -32,7 +32,7 @@ import { PreviewModal } from './components/PreviewModal';
 import { FolderTreeNav } from './components/FolderTreeNav';
 
 const STORAGE_KEY_AUTH = 'pyrex_science_auth_v1';
-const STORAGE_KEY_REPOS = 'teach_science_first_resources_v3';
+const STORAGE_KEY_REPOS = 'teach_science_first_resources_v4';
 
 export default function App() {
   // Authentication State
@@ -50,13 +50,32 @@ export default function App() {
   // Resources State - loaded from resources/ structure
   const [repositories, setRepositories] = useState<ScienceResource[]>(() => {
     try {
+      // 1. Try primary storage key v4
       const saved = localStorage.getItem(STORAGE_KEY_REPOS);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.path?.startsWith('resources/')) {
           const validCategories = new Set(['Concepts', 'Simulations']);
           const cleaned = parsed.filter((r: any) => validCategories.has(r.category));
+          const existingIds = new Set(cleaned.map((r: any) => r.id));
+          const missingDefaults = INITIAL_REPOSITORIES.filter(r => !existingIds.has(r.id));
+          if (missingDefaults.length > 0) {
+            return [...cleaned, ...missingDefaults];
+          }
           if (cleaned.length > 0) return cleaned;
+        }
+      }
+
+      // 2. Fallback check legacy v3 cache & merge new resources
+      const legacySaved = localStorage.getItem('teach_science_first_resources_v3');
+      if (legacySaved) {
+        const parsed = JSON.parse(legacySaved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const validCategories = new Set(['Concepts', 'Simulations']);
+          const cleaned = parsed.filter((r: any) => validCategories.has(r.category));
+          const existingIds = new Set(cleaned.map((r: any) => r.id));
+          const missingDefaults = INITIAL_REPOSITORIES.filter(r => !existingIds.has(r.id));
+          return [...cleaned, ...missingDefaults];
         }
       }
     } catch {
@@ -559,7 +578,7 @@ export default function App() {
               <div className="space-y-1">
                 <div className="font-semibold text-slate-200 flex items-center gap-1.5">
                   <GraduationCap className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>24 Required Curriculum Practicals</span>
+                  <span>{repositories.length} Curriculum Practicals &amp; Concepts</span>
                 </div>
                 <p className="leading-relaxed text-[11px]">
                   Includes required practicals for AQA, Edexcel, and OCR specifications with live data collection and calculations.

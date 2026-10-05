@@ -217,6 +217,22 @@ export const INITIAL_REPOSITORIES: ScienceResource[] = [
     authorNotes: 'Interactive ripple tank and wave generator for GCSE wave properties.'
   },
   {
+    id: 'res-ks4-physics-concepts-hookes-law',
+    title: "Hooke's Law & Spring Extension",
+    keyStage: 'KS4',
+    stageLevel: 'KS4 / GCSE (Ages 14-16)',
+    subject: 'Physics',
+    category: 'Concepts',
+    slug: 'hookes_law',
+    description: "Interactive spring extension laboratory exploring Hooke's Law (F = k·e), spring constant calculation, slotted masses, ruler fiducial pointer, and force-extension graphing with elastic limit detection.",
+    url: '/resources/ks4/Physics/concepts/hookes_law/index.html',
+    path: 'resources/ks4/Physics/concepts/hookes_law/index.html',
+    fileName: 'index.html',
+    isLocalRepo: true,
+    isFavorite: true,
+    authorNotes: "Core GCSE Physics practical demonstrating proportional extension and the limit of proportionality."
+  },
+  {
     id: 'res-ks4-physics-simulations-gm-tube',
     title: 'Visual GM Counter Simulation',
     keyStage: 'KS4',
