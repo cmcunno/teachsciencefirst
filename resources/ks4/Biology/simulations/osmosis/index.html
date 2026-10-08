@@ -190,6 +190,9 @@
             validationStates: {},
         };
 
+        let modalChartInstance = null;
+        let modalChartType = null;
+
         // --- DOM ELEMENTS ---
         const DOMElements = {
             testTubesContainer: document.getElementById('test-tubes-container'),
@@ -235,16 +238,26 @@
         
         // --- MODAL LOGIC ---
         const openModal = (title, contentHTML) => {
+            if (modalChartInstance) {
+                modalChartInstance.destroy();
+                modalChartInstance = null;
+                modalChartType = null;
+            }
             DOMElements.modalTitle.textContent = title;
             DOMElements.modalBody.innerHTML = contentHTML;
             DOMElements.modal.classList.remove('hidden');
-            setTimeout(() => {
-                DOMElements.modal.classList.remove('opacity-0');
-                DOMElements.modalContent.classList.remove('scale-95');
-            }, 10);
+            // Force layout flush so CSS transition starts cleanly
+            void DOMElements.modal.offsetWidth;
+            DOMElements.modal.classList.remove('opacity-0');
+            DOMElements.modalContent.classList.remove('scale-95');
         };
 
         const closeModal = () => {
+            if (modalChartInstance) {
+                modalChartInstance.destroy();
+                modalChartInstance = null;
+                modalChartType = null;
+            }
             DOMElements.modal.classList.add('opacity-0');
             DOMElements.modalContent.classList.add('scale-95');
             setTimeout(() => {
@@ -366,76 +379,88 @@
         
         const createChart = (ctx, type, data, options) => new Chart(ctx, { type, data, options });
 
-        const initializeCharts = () => {
+        const getLineChartConfig = (metricType, isModal = false) => {
             const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-            const textColor = isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)';
-            Chart.defaults.color = textColor;
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)';
+            const textColor = isDarkMode ? '#e2e8f0' : '#334155';
+            const yLabel = metricType === 'length' ? 'Length (cm)' : 'Mass (g)';
 
-            const commonOptions = (yLabel) => ({
+            const datasets = Object.values(SolutionType).map(solution => {
+                const data = state.measurements.map(m => m[`${solution}_${metricType}`]);
+                return {
+                    label: solution,
+                    data,
+                    borderColor: CHART_COLORS[solution],
+                    backgroundColor: CHART_COLORS[solution],
+                    tension: 0.1,
+                    pointRadius: data.length <= 1 ? (isModal ? 5 : 3) : (isModal ? 2 : 0),
+                    pointHoverRadius: isModal ? 6 : 4,
+                    borderWidth: isModal ? 2.5 : 2
+                };
+            });
+
+            const labels = state.measurements.map(m => m.time.toFixed(2));
+
+            const options = {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
                 scales: {
                     x: {
                         type: 'linear',
-                        title: { display: true, text: 'Time (s)' },
+                        title: { 
+                            display: true, 
+                            text: 'Time (s)', 
+                            color: textColor,
+                            font: { size: isModal ? 15 : 13, weight: 'bold' } 
+                        },
                         grid: { color: gridColor },
+                        min: 0,
+                        suggestedMax: SIMULATION_DURATION,
+                        ticks: { 
+                            color: textColor,
+                            font: { size: isModal ? 13 : 11, weight: '600' } 
+                        }
                     },
                     y: {
-                        title: { display: true, text: yLabel },
+                        title: { 
+                            display: true, 
+                            text: yLabel, 
+                            color: textColor,
+                            font: { size: isModal ? 15 : 13, weight: 'bold' } 
+                        },
                         grid: { color: gridColor },
                         ticks: {
-                            stepSize: 0.05
+                            stepSize: 0.05,
+                            color: textColor,
+                            font: { size: isModal ? 13 : 11, weight: '600' }
                         }
                     }
                 },
                 plugins: {
-                    legend: { position: 'bottom' }
+                    legend: { 
+                        position: 'bottom',
+                        labels: { 
+                            color: textColor,
+                            font: { size: isModal ? 13 : 11, weight: '500' },
+                            padding: isModal ? 16 : 10
+                        } 
+                    }
                 }
-            });
-
-            const initialData = {
-                labels: [],
-                datasets: Object.values(SolutionType).map(solution => ({
-                    label: solution,
-                    data: [],
-                    borderColor: CHART_COLORS[solution],
-                    tension: 0.1,
-                    pointRadius: 0
-                }))
             };
-            
-            if (state.charts.lengthChart) state.charts.lengthChart.destroy();
-            state.charts.lengthChart = createChart(document.getElementById('length-chart').getContext('2d'), 'line', JSON.parse(JSON.stringify(initialData)), commonOptions('Length (cm)'));
-            
-            if (state.charts.massChart) state.charts.massChart.destroy();
-            state.charts.massChart = createChart(document.getElementById('mass-chart').getContext('2d'), 'line', JSON.parse(JSON.stringify(initialData)), commonOptions('Mass (g)'));
+
+            return {
+                type: 'line',
+                data: { labels, datasets },
+                options
+            };
         };
 
-        const updateLineCharts = () => {
-            const lastMeasurement = state.measurements[state.measurements.length - 1];
-            if (!lastMeasurement) return;
+        const getFinalChartConfig = (isModal = false) => {
+            const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)';
+            const textColor = isDarkMode ? '#e2e8f0' : '#334155';
 
-            const { time } = lastMeasurement;
-            
-            state.charts.lengthChart.data.labels.push(time.toFixed(2));
-            state.charts.massChart.data.labels.push(time.toFixed(2));
-
-            Object.values(SolutionType).forEach((solution, i) => {
-                state.charts.lengthChart.data.datasets[i].data.push(lastMeasurement[`${solution}_length`]);
-                state.charts.massChart.data.datasets[i].data.push(lastMeasurement[`${solution}_mass`]);
-            });
-
-            state.charts.lengthChart.update();
-            state.charts.massChart.update();
-        };
-
-        const renderFinalMassChart = () => {
-             const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-            
-            DOMElements.finalChartWrapper.classList.remove('hidden');
             const getConcentration = (solution) => ({ [SolutionType.WATER]: 0, [SolutionType.SUGAR_LOW]: 0.25, [SolutionType.SUGAR_HIGH]: 0.5 }[solution]);
 
             const rawData = state.potatoSamples.map(sample => ({
@@ -444,7 +469,6 @@
                 name: sample.solution,
             })).sort((a, b) => a.x - b.x);
 
-            // Linear regression
             let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
             rawData.forEach(p => { sumX += p.x; sumY += p.y; sumXY += p.x * p.y; sumX2 += p.x * p.x; });
             const n = rawData.length;
@@ -456,7 +480,7 @@
                 {x: minX, y: slope * minX + intercept},
                 {x: maxX, y: slope * maxX + intercept}
             ];
-            
+
             const data = {
                 datasets: [
                     {
@@ -464,8 +488,8 @@
                         data: rawData,
                         backgroundColor: rawData.map(d => CHART_COLORS[d.name]),
                         type: 'scatter',
-                        pointRadius: 6,
-                        pointHoverRadius: 8,
+                        pointRadius: isModal ? 8 : 6,
+                        pointHoverRadius: isModal ? 10 : 8,
                     },
                     {
                         label: 'Line of Best Fit',
@@ -474,7 +498,8 @@
                         type: 'line',
                         tension: 0.1,
                         pointRadius: 0,
-                        borderDash: [5, 5]
+                        borderDash: [5, 5],
+                        borderWidth: isModal ? 2.5 : 2
                     }
                 ]
             };
@@ -486,19 +511,44 @@
                     x: {
                         type: 'linear',
                         position: 'bottom',
-                        title: { display: true, text: 'Sugar Concentration (M)' },
+                        title: { 
+                            display: true, 
+                            text: 'Sugar Concentration (M)', 
+                            color: textColor,
+                            font: { size: isModal ? 15 : 13, weight: 'bold' } 
+                        },
                         grid: { color: gridColor },
                         min: 0,
-                        max: 0.55
+                        max: 0.55,
+                        ticks: { 
+                            color: textColor,
+                            font: { size: isModal ? 13 : 11, weight: '600' } 
+                        }
                     },
                     y: {
-                        title: { display: true, text: '% Change in Mass' },
+                        title: { 
+                            display: true, 
+                            text: '% Change in Mass', 
+                            color: textColor,
+                            font: { size: isModal ? 15 : 13, weight: 'bold' } 
+                        },
                         grid: { color: gridColor },
-                        ticks: { callback: value => `${value.toFixed(0)}%` }
+                        ticks: { 
+                            callback: value => `${value.toFixed(0)}%`,
+                            color: textColor,
+                            font: { size: isModal ? 13 : 11, weight: '600' }
+                        }
                     }
                 },
                 plugins: {
-                    legend: { position: 'bottom' },
+                    legend: { 
+                        position: 'bottom',
+                        labels: { 
+                            color: textColor,
+                            font: { size: isModal ? 13 : 11, weight: '500' },
+                            padding: isModal ? 16 : 10
+                        } 
+                    },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
@@ -511,9 +561,65 @@
                     }
                 }
             };
+
+            return { type: 'scatter', data, options };
+        };
+
+        const initializeCharts = () => {
+            const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            Chart.defaults.color = isDarkMode ? '#e2e8f0' : '#334155';
+
+            if (state.charts.lengthChart) state.charts.lengthChart.destroy();
+            const lengthCfg = getLineChartConfig('length', false);
+            state.charts.lengthChart = createChart(document.getElementById('length-chart').getContext('2d'), lengthCfg.type, lengthCfg.data, lengthCfg.options);
             
+            if (state.charts.massChart) state.charts.massChart.destroy();
+            const massCfg = getLineChartConfig('mass', false);
+            state.charts.massChart = createChart(document.getElementById('mass-chart').getContext('2d'), massCfg.type, massCfg.data, massCfg.options);
+        };
+
+        const updateLineCharts = () => {
+            const lastMeasurement = state.measurements[state.measurements.length - 1];
+            if (!lastMeasurement) return;
+
+            const { time } = lastMeasurement;
+            
+            if (state.charts.lengthChart) {
+                state.charts.lengthChart.data.labels.push(time.toFixed(2));
+                Object.values(SolutionType).forEach((solution, i) => {
+                    state.charts.lengthChart.data.datasets[i].data.push(lastMeasurement[`${solution}_length`]);
+                });
+                state.charts.lengthChart.update();
+            }
+
+            if (state.charts.massChart) {
+                state.charts.massChart.data.labels.push(time.toFixed(2));
+                Object.values(SolutionType).forEach((solution, i) => {
+                    state.charts.massChart.data.datasets[i].data.push(lastMeasurement[`${solution}_mass`]);
+                });
+                state.charts.massChart.update();
+            }
+
+            if (modalChartInstance && modalChartType === 'length') {
+                modalChartInstance.data.labels.push(time.toFixed(2));
+                Object.values(SolutionType).forEach((solution, i) => {
+                    modalChartInstance.data.datasets[i].data.push(lastMeasurement[`${solution}_length`]);
+                });
+                modalChartInstance.update();
+            } else if (modalChartInstance && modalChartType === 'mass') {
+                modalChartInstance.data.labels.push(time.toFixed(2));
+                Object.values(SolutionType).forEach((solution, i) => {
+                    modalChartInstance.data.datasets[i].data.push(lastMeasurement[`${solution}_mass`]);
+                });
+                modalChartInstance.update();
+            }
+        };
+
+        const renderFinalMassChart = () => {
+            DOMElements.finalChartWrapper.classList.remove('hidden');
+            const { type, data, options } = getFinalChartConfig(false);
             if (state.charts.finalMassChart) state.charts.finalMassChart.destroy();
-            state.charts.finalMassChart = createChart(document.getElementById('final-mass-chart').getContext('2d'), 'scatter', data, options);
+            state.charts.finalMassChart = createChart(document.getElementById('final-mass-chart').getContext('2d'), type, data, options);
         };
         
         // --- EVENT HANDLERS ---
@@ -582,6 +688,15 @@
         
         const resetSimulation = () => {
             if (state.intervalId) clearInterval(state.intervalId);
+            if (modalChartInstance) {
+                modalChartInstance.destroy();
+                modalChartInstance = null;
+                modalChartType = null;
+            }
+            if (state.charts.finalMassChart) {
+                state.charts.finalMassChart.destroy();
+                state.charts.finalMassChart = null;
+            }
             state = {
                 ...state,
                 simulationState: SimulationState.IDLE,
@@ -592,6 +707,7 @@
                 userInputs: {},
                 validationStates: {},
             };
+            DOMElements.finalChartWrapper.classList.add('hidden');
             renderTestTubes(DOMElements.testTubesContainer);
             initializeCharts();
             updateUIState();
@@ -651,48 +767,71 @@
                 openModal('Live Simulation', container.outerHTML);
             });
             
-            const createModalChart = (canvasId, originalChart, onTransitionEnd = false) => {
-                const renderChart = () => {
-                    const modalCtx = document.getElementById(canvasId)?.getContext('2d');
-                    if (modalCtx && originalChart) {
-                        const newOptions = { ...originalChart.options, maintainAspectRatio: false };
-                        createChart(modalCtx, originalChart.config.type, JSON.parse(JSON.stringify(originalChart.data)), newOptions);
+            const openModalChart = (title, chartType) => {
+                modalChartType = chartType;
+                const canvasId = `modal-${chartType}-chart`;
+                const contentHTML = `
+                    <div class="relative w-full h-[65vh] min-h-[350px]">
+                        <canvas id="${canvasId}"></canvas>
+                    </div>
+                `;
+                openModal(title, contentHTML);
+
+                setTimeout(() => {
+                    const canvas = document.getElementById(canvasId);
+                    if (!canvas) return;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return;
+
+                    if (modalChartInstance) {
+                        modalChartInstance.destroy();
+                        modalChartInstance = null;
                     }
-                };
-            
-                if (onTransitionEnd) {
-                    const modalContent = DOMElements.modalContent;
-                    const onEnd = () => {
-                        renderChart();
-                        modalContent.removeEventListener('transitionend', onEnd);
-                    };
-                    modalContent.addEventListener('transitionend', onEnd);
-                } else {
-                    renderChart();
-                }
+
+                    if (chartType === 'final') {
+                        const config = getFinalChartConfig(true);
+                        modalChartInstance = createChart(ctx, config.type, config.data, config.options);
+                    } else {
+                        const config = getLineChartConfig(chartType, true);
+                        modalChartInstance = createChart(ctx, config.type, config.data, config.options);
+                    }
+                }, 50);
+
+                setTimeout(() => {
+                    if (modalChartInstance) {
+                        modalChartInstance.resize();
+                    }
+                }, 350);
             };
 
             DOMElements.expandLengthChartBtn.addEventListener('click', () => {
-                openModal('Length Change Over Time', '<div class="h-[70vh]"><canvas id="modal-length-chart"></canvas></div>');
-                createModalChart('modal-length-chart', state.charts.lengthChart, true);
+                openModalChart('Length Change Over Time', 'length');
             });
             
             DOMElements.expandMassChartBtn.addEventListener('click', () => {
-                openModal('Mass Change Over Time', '<div class="h-[70vh]"><canvas id="modal-mass-chart"></canvas></div>');
-                createModalChart('modal-mass-chart', state.charts.massChart, true);
+                openModalChart('Mass Change Over Time', 'mass');
             });
             
             DOMElements.expandFinalChartBtn.addEventListener('click', () => {
-                // Only show the final chart if the simulation has finished and the chart exists
                 if (state.simulationState === SimulationState.FINISHED && state.charts.finalMassChart) {
-                    openModal('Analysis: Mass Change vs. Solution Concentration', '<div class="h-[70vh]"><canvas id="modal-final-chart"></canvas></div>');
-                    createModalChart('modal-final-chart', state.charts.finalMassChart, true);
+                    openModalChart('Analysis: Mass Change vs. Solution Concentration', 'final');
                 } else {
-                    // Provide feedback if the user tries to open the chart too early
                     openModal(
                         'Analysis Not Available', 
-                        '<p class="text-center p-8">The analysis graph is generated after the simulation is complete. Please start the experiment first.</p>'
+                        '<p class="text-center p-8 text-gray-700 dark:text-gray-300">The analysis graph is generated after the simulation is complete. Please start and finish the experiment first.</p>'
                     );
+                }
+            });
+
+            window.addEventListener('resize', () => {
+                if (modalChartInstance) {
+                    modalChartInstance.resize();
+                }
+            });
+
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !DOMElements.modal.classList.contains('hidden')) {
+                    closeModal();
                 }
             });
 
