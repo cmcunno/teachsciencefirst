@@ -4311,10 +4311,620 @@ void main() {
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const C5=[["path",{d:"M18 6 6 18",key:"1bl5f8"}],["path",{d:"m6 6 12 12",key:"d8bk6v"}]],w5=Ba("x",C5);var ii=(r=>(r.SOLID="Solid",r.LIQUID="Liquid",r.GAS="Gas",r.DIFFUSION="Diffusion",r))(ii||{});const R5=({state:r,barrierEnabled:e=!1,isPaused:t=!1})=>{const n=Ue.useRef(null),a=Ue.useRef(null),o=Ue.useRef(null),f=Ue.useRef(null),h=Ue.useRef(null),p=Ue.useRef(null),g=Ue.useRef(null),x=r===ii.GAS?50:r===ii.DIFFUSION?100:200,[v,b]=Ue.useState({x:20,y:80}),S=Ue.useRef(!1),A=Ue.useRef({x:0,y:0}),w=F=>{F.stopPropagation(),F.preventDefault(),S.current=!0,A.current={x:F.clientX-v.x,y:F.clientY-v.y}},C=F=>{F.stopPropagation()},E=F=>{S.current&&b({x:F.clientX-A.current.x,y:F.clientY-A.current.y})},D=()=>{S.current=!1};Ue.useEffect(()=>{if(r===ii.DIFFUSION)return window.addEventListener("mousemove",E),window.addEventListener("mouseup",D),()=>{window.removeEventListener("mousemove",E),window.removeEventListener("mouseup",D)}},[r]);const N=Ue.useMemo(()=>{const F=[],z=new Float32Array(x*3),V=.15,X=.035,O=.11;for(let L=0;L<x;L++){const G=r===ii.DIFFUSION&&L>=x/2;let te=0,ae=0,ue=0,he=0,q=0,J=0;if(r===ii.SOLID){const me=Math.ceil(Math.pow(x,.3333333333333333)),ge=1.2;te=L%me*ge-me*ge/2,ae=Math.floor(L/me)%me*ge-me*ge/2,ue=Math.floor(L/(me*me))*ge-me*ge/2}else r===ii.LIQUID?(te=(Math.random()-.5)*8,ae=(Math.random()-.5)*4-2,ue=(Math.random()-.5)*8,he=(Math.random()-.5)*X,q=(Math.random()-.5)*X,J=(Math.random()-.5)*X):r===ii.GAS?(te=(Math.random()-.5)*10,ae=(Math.random()-.5)*10,ue=(Math.random()-.5)*10,he=(Math.random()-.5)*V,q=(Math.random()-.5)*V,J=(Math.random()-.5)*V):r===ii.DIFFUSION&&(te=G?2.5+Math.random()*2.5:-2.5-Math.random()*2.5,ae=(Math.random()-.5)*6,ue=(Math.random()-.5)*6,he=(Math.random()-.5)*O,q=(Math.random()-.5)*O,J=(Math.random()-.5)*O);const ie=new Ut;r===ii.DIFFUSION&&G?ie.setHex(3900150):ie.setHex(16347926),ie.toArray(z,L*3),F.push({x:te,y:ae,z:ue,vx:he,vy:q,vz:J,ox:te,oy:ae,oz:ue,isTypeB:G})}return{data:F,colors:z}},[r,x]),B=new Vn;return Jm(({clock:F})=>{if(!n.current||t)return;const z=F.getElapsedTime();let V=0,X=0,O=0,L=0;if(N.data.forEach((G,te)=>{if(r===ii.SOLID)G.x=G.ox+Math.sin(z*10+te)*.05,G.y=G.oy+Math.cos(z*11+te)*.05,G.z=G.oz+Math.sin(z*9+te)*.05;else{G.x+=G.vx,G.y+=G.vy,G.z+=G.vz;const ae=5;Math.abs(G.x)>ae&&(G.vx*=-1),Math.abs(G.y)>ae&&(G.vy*=-1),Math.abs(G.z)>ae&&(G.vz*=-1),r===ii.DIFFUSION&&e&&(G.x<0&&G.x>-.2&&(G.x=-.2,G.vx*=-1),G.x>0&&G.x<.2&&(G.x=.2,G.vx*=-1)),r===ii.LIQUID&&(G.y>0&&(G.vy-=.002),G.y<-4&&(G.y=-4,G.vy*=-.5))}r===ii.DIFFUSION&&(G.x<0?G.isTypeB?X++:V++:G.isTypeB?L++:O++),B.position.set(G.x,G.y,G.z),B.scale.setScalar(r===ii.GAS?.8:1),B.updateMatrix(),n.current.setMatrixAt(te,B.matrix)}),n.current.instanceMatrix.needsUpdate=!0,r===ii.DIFFUSION){if(a.current&&(a.current.innerText=V.toString()),o.current&&(o.current.innerText=X.toString()),f.current&&(f.current.innerText=O.toString()),h.current&&(h.current.innerText=L.toString()),p.current){const G=V+X;p.current.style.background=`linear-gradient(90deg, #f97316 ${G>0?V/G*100:0}%, #3b82f6 ${G>0?V/G*100:0}%)`}if(g.current){const G=O+L;g.current.style.background=`linear-gradient(90deg, #f97316 ${G>0?O/G*100:0}%, #3b82f6 ${G>0?O/G*100:0}%)`}}}),Se.jsxs(Se.Fragment,{children:[Se.jsxs("instancedMesh",{ref:n,args:[void 0,void 0,x],children:[Se.jsx("sphereGeometry",{args:[.3,16,16]}),Se.jsx("meshStandardMaterial",{color:"#fff",vertexColors:!0}),Se.jsx("instancedBufferAttribute",{attach:"geometry-attributes-color",args:[N.colors,3]})]}),r===ii.DIFFUSION&&e&&Se.jsxs("mesh",{position:[0,0,0],children:[Se.jsx("boxGeometry",{args:[.2,10,10]}),Se.jsx("meshPhysicalMaterial",{color:"#cbd5e1",transparent:!0,opacity:.3,roughness:.1,metalness:.1,side:tr})]}),r===ii.DIFFUSION&&Se.jsx(nz,{as:"div",fullscreen:!0,style:{pointerEvents:"none"},children:Se.jsxs("div",{className:"fixed bg-slate-900/90 backdrop-blur border border-slate-700 rounded-xl p-4 text-white shadow-2xl flex flex-col gap-3 w-72 pointer-events-auto cursor-move select-none",style:{left:v.x,top:v.y},onMouseDown:w,onPointerDown:C,children:[Se.jsxs("div",{className:"flex items-center justify-between border-b border-slate-700 pb-2 mb-1",children:[Se.jsxs("span",{className:"text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2",children:[Se.jsx(d5,{size:14})," Concentration Data"]}),Se.jsxs("div",{className:"flex gap-2 text-[10px]",children:[Se.jsx("span",{className:"text-orange-400 font-bold",children:"● A"}),Se.jsx("span",{className:"text-blue-400 font-bold",children:"● B"})]})]}),Se.jsxs("div",{className:"space-y-1",children:[Se.jsxs("div",{className:"flex justify-between text-xs text-slate-400 font-medium",children:[Se.jsx("span",{children:"Left Chamber"}),Se.jsxs("span",{className:"flex gap-3",children:[Se.jsx("span",{className:"text-orange-400 w-8 text-right",ref:a,children:"0"}),Se.jsx("span",{className:"text-blue-400 w-8 text-right",ref:o,children:"0"})]})]}),Se.jsx("div",{ref:p,className:"w-full h-1.5 rounded-full bg-slate-800"})]}),Se.jsxs("div",{className:"space-y-1",children:[Se.jsxs("div",{className:"flex justify-between text-xs text-slate-400 font-medium",children:[Se.jsx("span",{children:"Right Chamber"}),Se.jsxs("span",{className:"flex gap-3",children:[Se.jsx("span",{className:"text-orange-400 w-8 text-right",ref:f,children:"0"}),Se.jsx("span",{className:"text-blue-400 w-8 text-right",ref:h,children:"0"})]})]}),Se.jsx("div",{ref:g,className:"w-full h-1.5 rounded-full bg-slate-800"})]}),Se.jsx("p",{className:"text-[10px] text-slate-500 italic text-center mt-1",children:"Drag this card to move it"})]})})]})},D5={Solid:"In a solid, particles are closely packed in a regular arrangement. They vibrate about fixed positions but do not move relative to each other, giving solids a fixed shape and volume.",Liquid:"In a liquid, particles are close together but arranged randomly. They can move past each other, allowing liquids to flow and take the shape of their container while maintaining a fixed volume.",Gas:"In a gas, particles are far apart and move randomly at high speeds. They have almost no forces of attraction, allowing gases to expand to fill any container.",Diffusion:"Diffusion is the net movement of particles from an area of higher concentration to an area of lower concentration, driven by their random motion, until equilibrium is reached."},cT={"0-solid":"Fixed shape","0-liquid":"Takes container shape","0-gas":"Fills container","1-solid":"Fixed volume","1-liquid":"Fixed volume","1-gas":"Variable volume","2-solid":"High density","2-liquid":"Medium density","2-gas":"Low density","3-solid":"Does not flow","3-liquid":"Flows easily","3-gas":"Flows easily","4-solid":"Difficult","4-liquid":"Difficult","4-gas":"Easy"},N5=async r=>new Promise(e=>{setTimeout(()=>{e(cT)},600)}),U5=async r=>D5[r]||"Explanation not available.",O5=[{id:"0",property:"Shape",solid:"",liquid:"",gas:""},{id:"1",property:"Volume",solid:"",liquid:"",gas:""},{id:"2",property:"Density",solid:"",liquid:"",gas:""},{id:"3",property:"Ease of Flow",solid:"",liquid:"",gas:""},{id:"4",property:"Compressibility",solid:"",liquid:"",gas:""}],L5=["solid","liquid","gas"],z5=()=>{const[r,e]=Ue.useState({}),[t,n]=Ue.useState(!1),[a,o]=Ue.useState(null),[f,h]=Ue.useState(!1),[p]=Ue.useState(["Fixed shape","Takes container shape","Fills container","Fixed volume","Fixed volume","Variable volume","High density","Medium density","Low density","Does not flow","Flows easily","Flows easily","Difficult","Difficult","Easy"]),g=(D,N)=>{D.dataTransfer.setData("text/plain",N),o(N)},x=(D,N,B)=>{D.preventDefault();const F=D.dataTransfer.getData("text/plain"),z=`${N}-${B}`;e(V=>({...V,[z]:F})),o(null),h(!1)},v=D=>{D.preventDefault()},b=async()=>{n(!0);const D=await N5();e(D),n(!1),h(!1)},S=()=>{e({}),h(!1)},A=()=>{h(!0)},w=()=>{window.print()},C=(D,N)=>!f||!N?"normal":cT[D]===N?"correct":"incorrect",E=({className:D="",compact:N=!1})=>Se.jsxs("div",{className:`w-full bg-white text-slate-900 rounded-lg overflow-hidden shadow-sm border border-slate-200 ${D}`,children:[Se.jsxs("div",{className:`bg-slate-100 border-b border-slate-300 flex justify-between items-center print:hidden ${N?"p-2":"p-4"}`,children:[Se.jsxs("h2",{className:`${N?"text-lg":"text-2xl"} font-bold uppercase tracking-widest text-slate-700 flex items-center gap-2`,children:[Se.jsx(f5,{size:N?20:28})," Properties of Matter"]}),Se.jsx("div",{className:"text-xs text-slate-500 font-mono",children:"Worksheet Mode"})]}),Se.jsxs("table",{className:`w-full text-left table-fixed ${N?"text-sm":"text-lg"}`,children:[Se.jsx("thead",{className:`${N?"text-xs":"text-sm"} font-bold text-slate-500 uppercase bg-slate-50`,children:Se.jsxs("tr",{children:[Se.jsx("th",{className:`${N?"px-6 py-3":"px-8 py-5"} border-r w-[22%]`,children:"Property"}),Se.jsx("th",{className:`${N?"px-6 py-3":"px-8 py-5"} border-r bg-orange-50 text-orange-700 w-[26%]`,children:"Solid"}),Se.jsx("th",{className:`${N?"px-6 py-3":"px-8 py-5"} border-r bg-blue-50 text-blue-700 w-[26%]`,children:"Liquid"}),Se.jsx("th",{className:`${N?"px-6 py-3":"px-8 py-5"} bg-purple-50 text-purple-700 w-[26%]`,children:"Gas"})]})}),Se.jsx("tbody",{children:O5.map((B,F)=>Se.jsxs("tr",{className:"border-b hover:bg-slate-50 transition-colors",children:[Se.jsx("td",{className:`${N?"px-6 py-4":"px-8 py-6"} font-bold text-slate-900 border-r bg-slate-50`,children:B.property}),L5.map(z=>{const V=`${F}-${z}`,X=r[V],O=C(V,X);let L=X?"bg-white":"bg-slate-100/50 inner-shadow";return O==="correct"&&(L="bg-emerald-100 border-emerald-300"),O==="incorrect"&&(L="bg-rose-100 border-rose-300"),Se.jsx("td",{onDrop:G=>x(G,F.toString(),z),onDragOver:v,className:`${N?"px-4 py-3 min-h-[60px] h-[60px]":"px-6 py-4 min-h-[90px] h-[90px]"} border-r relative transition-all 
+ */const C5=[["path",{d:"M18 6 6 18",key:"1bl5f8"}],["path",{d:"m6 6 12 12",key:"d8bk6v"}]],w5=Ba("x",C5);var ii=(r=>(r.SOLID="Solid",r.LIQUID="Liquid",r.GAS="Gas",r.DIFFUSION="Diffusion",r))(ii||{});const R5=({state:r,barrierEnabled:e=!1,isPaused:t=!1,speed:sp=1})=>{
+  const n=Ue.useRef(null),
+    a=Ue.useRef(null),
+    o=Ue.useRef(null),
+    f=Ue.useRef(null),
+    h=Ue.useRef(null),
+    p=Ue.useRef(null),
+    g=Ue.useRef(null),
+    x=r===ii.GAS?50:r===ii.DIFFUSION?100:200,
+    [v,b]=Ue.useState({x:20,y:80}),
+    S=Ue.useRef(!1),
+    A=Ue.useRef({x:0,y:0}),
+    [cardScale,setCardScale]=Ue.useState(1.4),
+    isResizing=Ue.useRef(!1),
+    resizeStart=Ue.useRef({mouseX:0,initialScale:1.4}),
+    speedRef=Ue.useRef(sp);
+
+  speedRef.current=sp;
+
+  const w=F=>{
+    F.stopPropagation();
+    F.preventDefault();
+    S.current=!0;
+    A.current={x:F.clientX-v.x,y:F.clientY-v.y};
+  };
+
+  const C=F=>{F.stopPropagation();};
+
+  const E=F=>{
+    if(isResizing.current){
+      const deltaX=F.clientX-resizeStart.current.mouseX;
+      const newScale=Math.min(2.5,Math.max(0.85,resizeStart.current.initialScale+deltaX/200));
+      setCardScale(parseFloat(newScale.toFixed(2)));
+      return;
+    }
+    if(S.current){
+      b({
+        x:Math.max(10,Math.min(window.innerWidth-120,F.clientX-A.current.x)),
+        y:Math.max(10,Math.min(window.innerHeight-100,F.clientY-A.current.y))
+      });
+    }
+  };
+
+  const D=()=>{
+    S.current=!1;
+    isResizing.current=!1;
+  };
+
+  const onResizeStart=F=>{
+    F.stopPropagation();
+    F.preventDefault();
+    isResizing.current=!0;
+    resizeStart.current={mouseX:F.clientX,initialScale:cardScale};
+  };
+
+  Ue.useEffect(()=>{
+    if(r===ii.DIFFUSION){
+      const moveHandler=F=>E(F);
+      const upHandler=()=>D();
+      const touchMoveHandler=evt=>{
+        if(evt.touches&&evt.touches[0])E(evt.touches[0]);
+      };
+      window.addEventListener("mousemove",moveHandler);
+      window.addEventListener("mouseup",upHandler);
+      window.addEventListener("touchmove",touchMoveHandler,{passive:!0});
+      window.addEventListener("touchend",upHandler);
+      return ()=>{
+        window.removeEventListener("mousemove",moveHandler);
+        window.removeEventListener("mouseup",upHandler);
+        window.removeEventListener("touchmove",touchMoveHandler);
+        window.removeEventListener("touchend",upHandler);
+      };
+    }
+  },[r,cardScale]);
+
+  const N=Ue.useMemo(()=>{
+    const F=[],z=new Float32Array(x*3),V=.15,X=.035,O=.11;
+    for(let L=0;L<x;L++){
+      const G=r===ii.DIFFUSION&&L>=x/2;
+      let te=0,ae=0,ue=0,he=0,q=0,J=0;
+      if(r===ii.SOLID){
+        const me=Math.ceil(Math.pow(x,1/3)),ge=1.2;
+        te=L%me*ge-me*ge/2;
+        ae=Math.floor(L/me)%me*ge-me*ge/2;
+        ue=Math.floor(L/(me*me))*ge-me*ge/2;
+      }else if(r===ii.LIQUID){
+        te=(Math.random()-.5)*8;
+        ae=(Math.random()-.5)*4-2;
+        ue=(Math.random()-.5)*8;
+        he=(Math.random()-.5)*X;
+        q=(Math.random()-.5)*X;
+        J=(Math.random()-.5)*X;
+      }else if(r===ii.GAS){
+        te=(Math.random()-.5)*10;
+        ae=(Math.random()-.5)*10;
+        ue=(Math.random()-.5)*10;
+        he=(Math.random()-.5)*V;
+        q=(Math.random()-.5)*V;
+        J=(Math.random()-.5)*V;
+      }else if(r===ii.DIFFUSION){
+        te=G?2.5+Math.random()*2.5:-2.5-Math.random()*2.5;
+        ae=(Math.random()-.5)*6;
+        ue=(Math.random()-.5)*6;
+        he=(Math.random()-.5)*O;
+        q=(Math.random()-.5)*O;
+        J=(Math.random()-.5)*O;
+      }
+      const ie=new Ut;
+      r===ii.DIFFUSION&&G?ie.setHex(3900150):ie.setHex(16347926);
+      ie.toArray(z,L*3);
+      F.push({x:te,y:ae,z:ue,vx:he,vy:q,vz:J,ox:te,oy:ae,oz:ue,isTypeB:G});
+    }
+    return{data:F,colors:z};
+  },[r,x]);
+
+  const B=new Vn;
+
+  Jm(({clock:F})=>{
+    if(!n.current||t)return;
+    const z=F.getElapsedTime();
+    let V=0,X=0,O=0,L=0;
+    const animSpeed=r===ii.DIFFUSION?speedRef.current:1;
+    N.data.forEach((G,te)=>{
+      if(r===ii.SOLID){
+        G.x=G.ox+Math.sin(z*10+te)*.05;
+        G.y=G.oy+Math.cos(z*11+te)*.05;
+        G.z=G.oz+Math.sin(z*9+te)*.05;
+      }else{
+        G.x+=G.vx*animSpeed;
+        G.y+=G.vy*animSpeed;
+        G.z+=G.vz*animSpeed;
+        const ae=5;
+        Math.abs(G.x)>ae&&(G.vx*=-1);
+        Math.abs(G.y)>ae&&(G.vy*=-1);
+        Math.abs(G.z)>ae&&(G.vz*=-1);
+        r===ii.DIFFUSION&&e&&(
+          G.x<0&&G.x>-.25&&(G.x=-.25,G.vx=-Math.abs(G.vx)),
+          G.x>0&&G.x<.25&&(G.x=.25,G.vx=Math.abs(G.vx))
+        );
+        r===ii.LIQUID&&(
+          G.y>0&&(G.vy-=.002),
+          G.y<-4&&(G.y=-4,G.vy*=-.5)
+        );
+      }
+      r===ii.DIFFUSION&&(G.x<0?(G.isTypeB?X++:V++):(G.isTypeB?L++:O++));
+      B.position.set(G.x,G.y,G.z);
+      B.scale.setScalar(r===ii.GAS?.8:1);
+      B.updateMatrix();
+      n.current.setMatrixAt(te,B.matrix);
+    });
+    n.current.instanceMatrix.needsUpdate=!0;
+    if(r===ii.DIFFUSION){
+      if(a.current)a.current.innerText=V.toString();
+      if(o.current)o.current.innerText=X.toString();
+      if(f.current)f.current.innerText=O.toString();
+      if(h.current)h.current.innerText=L.toString();
+      if(p.current){
+        const G=V+X;
+        p.current.style.background=`linear-gradient(90deg, #f97316 ${G>0?V/G*100:0}%, #3b82f6 ${G>0?V/G*100:0}%)`;
+      }
+      if(g.current){
+        const G=O+L;
+        g.current.style.background=`linear-gradient(90deg, #f97316 ${G>0?O/G*100:0}%, #3b82f6 ${G>0?O/G*100:0}%)`;
+      }
+    }
+  });
+
+  return Se.jsxs(Se.Fragment,{
+    children:[
+      Se.jsxs("instancedMesh",{
+        ref:n,
+        args:[void 0,void 0,x],
+        children:[
+          Se.jsx("sphereGeometry",{args:[.3,16,16]}),
+          Se.jsx("meshStandardMaterial",{color:"#fff",vertexColors:!0}),
+          Se.jsx("instancedBufferAttribute",{attach:"geometry-attributes-color",args:[N.colors,3]})
+        ]
+      }),
+      r===ii.DIFFUSION&&e&&Se.jsxs("mesh",{
+        position:[0,0,0],
+        children:[
+          Se.jsx("boxGeometry",{args:[.2,10,10]}),
+          Se.jsx("meshPhysicalMaterial",{color:"#cbd5e1",transparent:!0,opacity:.3,roughness:.1,metalness:.1,side:tr})
+        ]
+      }),
+      r===ii.DIFFUSION&&Se.jsx(nz,{
+        as:"div",
+        fullscreen:!0,
+        style:{pointerEvents:"none"},
+        children:Se.jsxs("div",{
+          className:"fixed bg-slate-900/95 backdrop-blur-md border border-slate-700/90 rounded-2xl text-white shadow-2xl flex flex-col pointer-events-auto select-none transition-shadow hover:shadow-indigo-500/10",
+          style:{
+            left:v.x,
+            top:v.y,
+            width:`${Math.round(300*cardScale)}px`,
+            padding:`${Math.round(14*cardScale)}px`,
+            gap:`${Math.round(10*cardScale)}px`,
+            cursor:isResizing.current?"se-resize":"move"
+          },
+          onMouseDown:w,
+          onPointerDown:C,
+          children:[
+            Se.jsxs("div",{
+              className:"flex items-center justify-between border-b border-slate-700/80 pb-2 mb-0.5 gap-2 flex-wrap",
+              children:[
+                Se.jsxs("span",{
+                  style:{fontSize:`${Math.round(12*cardScale)}px`},
+                  className:"font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5",
+                  children:[
+                    Se.jsx(d5,{size:Math.max(12,Math.round(14*Math.min(1.5,cardScale)))}),
+                    " Concentration Data"
+                  ]
+                }),
+                Se.jsxs("div",{
+                  className:"flex gap-1.5 font-bold",
+                  style:{fontSize:`${Math.round(11*cardScale)}px`},
+                  children:[
+                    Se.jsx("span",{className:"text-orange-400 bg-orange-950/70 border border-orange-500/40 px-1.5 py-0.5 rounded",children:"● A"}),
+                    Se.jsx("span",{className:"text-blue-400 bg-blue-950/70 border border-blue-500/40 px-1.5 py-0.5 rounded",children:"● B"})
+                  ]
+                })
+              ]
+            }),
+            Se.jsxs("div",{
+              className:"flex items-center justify-between bg-slate-800/80 rounded-lg px-2 py-1 border border-slate-700/60 text-xs",
+              onMouseDown:C,
+              children:[
+                Se.jsxs("div",{
+                  className:"flex items-center gap-1.5 text-slate-400 font-medium",
+                  children:[
+                    Se.jsx("span",{children:"Size:"}),
+                    Se.jsx("span",{className:"text-indigo-300 font-mono font-bold",children:`${Math.round(cardScale*100)}%`})
+                  ]
+                }),
+                Se.jsxs("div",{
+                  className:"flex items-center gap-1",
+                  children:[
+                    Se.jsx("button",{
+                      onClick:()=>setCardScale(s=>Math.max(0.85,parseFloat((s-0.2).toFixed(2)))),
+                      className:"w-5 h-5 flex items-center justify-center rounded bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs transition-colors",
+                      title:"Decrease size",
+                      children:"−"
+                    }),
+                    Se.jsx("button",{
+                      onClick:()=>setCardScale(1.0),
+                      className:`px-1.5 py-0.5 rounded text-[10px] font-bold transition-colors ${Math.abs(cardScale-1.0)<0.15?"bg-indigo-600 text-white":"bg-slate-700/60 text-slate-300 hover:bg-slate-700"}`,
+                      title:"Standard Size (1x)",
+                      children:"1x"
+                    }),
+                    Se.jsx("button",{
+                      onClick:()=>setCardScale(1.4),
+                      className:`px-1.5 py-0.5 rounded text-[10px] font-bold transition-colors ${Math.abs(cardScale-1.4)<0.15?"bg-indigo-600 text-white":"bg-slate-700/60 text-slate-300 hover:bg-slate-700"}`,
+                      title:"Large Size (1.4x)",
+                      children:"1.4x"
+                    }),
+                    Se.jsx("button",{
+                      onClick:()=>setCardScale(1.8),
+                      className:`px-1.5 py-0.5 rounded text-[10px] font-bold transition-colors ${Math.abs(cardScale-1.8)<0.15?"bg-indigo-600 text-white":"bg-slate-700/60 text-slate-300 hover:bg-slate-700"}`,
+                      title:"Classroom Size (1.8x)",
+                      children:"1.8x"
+                    }),
+                    Se.jsx("button",{
+                      onClick:()=>setCardScale(2.3),
+                      className:`px-1.5 py-0.5 rounded text-[10px] font-bold transition-colors ${cardScale>=2.2?"bg-indigo-600 text-white":"bg-slate-700/60 text-slate-300 hover:bg-slate-700"}`,
+                      title:"Maximum Classroom Size (2.3x)",
+                      children:"XL"
+                    }),
+                    Se.jsx("button",{
+                      onClick:()=>setCardScale(s=>Math.min(2.5,parseFloat((s+0.2).toFixed(2)))),
+                      className:"w-5 h-5 flex items-center justify-center rounded bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs transition-colors",
+                      title:"Increase size",
+                      children:"+"
+                    })
+                  ]
+                })
+              ]
+            }),
+            Se.jsxs("div",{
+              className:"space-y-1.5",
+              children:[
+                Se.jsxs("div",{
+                  className:"flex justify-between items-center text-slate-300 font-semibold",
+                  style:{fontSize:`${Math.round(13*cardScale)}px`},
+                  children:[
+                    Se.jsxs("span",{
+                      className:"flex items-center gap-1.5",
+                      children:[
+                        Se.jsx("span",{className:"w-2 h-2 rounded-full bg-slate-400"}),
+                        "Left Chamber"
+                      ]
+                    }),
+                    Se.jsxs("span",{
+                      className:"flex items-center gap-2",
+                      children:[
+                        Se.jsxs("span",{
+                          className:"flex items-center gap-1 font-mono font-bold text-orange-400 bg-orange-950/60 px-2 py-0.5 rounded border border-orange-500/30",
+                          style:{
+                            fontSize:`${Math.round(15+13*(cardScale-1))}px`,
+                            minWidth:`${Math.round(44*cardScale)}px`,
+                            justifyContent:"flex-end"
+                          },
+                          children:[
+                            Se.jsx("span",{className:"text-[10px] text-orange-300/70 font-sans mr-0.5",children:"A:"}),
+                            Se.jsx("span",{ref:a,children:"0"})
+                          ]
+                        }),
+                        Se.jsxs("span",{
+                          className:"flex items-center gap-1 font-mono font-bold text-blue-400 bg-blue-950/60 px-2 py-0.5 rounded border border-blue-500/30",
+                          style:{
+                            fontSize:`${Math.round(15+13*(cardScale-1))}px`,
+                            minWidth:`${Math.round(44*cardScale)}px`,
+                            justifyContent:"flex-end"
+                          },
+                          children:[
+                            Se.jsx("span",{className:"text-[10px] text-blue-300/70 font-sans mr-0.5",children:"B:"}),
+                            Se.jsx("span",{ref:o,children:"0"})
+                          ]
+                        })
+                      ]
+                    })
+                  ]
+                }),
+                Se.jsx("div",{
+                  ref:p,
+                  className:"w-full rounded-full bg-slate-800 border border-slate-700/50 shadow-inner",
+                  style:{height:`${Math.max(6,Math.round(7*cardScale))}px`}
+                })
+              ]
+            }),
+            Se.jsxs("div",{
+              className:"space-y-1.5",
+              children:[
+                Se.jsxs("div",{
+                  className:"flex justify-between items-center text-slate-300 font-semibold",
+                  style:{fontSize:`${Math.round(13*cardScale)}px`},
+                  children:[
+                    Se.jsxs("span",{
+                      className:"flex items-center gap-1.5",
+                      children:[
+                        Se.jsx("span",{className:"w-2 h-2 rounded-full bg-slate-400"}),
+                        "Right Chamber"
+                      ]
+                    }),
+                    Se.jsxs("span",{
+                      className:"flex items-center gap-2",
+                      children:[
+                        Se.jsxs("span",{
+                          className:"flex items-center gap-1 font-mono font-bold text-orange-400 bg-orange-950/60 px-2 py-0.5 rounded border border-orange-500/30",
+                          style:{
+                            fontSize:`${Math.round(15+13*(cardScale-1))}px`,
+                            minWidth:`${Math.round(44*cardScale)}px`,
+                            justifyContent:"flex-end"
+                          },
+                          children:[
+                            Se.jsx("span",{className:"text-[10px] text-orange-300/70 font-sans mr-0.5",children:"A:"}),
+                            Se.jsx("span",{ref:f,children:"0"})
+                          ]
+                        }),
+                        Se.jsxs("span",{
+                          className:"flex items-center gap-1 font-mono font-bold text-blue-400 bg-blue-950/60 px-2 py-0.5 rounded border border-blue-500/30",
+                          style:{
+                            fontSize:`${Math.round(15+13*(cardScale-1))}px`,
+                            minWidth:`${Math.round(44*cardScale)}px`,
+                            justifyContent:"flex-end"
+                          },
+                          children:[
+                            Se.jsx("span",{className:"text-[10px] text-blue-300/70 font-sans mr-0.5",children:"B:"}),
+                            Se.jsx("span",{ref:h,children:"0"})
+                          ]
+                        })
+                      ]
+                    })
+                  ]
+                }),
+                Se.jsx("div",{
+                  ref:g,
+                  className:"w-full rounded-full bg-slate-800 border border-slate-700/50 shadow-inner",
+                  style:{height:`${Math.max(6,Math.round(7*cardScale))}px`}
+                })
+              ]
+            }),
+            Se.jsxs("div",{
+              className:"flex items-center justify-between pt-1 border-t border-slate-800/80 text-slate-500 select-none",
+              style:{fontSize:`${Math.max(10,Math.round(11*cardScale*0.85))}px`},
+              children:[
+                Se.jsx("span",{className:"italic",children:"Drag card to move • Drag corner to resize"}),
+                Se.jsx("div",{
+                  onMouseDown:onResizeStart,
+                  onTouchStart:evt=>{
+                    if(evt.touches&&evt.touches[0])onResizeStart(evt.touches[0]);
+                  },
+                  className:"cursor-se-resize p-1 hover:text-indigo-400 text-slate-500 transition-colors flex items-center justify-center",
+                  title:"Drag to resize concentration card",
+                  children:Se.jsxs("svg",{
+                    width:Math.max(12,Math.round(14*Math.min(1.5,cardScale))),
+                    height:Math.max(12,Math.round(14*Math.min(1.5,cardScale))),
+                    viewBox:"0 0 16 16",
+                    fill:"none",
+                    stroke:"currentColor",
+                    strokeWidth:"2",
+                    strokeLinecap:"round",
+                    children:[
+                      Se.jsx("line",{x1:"14",y1:"6",x2:"6",y2:"14"}),
+                      Se.jsx("line",{x1:"14",y1:"10",x2:"10",y2:"14"}),
+                      Se.jsx("line",{x1:"14",y1:"14",x2:"14",y2:"14"})
+                    ]
+                  })
+                })
+              ]
+            })
+          ]
+        })
+      })
+    ]
+  })
+},D5={Solid:"In a solid, particles are closely packed in a regular arrangement. They vibrate about fixed positions but do not move relative to each other, giving solids a fixed shape and volume.",Liquid:"In a liquid, particles are close together but arranged randomly. They can move past each other, allowing liquids to flow and take the shape of their container while maintaining a fixed volume.",Gas:"In a gas, particles are far apart and move randomly at high speeds. They have almost no forces of attraction, allowing gases to expand to fill any container.",Diffusion:"Diffusion is the net movement of particles from an area of higher concentration to an area of lower concentration, driven by their random motion, until equilibrium is reached."},cT={"0-solid":"Fixed shape","0-liquid":"Takes container shape","0-gas":"Fills container","1-solid":"Fixed volume","1-liquid":"Fixed volume","1-gas":"Variable volume","2-solid":"High density","2-liquid":"Medium density","2-gas":"Low density","3-solid":"Does not flow","3-liquid":"Flows easily","3-gas":"Flows easily","4-solid":"Difficult","4-liquid":"Difficult","4-gas":"Easy"},N5=async r=>new Promise(e=>{setTimeout(()=>{e(cT)},600)}),U5=async r=>D5[r]||"Explanation not available.",O5=[{id:"0",property:"Shape",solid:"",liquid:"",gas:""},{id:"1",property:"Volume",solid:"",liquid:"",gas:""},{id:"2",property:"Density",solid:"",liquid:"",gas:""},{id:"3",property:"Ease of Flow",solid:"",liquid:"",gas:""},{id:"4",property:"Compressibility",solid:"",liquid:"",gas:""}],L5=["solid","liquid","gas"],z5=()=>{const[r,e]=Ue.useState({}),[t,n]=Ue.useState(!1),[a,o]=Ue.useState(null),[f,h]=Ue.useState(!1),[p]=Ue.useState(["Fixed shape","Takes container shape","Fills container","Fixed volume","Fixed volume","Variable volume","High density","Medium density","Low density","Does not flow","Flows easily","Flows easily","Difficult","Difficult","Easy"]),g=(D,N)=>{D.dataTransfer.setData("text/plain",N),o(N)},x=(D,N,B)=>{D.preventDefault();const F=D.dataTransfer.getData("text/plain"),z=`${N}-${B}`;e(V=>({...V,[z]:F})),o(null),h(!1)},v=D=>{D.preventDefault()},b=async()=>{n(!0);const D=await N5();e(D),n(!1),h(!1)},S=()=>{e({}),h(!1)},A=()=>{h(!0)},w=()=>{window.print()},C=(D,N)=>!f||!N?"normal":cT[D]===N?"correct":"incorrect",E=({className:D="",compact:N=!1})=>Se.jsxs("div",{className:`w-full bg-white text-slate-900 rounded-lg overflow-hidden shadow-sm border border-slate-200 ${D}`,children:[Se.jsxs("div",{className:`bg-slate-100 border-b border-slate-300 flex justify-between items-center print:hidden ${N?"p-2":"p-4"}`,children:[Se.jsxs("h2",{className:`${N?"text-lg":"text-2xl"} font-bold uppercase tracking-widest text-slate-700 flex items-center gap-2`,children:[Se.jsx(f5,{size:N?20:28})," Properties of Matter"]}),Se.jsx("div",{className:"text-xs text-slate-500 font-mono",children:"Worksheet Mode"})]}),Se.jsxs("table",{className:`w-full text-left table-fixed ${N?"text-sm":"text-lg"}`,children:[Se.jsx("thead",{className:`${N?"text-xs":"text-sm"} font-bold text-slate-500 uppercase bg-slate-50`,children:Se.jsxs("tr",{children:[Se.jsx("th",{className:`${N?"px-6 py-3":"px-8 py-5"} border-r w-[22%]`,children:"Property"}),Se.jsx("th",{className:`${N?"px-6 py-3":"px-8 py-5"} border-r bg-orange-50 text-orange-700 w-[26%]`,children:"Solid"}),Se.jsx("th",{className:`${N?"px-6 py-3":"px-8 py-5"} border-r bg-blue-50 text-blue-700 w-[26%]`,children:"Liquid"}),Se.jsx("th",{className:`${N?"px-6 py-3":"px-8 py-5"} bg-purple-50 text-purple-700 w-[26%]`,children:"Gas"})]})}),Se.jsx("tbody",{children:O5.map((B,F)=>Se.jsxs("tr",{className:"border-b hover:bg-slate-50 transition-colors",children:[Se.jsx("td",{className:`${N?"px-6 py-4":"px-8 py-6"} font-bold text-slate-900 border-r bg-slate-50`,children:B.property}),L5.map(z=>{const V=`${F}-${z}`,X=r[V],O=C(V,X);let L=X?"bg-white":"bg-slate-100/50 inner-shadow";return O==="correct"&&(L="bg-emerald-100 border-emerald-300"),O==="incorrect"&&(L="bg-rose-100 border-rose-300"),Se.jsx("td",{onDrop:G=>x(G,F.toString(),z),onDragOver:v,className:`${N?"px-4 py-3 min-h-[60px] h-[60px]":"px-6 py-4 min-h-[90px] h-[90px]"} border-r relative transition-all 
                         ${L}
                         hover:bg-blue-50 cursor-pointer
-                    `,children:X?Se.jsxs("div",{className:"flex items-center justify-between group w-full",children:[Se.jsx("span",{className:`font-bold ${N?"text-sm":"text-xl"} text-slate-700 w-full truncate`,children:X}),Se.jsx("button",{onClick:()=>{e(G=>({...G,[V]:null})),h(!1)},className:"opacity-0 group-hover:opacity-100 text-red-500 hover:bg-red-50 p-1 rounded no-print transition-opacity flex-shrink-0",children:Se.jsx(M3,{size:N?14:18})})]}):Se.jsx("div",{className:"w-full h-full border-2 border-dashed border-slate-200 rounded flex items-center justify-center text-slate-300 text-xs select-none pointer-events-none no-print",children:"Drop Item"})},V)})]},B.id))})]})]});return Se.jsxs("div",{className:"p-2 w-full h-full flex flex-col md:flex-row gap-4",children:[Se.jsxs("div",{className:"no-print w-full md:w-64 flex-shrink-0 space-y-4",children:[Se.jsxs("div",{className:"bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg",children:[Se.jsxs("h3",{className:"text-slate-200 font-semibold mb-3 flex items-center gap-2",children:[Se.jsx(m5,{size:18}),"Answer Bank"]}),Se.jsx("p",{className:"text-xs text-slate-400 mb-4",children:"Drag the correct properties to complete the table."}),Se.jsx("div",{className:"flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar",children:p.map((D,N)=>Se.jsx("div",{draggable:!0,onDragStart:B=>g(B,D),className:"bg-slate-700 hover:bg-indigo-600 hover:text-white text-slate-200 px-3 py-4 rounded-lg cursor-grab active:cursor-grabbing text-base border border-slate-600 shadow-sm transition-all hover:translate-x-1 font-bold",children:D},N))})]}),Se.jsxs("div",{className:"bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg space-y-2",children:[Se.jsxs("button",{onClick:A,className:"w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-3 px-4 rounded-lg transition-colors font-bold text-lg",children:[Se.jsx(s5,{size:20}),"Check Answers"]}),Se.jsxs("button",{onClick:b,disabled:t,className:"w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-3 px-4 rounded-lg transition-colors font-bold text-lg disabled:opacity-50",children:[t?Se.jsx("span",{className:"animate-spin",children:"⏳"}):Se.jsx(oT,{size:20}),"Auto-Complete"]}),Se.jsxs("button",{onClick:S,className:"w-full flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-300 py-3 px-4 rounded-lg transition-colors font-medium",children:[Se.jsx(M3,{size:20}),"Clear Table"]}),Se.jsxs("button",{onClick:w,className:"w-full flex items-center justify-center gap-2 bg-slate-600 hover:bg-slate-500 text-white py-3 px-4 rounded-lg transition-colors font-bold text-lg",children:[Se.jsx(S5,{size:20}),"Print Worksheet"]})]})]}),Se.jsxs("div",{className:"flex-1 overflow-auto flex flex-col items-center",children:[Se.jsx(E,{className:"shadow-xl",compact:!1}),Se.jsx("div",{className:"mt-4 text-slate-400 text-sm italic no-print",children:Se.jsx("p",{children:"Tip: Complete the table above, then click 'Print Worksheet' to generate a handout."})}),Se.jsxs("div",{className:"hidden print:flex fixed inset-0 bg-white z-[9999] p-8 flex-col justify-start",children:[Se.jsxs("div",{className:"mb-8",children:[Se.jsxs("div",{className:"flex justify-between border-b-2 border-slate-800 pb-2 mb-4",children:[Se.jsx("h1",{className:"text-xl font-bold text-slate-900 uppercase",children:"Matter & Particles Summary"}),Se.jsx("div",{className:"text-sm text-slate-600 font-mono mt-1",children:"Name: ______________________ Date: ________"})]}),Se.jsx(E,{className:"shadow-none border-slate-800",compact:!0})]}),Se.jsx("div",{className:"border-t-2 border-dashed border-slate-400 my-4 relative w-full",children:Se.jsx("span",{className:"absolute left-1/2 -top-3 bg-white px-2 text-slate-500 text-xs -translate-x-1/2 flex items-center gap-1",children:"✂️ CUT HERE"})}),Se.jsxs("div",{className:"mt-4",children:[Se.jsxs("div",{className:"flex justify-between border-b-2 border-slate-800 pb-2 mb-4",children:[Se.jsx("h1",{className:"text-xl font-bold text-slate-900 uppercase",children:"Matter & Particles Summary"}),Se.jsx("div",{className:"text-sm text-slate-600 font-mono mt-1",children:"Name: ______________________ Date: ________"})]}),Se.jsx(E,{className:"shadow-none border-slate-800",compact:!0})]})]})]})]})},B5=({isOpen:r,onClose:e,title:t})=>{const[n,a]=Ue.useState("Loading explanation...");return Ue.useEffect(()=>{r&&(a("Loading AI explanation..."),U5(t).then(a))},[r,t]),r?Se.jsx("div",{className:"fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200",children:Se.jsxs("div",{className:"bg-slate-900 border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl p-6 relative animate-in zoom-in-95 duration-200",children:[Se.jsx("button",{onClick:e,className:"absolute top-4 right-4 text-slate-400 hover:text-white transition-colors",children:Se.jsx(w5,{size:20})}),Se.jsxs("div",{className:"flex items-center gap-3 mb-4",children:[Se.jsx("div",{className:"p-2 bg-indigo-500/20 rounded-lg text-indigo-400",children:Se.jsx(t5,{size:24})}),Se.jsx("h2",{className:"text-xl font-bold text-white",children:t})]}),Se.jsx("div",{className:"prose prose-invert prose-sm",children:Se.jsx("p",{className:"text-slate-300 leading-relaxed min-h-[80px]",children:n})}),Se.jsxs("div",{className:"mt-6 pt-4 border-t border-slate-800 flex items-center gap-2 text-xs text-slate-500",children:[Se.jsx(oT,{size:12}),Se.jsx("span",{children:"Powered by Gemini AI"})]})]})}):null},I5=()=>{const[r,e]=Ue.useState("sim"),[t,n]=Ue.useState(ii.SOLID),[a,o]=Ue.useState(!1),[f,h]=Ue.useState(!1),[p,g]=Ue.useState(!0),[x,v]=Ue.useState(!1),b=[{id:ii.SOLID,icon:i5,color:"text-orange-500",bg:"bg-orange-500/10"},{id:ii.LIQUID,icon:c5,color:"text-blue-500",bg:"bg-blue-500/10"},{id:ii.GAS,icon:A5,color:"text-purple-500",bg:"bg-purple-500/10"},{id:ii.DIFFUSION,icon:S3,color:"text-emerald-500",bg:"bg-emerald-500/10"}],S=A=>{n(A),A===ii.DIFFUSION&&(g(!0),v(!1))};return Se.jsxs("div",{className:"h-screen w-full flex flex-col bg-slate-950 text-slate-100 overflow-hidden",children:[Se.jsxs("nav",{className:"h-16 border-b border-slate-800 bg-slate-900/50 backdrop-blur flex items-center justify-between px-6 z-10 flex-shrink-0",children:[Se.jsxs("div",{className:"flex items-center gap-3",children:[Se.jsx("div",{className:"w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20",children:Se.jsx(S3,{className:"text-white",size:20})}),Se.jsxs("span",{className:"font-bold text-lg tracking-tight",children:["NeuroLab",Se.jsx]})]}),Se.jsxs("div",{className:"flex bg-slate-800 p-1 rounded-lg",children:[Se.jsx("button",{onClick:()=>e("sim"),className:`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${r==="sim"?"bg-slate-700 text-white shadow":"text-slate-400 hover:text-slate-200"}`,children:"Simulation"}),Se.jsxs("button",{onClick:()=>e("table"),className:`px-4 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${r==="table"?"bg-slate-700 text-white shadow":"text-slate-400 hover:text-slate-200"}`,children:[Se.jsx(_5,{size:14}),"Summary Table"]})]})]}),Se.jsx("main",{className:"flex-1 relative overflow-hidden flex flex-col",children:r==="sim"?Se.jsxs(Se.Fragment,{children:[Se.jsx("div",{className:"absolute inset-0 z-0",children:Se.jsxs(YL,{children:[Se.jsx(Dz,{makeDefault:!0,position:[0,0,12],fov:45}),Se.jsx("ambientLight",{intensity:.4}),Se.jsx("pointLight",{position:[10,10,10],intensity:1}),Se.jsx("pointLight",{position:[-10,-10,-10],intensity:.5}),Se.jsx(R5,{state:t,barrierEnabled:p,isPaused:x}),Se.jsx(Nz,{enablePan:!1,minDistance:5,maxDistance:20}),Se.jsx(Wz,{preset:"city"})]})}),Se.jsxs("div",{className:"absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-4",children:[t===ii.DIFFUSION&&Se.jsxs("div",{className:"bg-slate-900/90 backdrop-blur px-6 py-2 rounded-full border border-slate-700 shadow-xl flex items-center gap-4 animate-in slide-in-from-bottom-4",children:[Se.jsx("span",{className:"text-xs font-semibold text-slate-400 uppercase tracking-wider",children:"Experiment Control"}),Se.jsx("button",{onClick:()=>g(!p),className:`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold transition-all ${p?"bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/25":"bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-500/25"}`,children:p?Se.jsxs(Se.Fragment,{children:[Se.jsx(b3,{size:16})," Remove Barrier"]}):Se.jsxs(Se.Fragment,{children:[Se.jsx(_3,{size:16})," Reset Barrier"]})}),Se.jsxs("button",{onClick:()=>v(!x),className:`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold transition-all ${x?"bg-amber-400 hover:bg-amber-300 text-slate-900 shadow-lg shadow-amber-400/20":"bg-slate-700 hover:bg-slate-600 text-slate-300"}`,children:[x?Se.jsx(b3,{size:16}):Se.jsx(_3,{size:16}),x?"Resume":"Pause"]})]}),Se.jsx("div",{className:"flex gap-4 bg-slate-900/80 backdrop-blur p-2 rounded-2xl border border-slate-700 shadow-2xl",children:b.map(A=>{const w=A.icon,C=t===A.id;return Se.jsxs("div",{className:"relative group",children:[Se.jsxs("button",{onClick:()=>S(A.id),className:`
-                            w-16 h-16 rounded-xl flex flex-col items-center justify-center gap-1 transition-all duration-300
-                            ${C?`${A.bg} border-2 border-${A.color.split("-")[1]}-500`:"hover:bg-slate-800 border-2 border-transparent"}
-                        `,children:[Se.jsx(w,{className:C?A.color:"text-slate-400",size:24}),Se.jsx("span",{className:`text-[10px] font-medium ${C?"text-white":"text-slate-500"}`,children:A.id})]}),C&&Se.jsx("button",{onClick:()=>o(!0),className:"absolute -top-3 -right-3 w-6 h-6 bg-white text-slate-900 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform",children:Se.jsx(x5,{size:14})})]},A.id)})})]}),Se.jsxs("div",{className:"absolute top-8 left-8 z-10 max-w-xs pointer-events-none",children:[Se.jsx("h1",{className:"text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-100 to-slate-500 mb-2",children:t}),Se.jsxs("p",{className:"text-slate-400 text-sm",children:[t===ii.SOLID&&"Particles are packed closely together in a fixed arrangement. They vibrate but do not move.",t===ii.LIQUID&&"Particles are close together but can move past each other. This allows liquids to flow.",t===ii.GAS&&"Particles are far apart and move randomly at high speeds.",t===ii.DIFFUSION&&"The movement of particles from an area of high concentration to low concentration."]})]})]}):Se.jsx("div",{className:"h-full bg-slate-100 overflow-auto",children:Se.jsx(z5,{})})}),Se.jsx(B5,{isOpen:a,onClose:()=>o(!1),title:t})]})},uT=document.getElementById("root");if(!uT)throw new Error("Could not find root element to mount to");const P5=hA.createRoot(uT);P5.render(Se.jsx(E3.StrictMode,{children:Se.jsx(I5,{})}));
+                    `,children:X?Se.jsxs("div",{className:"flex items-center justify-between group w-full",children:[Se.jsx("span",{className:`font-bold ${N?"text-sm":"text-xl"} text-slate-700 w-full truncate`,children:X}),Se.jsx("button",{onClick:()=>{e(G=>({...G,[V]:null})),h(!1)},className:"opacity-0 group-hover:opacity-100 text-red-500 hover:bg-red-50 p-1 rounded no-print transition-opacity flex-shrink-0",children:Se.jsx(M3,{size:N?14:18})})]}):Se.jsx("div",{className:"w-full h-full border-2 border-dashed border-slate-200 rounded flex items-center justify-center text-slate-300 text-xs select-none pointer-events-none no-print",children:"Drop Item"})},V)})]},B.id))})]})]});return Se.jsxs("div",{className:"p-2 w-full h-full flex flex-col md:flex-row gap-4",children:[Se.jsxs("div",{className:"no-print w-full md:w-64 flex-shrink-0 space-y-4",children:[Se.jsxs("div",{className:"bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg",children:[Se.jsxs("h3",{className:"text-slate-200 font-semibold mb-3 flex items-center gap-2",children:[Se.jsx(m5,{size:18}),"Answer Bank"]}),Se.jsx("p",{className:"text-xs text-slate-400 mb-4",children:"Drag the correct properties to complete the table."}),Se.jsx("div",{className:"flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar",children:p.map((D,N)=>Se.jsx("div",{draggable:!0,onDragStart:B=>g(B,D),className:"bg-slate-700 hover:bg-indigo-600 hover:text-white text-slate-200 px-3 py-4 rounded-lg cursor-grab active:cursor-grabbing text-base border border-slate-600 shadow-sm transition-all hover:translate-x-1 font-bold",children:D},N))})]}),Se.jsxs("div",{className:"bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg space-y-2",children:[Se.jsxs("button",{onClick:A,className:"w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-3 px-4 rounded-lg transition-colors font-bold text-lg",children:[Se.jsx(s5,{size:20}),"Check Answers"]}),Se.jsxs("button",{onClick:b,disabled:t,className:"w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-3 px-4 rounded-lg transition-colors font-bold text-lg disabled:opacity-50",children:[t?Se.jsx("span",{className:"animate-spin",children:"⏳"}):Se.jsx(oT,{size:20}),"Auto-Complete"]}),Se.jsxs("button",{onClick:S,className:"w-full flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-300 py-3 px-4 rounded-lg transition-colors font-medium",children:[Se.jsx(M3,{size:20}),"Clear Table"]}),Se.jsxs("button",{onClick:w,className:"w-full flex items-center justify-center gap-2 bg-slate-600 hover:bg-slate-500 text-white py-3 px-4 rounded-lg transition-colors font-bold text-lg",children:[Se.jsx(S5,{size:20}),"Print Worksheet"]})]})]}),Se.jsxs("div",{className:"flex-1 overflow-auto flex flex-col items-center",children:[Se.jsx(E,{className:"shadow-xl",compact:!1}),Se.jsx("div",{className:"mt-4 text-slate-400 text-sm italic no-print",children:Se.jsx("p",{children:"Tip: Complete the table above, then click 'Print Worksheet' to generate a handout."})}),Se.jsxs("div",{className:"hidden print:flex fixed inset-0 bg-white z-[9999] p-8 flex-col justify-start",children:[Se.jsxs("div",{className:"mb-8",children:[Se.jsxs("div",{className:"flex justify-between border-b-2 border-slate-800 pb-2 mb-4",children:[Se.jsx("h1",{className:"text-xl font-bold text-slate-900 uppercase",children:"Matter & Particles Summary"}),Se.jsx("div",{className:"text-sm text-slate-600 font-mono mt-1",children:"Name: ______________________ Date: ________"})]}),Se.jsx(E,{className:"shadow-none border-slate-800",compact:!0})]}),Se.jsx("div",{className:"border-t-2 border-dashed border-slate-400 my-4 relative w-full",children:Se.jsx("span",{className:"absolute left-1/2 -top-3 bg-white px-2 text-slate-500 text-xs -translate-x-1/2 flex items-center gap-1",children:"✂️ CUT HERE"})}),Se.jsxs("div",{className:"mt-4",children:[Se.jsxs("div",{className:"flex justify-between border-b-2 border-slate-800 pb-2 mb-4",children:[Se.jsx("h1",{className:"text-xl font-bold text-slate-900 uppercase",children:"Matter & Particles Summary"}),Se.jsx("div",{className:"text-sm text-slate-600 font-mono mt-1",children:"Name: ______________________ Date: ________"})]}),Se.jsx(E,{className:"shadow-none border-slate-800",compact:!0})]})]})]})]})},B5=({isOpen:r,onClose:e,title:t})=>{const[n,a]=Ue.useState("Loading explanation...");return Ue.useEffect(()=>{r&&(a("Loading AI explanation..."),U5(t).then(a))},[r,t]),r?Se.jsx("div",{className:"fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200",children:Se.jsxs("div",{className:"bg-slate-900 border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl p-6 relative animate-in zoom-in-95 duration-200",children:[Se.jsx("button",{onClick:e,className:"absolute top-4 right-4 text-slate-400 hover:text-white transition-colors",children:Se.jsx(w5,{size:20})}),Se.jsxs("div",{className:"flex items-center gap-3 mb-4",children:[Se.jsx("div",{className:"p-2 bg-indigo-500/20 rounded-lg text-indigo-400",children:Se.jsx(t5,{size:24})}),Se.jsx("h2",{className:"text-xl font-bold text-white",children:t})]}),Se.jsx("div",{className:"prose prose-invert prose-sm",children:Se.jsx("p",{className:"text-slate-300 leading-relaxed min-h-[80px]",children:n})}),Se.jsxs("div",{className:"mt-6 pt-4 border-t border-slate-800 flex items-center gap-2 text-xs text-slate-500",children:[Se.jsx(oT,{size:12}),Se.jsx("span",{children:"Powered by Gemini AI"})]})]})}):null},I5=()=>{
+  const [r,e]=Ue.useState("sim"),
+    [t,n]=Ue.useState(ii.SOLID),
+    [a,o]=Ue.useState(!1),
+    [f,h]=Ue.useState(!1),
+    [p,g]=Ue.useState(!0),
+    [x,v]=Ue.useState(!1),
+    [diffusionSpeed,setDiffusionSpeed]=Ue.useState(1),
+    b=[
+      {id:ii.SOLID,icon:i5,color:"text-orange-500",bg:"bg-orange-500/10"},
+      {id:ii.LIQUID,icon:c5,color:"text-blue-500",bg:"bg-blue-500/10"},
+      {id:ii.GAS,icon:A5,color:"text-purple-500",bg:"bg-purple-500/10"},
+      {id:ii.DIFFUSION,icon:S3,color:"text-emerald-500",bg:"bg-emerald-500/10"}
+    ],
+    S=A=>{
+      n(A);
+      A===ii.DIFFUSION&&(g(!0),v(!1));
+    };
+
+  return Se.jsxs("div",{
+    className:"h-screen w-full flex flex-col bg-slate-950 text-slate-100 overflow-hidden",
+    children:[
+      Se.jsxs("nav",{
+        className:"h-16 border-b border-slate-800 bg-slate-900/50 backdrop-blur flex items-center justify-between px-6 z-10 flex-shrink-0",
+        children:[
+          Se.jsxs("div",{
+            className:"flex items-center gap-3",
+            children:[
+              Se.jsx("div",{
+                className:"w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20",
+                children:Se.jsx(S3,{className:"text-white",size:20})
+              }),
+              Se.jsxs("span",{
+                className:"font-bold text-lg tracking-tight flex items-center gap-1.5",
+                children:[
+                  "NeuroLab",
+                  Se.jsx("span",{className:"text-indigo-400 font-normal text-sm border-l border-slate-700 pl-2",children:"Particle Explorer"})
+                ]
+              })
+            ]
+          }),
+          Se.jsxs("div",{
+            className:"flex bg-slate-800 p-1 rounded-lg",
+            children:[
+              Se.jsx("button",{
+                onClick:()=>e("sim"),
+                className:`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${r==="sim"?"bg-slate-700 text-white shadow":"text-slate-400 hover:text-slate-200"}`,
+                children:"Simulation"
+              }),
+              Se.jsxs("button",{
+                onClick:()=>e("table"),
+                className:`px-4 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${r==="table"?"bg-slate-700 text-white shadow":"text-slate-400 hover:text-slate-200"}`,
+                children:[Se.jsx(_5,{size:14}),"Summary Table"]
+              })
+            ]
+          })
+        ]
+      }),
+      Se.jsx("main",{
+        className:"flex-1 relative overflow-hidden flex flex-col",
+        children:r==="sim"?Se.jsxs(Se.Fragment,{
+          children:[
+            Se.jsx("div",{
+              className:"absolute inset-0 z-0",
+              children:Se.jsxs(YL,{
+                children:[
+                  Se.jsx(Dz,{makeDefault:!0,position:[0,0,12],fov:45}),
+                  Se.jsx("ambientLight",{intensity:.4}),
+                  Se.jsx("pointLight",{position:[10,10,10],intensity:1}),
+                  Se.jsx("pointLight",{position:[-10,-10,-10],intensity:.5}),
+                  Se.jsx(R5,{state:t,barrierEnabled:p,isPaused:x,speed:diffusionSpeed}),
+                  Se.jsx(Nz,{enablePan:!1,minDistance:5,maxDistance:20}),
+                  Se.jsx(Wz,{preset:"city"})
+                ]
+              })
+            }),
+            Se.jsxs("div",{
+              className:"absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-4",
+              children:[
+                t===ii.DIFFUSION&&Se.jsxs("div",{
+                  className:"bg-slate-900/95 backdrop-blur px-6 py-2.5 rounded-full border border-slate-700 shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-4 flex-wrap justify-center",
+                  children:[
+                    Se.jsx("span",{
+                      className:"text-xs font-semibold text-slate-400 uppercase tracking-wider",
+                      children:"Experiment Control"
+                    }),
+                    Se.jsx("button",{
+                      onClick:()=>g(!p),
+                      className:`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold transition-all ${p?"bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/25":"bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-500/25"}`,
+                      children:p?Se.jsxs(Se.Fragment,{children:[Se.jsx(b3,{size:16})," Remove Barrier"]}):Se.jsxs(Se.Fragment,{children:[Se.jsx(_3,{size:16})," Reset Barrier"]})
+                    }),
+                    Se.jsxs("button",{
+                      onClick:()=>v(!x),
+                      className:`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold transition-all ${x?"bg-amber-400 hover:bg-amber-300 text-slate-900 shadow-lg shadow-amber-400/20":"bg-slate-700 hover:bg-slate-600 text-slate-300"}`,
+                      children:[x?Se.jsx(b3,{size:16}):Se.jsx(_3,{size:16}),x?"Resume":"Pause"]
+                    }),
+                    Se.jsx("div",{className:"h-5 w-px bg-slate-700 hidden sm:block"}),
+                    Se.jsxs("div",{
+                      className:"flex items-center gap-2.5 bg-slate-800/90 px-3 py-1 rounded-full border border-slate-700/80 shadow-inner",
+                      children:[
+                        Se.jsx("span",{
+                          className:"text-xs font-semibold text-slate-300 whitespace-nowrap",
+                          children:"Speed:"
+                        }),
+                        Se.jsx("input",{
+                          type:"range",
+                          min:"0.1",
+                          max:"2.5",
+                          step:"0.05",
+                          value:diffusionSpeed,
+                          onChange:evt=>setDiffusionSpeed(parseFloat(evt.target.value)),
+                          className:"w-24 sm:w-28 accent-indigo-500 cursor-pointer h-1.5 bg-slate-700 rounded-lg appearance-none",
+                          title:`Diffusion speed: ${diffusionSpeed.toFixed(1)}x`
+                        }),
+                        Se.jsx("span",{
+                          className:"text-xs font-mono font-bold text-indigo-400 w-10 text-right",
+                          children:`${diffusionSpeed.toFixed(1)}x`
+                        }),
+                        Se.jsxs("div",{
+                          className:"flex items-center gap-1 ml-1",
+                          children:[
+                            Se.jsx("button",{
+                              onClick:()=>setDiffusionSpeed(0.2),
+                              className:`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${diffusionSpeed<=0.3?"bg-indigo-600 text-white":"bg-slate-700/70 text-slate-300 hover:bg-slate-700"}`,
+                              title:"Slow Motion (0.2x)",
+                              children:"0.2x Slow"
+                            }),
+                            Se.jsx("button",{
+                              onClick:()=>setDiffusionSpeed(1.0),
+                              className:`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${Math.abs(diffusionSpeed-1.0)<0.1?"bg-indigo-600 text-white":"bg-slate-700/70 text-slate-300 hover:bg-slate-700"}`,
+                              title:"Normal Speed (1.0x)",
+                              children:"1x Normal"
+                            }),
+                            Se.jsx("button",{
+                              onClick:()=>setDiffusionSpeed(2.0),
+                              className:`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${diffusionSpeed>=1.9?"bg-indigo-600 text-white":"bg-slate-700/70 text-slate-300 hover:bg-slate-700"}`,
+                              title:"Fast Speed (2.0x)",
+                              children:"2x Fast"
+                            })
+                          ]
+                        })
+                      ]
+                    })
+                  ]
+                }),
+                Se.jsx("div",{
+                  className:"flex gap-4 bg-slate-900/80 backdrop-blur p-2 rounded-2xl border border-slate-700 shadow-2xl",
+                  children:b.map(A=>{
+                    const w=A.icon,C=t===A.id;
+                    return Se.jsxs("div",{
+                      className:"relative group",
+                      children:[
+                        Se.jsxs("button",{
+                          onClick:()=>S(A.id),
+                          className:`w-16 h-16 rounded-xl flex flex-col items-center justify-center gap-1 transition-all duration-300 ${C?`${A.bg} border-2 border-${A.color.split("-")[1]}-500`:"hover:bg-slate-800 border-2 border-transparent"}`,
+                          children:[
+                            Se.jsx(w,{className:C?A.color:"text-slate-400",size:24}),
+                            Se.jsx("span",{className:`text-[10px] font-medium ${C?"text-white":"text-slate-500"}`,children:A.id})
+                          ]
+                        }),
+                        C&&Se.jsx("button",{
+                          onClick:()=>o(!0),
+                          className:"absolute -top-3 -right-3 w-6 h-6 bg-white text-slate-900 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform",
+                          children:Se.jsx(x5,{size:14})
+                        })
+                      ]
+                    },A.id);
+                  })
+                })
+              ]
+            }),
+            Se.jsxs("div",{
+              className:"absolute top-8 left-8 z-10 max-w-xs pointer-events-none",
+              children:[
+                Se.jsx("h1",{
+                  className:"text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-100 to-slate-500 mb-2",
+                  children:t
+                }),
+                Se.jsxs("p",{
+                  className:"text-slate-400 text-sm",
+                  children:[
+                    t===ii.SOLID&&"Particles are packed closely together in a fixed arrangement. They vibrate but do not move.",
+                    t===ii.LIQUID&&"Particles are close together but can move past each other. This allows liquids to flow.",
+                    t===ii.GAS&&"Particles are far apart and move randomly at high speeds.",
+                    t===ii.DIFFUSION&&"The movement of particles from an area of high concentration to low concentration."
+                  ]
+                })
+              ]
+            })
+          ]
+        }):Se.jsx("div",{
+          className:"h-full bg-slate-100 overflow-auto",
+          children:Se.jsx(z5,{})
+        })
+      }),
+      Se.jsx(B5,{isOpen:a,onClose:()=>o(!1),title:t})
+    ]
+  });
+},uT=document.getElementById("root");if(!uT)throw new Error("Could not find root element to mount to");const P5=hA.createRoot(uT);P5.render(Se.jsx(E3.StrictMode,{children:Se.jsx(I5,{})}));
