@@ -4,14 +4,13 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Potato Osmosis Simulation</title>
+    <title>Potato Osmosis Simulation & Mechanics</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Custom transition for chart updates */
         .chart-container {
             position: relative;
-            height: 20rem; /* h-80 */
+            height: 20rem;
         }
         @media (min-width: 1024px) {
             .lg-chart-container {
@@ -21,101 +20,527 @@
         .modal {
             transition: opacity 0.3s ease;
         }
+        /* Custom range slider styling */
+        input[type=range] {
+            accent-color: #2563eb;
+        }
+        .canvas-container {
+            position: relative;
+            touch-action: none;
+            user-select: none;
+        }
+        .badge-pulse {
+            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.03); }
+        }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900">
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 antialiased min-h-screen">
     <div id="root">
-        <div class="min-h-screen text-gray-800 dark:text-gray-200 p-4 sm:p-6 lg:p-8">
-            <div class="max-w-7xl mx-auto">
-                <header class="text-center mb-8">
-                    <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white">Potato Osmosis Experiment</h1>
-                    <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">A visual simulation of osmosis in potato cells.</p>
-                </header>
+        <div class="p-3 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+            <!-- Header -->
+            <header class="text-center mb-6">
+                <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 rounded-full text-xs font-semibold mb-2">
+                    <span>🔬 GCSE / KS4 Biology</span>
+                    <span>•</span>
+                    <span>Required Practical & Particle Mechanics</span>
+                </div>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">Potato Osmosis Experiment & Mechanics</h1>
+                <p class="mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                    Investigate water potential gradients across selectively permeable cell membranes in potato cylinders.
+                </p>
+            </header>
 
-                <main class="space-y-8">
-                    <!-- Simulation Visuals -->
-                    <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-xl font-bold text-gray-900 dark:text-white">Live Simulation</h3>
-                            <button id="expand-simulation-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition p-1 rounded-full" aria-label="Expand simulation view">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 1v-4m0 0h-4m4 0l-5 5"></path>
-                                </svg>
-                            </button>
-                        </div>
-                        <div id="test-tubes-container" class="flex flex-col md:flex-row justify-around items-center gap-8 md:gap-12">
-                            <!-- Test tubes will be rendered here by JS -->
-                        </div>
-                        <div id="progress-bar-container" class="hidden w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mt-8">
-                            <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
-                            <p id="progress-text" class="text-center text-sm mt-2">Simulating "Overnight"... 0%</p>
-                        </div>
-                    </div>
-
-                    <!-- Controls -->
-                    <div class="flex justify-center space-x-4">
-                        <button id="start-btn" class="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">
-                            Start Experiment
-                        </button>
-                        <button id="reset-btn" class="px-8 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 transition-colors">
-                            Reset
-                        </button>
-                    </div>
-
-                    <!-- Results & Graphs -->
-                    <div class="space-y-8">
-                        <div id="results-table-container" class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6">
-                            <!-- Results table will be rendered here by JS -->
-                        </div>
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 h-80 lg:h-auto flex flex-col">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">Length Change Over Time</h3>
-                                    <button id="expand-length-chart-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition p-1 rounded-full ml-auto" aria-label="Expand Length Change Over Time chart">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 1v-4m0 0h-4m4 0l-5 5"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div class="flex-grow chart-container lg-chart-container">
-                                    <canvas id="length-chart"></canvas>
-                                </div>
-                            </div>
-                            <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 h-80 lg:h-auto flex flex-col">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">Mass Change Over Time</h3>
-                                    <button id="expand-mass-chart-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition p-1 rounded-full ml-auto" aria-label="Expand Mass Change Over Time chart">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 1v-4m0 0h-4m4 0l-5 5"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div class="flex-grow chart-container lg-chart-container">
-                                    <canvas id="mass-chart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="final-chart-wrapper" class="hidden mt-8">
-                             <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 h-96 flex flex-col">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">Analysis: Mass Change vs. Solution Concentration</h3>
-                                    <button id="expand-final-chart-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition p-1 rounded-full" aria-label="Expand analysis chart">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 1v-4m0 0h-4m4 0l-5 5"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div class="flex-grow relative h-80">
-                                    <canvas id="final-mass-chart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </main>
-                <footer class="text-center mt-12 text-gray-500 dark:text-gray-400 text-sm">
-                    <p>&copy; 2024 Advanced Frontend Engineering. All Rights Reserved.</p>
-                </footer>
+            <!-- Navigation Tabs -->
+            <div class="flex justify-center mb-6">
+                <div class="inline-flex p-1.5 bg-gray-200 dark:bg-gray-800 rounded-xl shadow-inner border border-gray-300 dark:border-gray-700">
+                    <button id="tab-lab-btn" class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        <span>Lab Experiment & Data</span>
+                    </button>
+                    <button id="tab-mechanics-btn" class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <span>Osmosis Mechanics Animation</span>
+                        <span class="px-2 py-0.5 text-xs font-bold bg-blue-100 dark:bg-blue-900/80 text-blue-700 dark:text-blue-300 rounded-full">Interactive</span>
+                    </button>
+                </div>
             </div>
+
+            <!-- TAB 1: REQUIRED PRACTICAL LAB EXPERIMENT -->
+            <div id="tab-content-lab" class="space-y-8">
+                <!-- Simulation Visuals -->
+                <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white">Live Multi-Tube Practical</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Three identical potato cylinders immersed in three distinct sugar concentrations overnight.</p>
+                        </div>
+                        <button id="expand-simulation-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" aria-label="Expand simulation view">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 1v-4m0 0h-4m4 0l-5 5"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="test-tubes-container" class="flex flex-col md:flex-row justify-around items-center gap-8 md:gap-12 py-4">
+                        <!-- Test tubes will be rendered here by JS -->
+                    </div>
+                    <div id="progress-bar-container" class="hidden w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mt-8">
+                        <div id="progress-bar" class="bg-blue-600 h-3 rounded-full transition-all duration-150" style="width: 0%"></div>
+                        <p id="progress-text" class="text-center text-xs font-medium text-gray-600 dark:text-gray-400 mt-2">Simulating "Overnight"... 0%</p>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="flex justify-center space-x-4">
+                    <button id="start-btn" class="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">
+                        Start Experiment
+                    </button>
+                    <button id="reset-btn" class="px-8 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 transition-colors">
+                        Reset
+                    </button>
+                </div>
+
+                <!-- Results & Graphs -->
+                <div class="space-y-8">
+                    <div id="results-table-container" class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                        <!-- Results table will be rendered here by JS -->
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 h-80 lg:h-auto flex flex-col border border-gray-200 dark:border-gray-700">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Length Change Over Time</h3>
+                                <button id="expand-length-chart-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 ml-auto" aria-label="Expand Length Change Over Time chart">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 1v-4m0 0h-4m4 0l-5 5"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="flex-grow chart-container lg-chart-container">
+                                <canvas id="length-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 h-80 lg:h-auto flex flex-col border border-gray-200 dark:border-gray-700">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Mass Change Over Time</h3>
+                                <button id="expand-mass-chart-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 ml-auto" aria-label="Expand Mass Change Over Time chart">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 1v-4m0 0h-4m4 0l-5 5"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="flex-grow chart-container lg-chart-container">
+                                <canvas id="mass-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="final-chart-wrapper" class="hidden mt-8">
+                         <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 h-96 flex flex-col border border-gray-200 dark:border-gray-700">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Analysis: Mass Change vs. Solution Concentration</h3>
+                                <button id="expand-final-chart-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" aria-label="Expand analysis chart">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 1v-4m0 0h-4m4 0l-5 5"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="flex-grow relative h-80">
+                                <canvas id="final-mass-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: RICH OSMOSIS MECHANICS ANIMATION -->
+            <div id="tab-content-mechanics" class="hidden space-y-6">
+                <!-- Concentration Selector & Driving Force Header -->
+                <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div>
+                            <div class="text-xs uppercase font-bold tracking-wider text-gray-500 dark:text-gray-400 mb-1">Select External Solution Molarity</div>
+                            <div class="flex flex-wrap gap-2 sm:gap-3" id="mech-solution-selectors">
+                                <button data-sol="water" class="mech-sol-btn px-4 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 border-2 shadow-sm bg-blue-500 text-white border-blue-600">
+                                    <span class="w-3 h-3 rounded-full bg-cyan-200 shadow-sm"></span>
+                                    <span>Pure Water (0.0 M)</span>
+                                    <span class="text-xs bg-blue-700/60 px-1.5 py-0.5 rounded">Hypotonic</span>
+                                </button>
+                                <button data-sol="sugar_025" class="mech-sol-btn px-4 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 border-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:border-amber-400">
+                                    <span class="w-3 h-3 rounded-full bg-amber-400 shadow-sm"></span>
+                                    <span>0.25 M Sugar Sol</span>
+                                    <span class="text-xs bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded">Isotonic (~Eq)</span>
+                                </button>
+                                <button data-sol="sugar_05" class="mech-sol-btn px-4 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 border-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:border-red-400">
+                                    <span class="w-3 h-3 rounded-full bg-red-400 shadow-sm"></span>
+                                    <span>0.5 M Sugar Sol</span>
+                                    <span class="text-xs bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded">Hypertonic</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Gradient Summary Badge -->
+                        <div id="mech-gradient-card" class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl p-3 sm:px-4 sm:py-3 flex items-center gap-4">
+                            <div id="mech-flux-icon" class="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-xl shadow flex-shrink-0">
+                                ⬇
+                            </div>
+                            <div class="text-xs sm:text-sm">
+                                <div class="font-bold text-blue-900 dark:text-blue-200" id="mech-gradient-title">Water Potential: Solution &gt; Potato Tissue</div>
+                                <div class="text-blue-700 dark:text-blue-300" id="mech-gradient-desc">Net water movement <strong>INTO</strong> potato cells by osmosis. Cells swell and become <strong>turgid</strong>.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Viewport + Live Metrics Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Left Column: Interactive Simulation Stage (Canvas) -->
+                    <div class="lg:col-span-8 space-y-4">
+                        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-4 border border-gray-200 dark:border-gray-700 flex flex-col">
+                            <!-- Viewport Top Bar (Zoom Presets, Fullscreen/Reset) -->
+                            <div class="flex flex-wrap items-center justify-between gap-3 mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Magnification:</span>
+                                    <div class="inline-flex rounded-lg bg-gray-100 dark:bg-gray-700 p-0.5 text-xs font-semibold">
+                                        <button id="zoom-preset-macro" class="px-2.5 py-1 rounded-md bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm transition">
+                                            1.0x Tube
+                                        </button>
+                                        <button id="zoom-preset-meso" class="px-2.5 py-1 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition">
+                                            2.5x Tissue
+                                        </button>
+                                        <button id="zoom-preset-micro" class="px-2.5 py-1 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition">
+                                            5.0x Cell
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-3">
+                                    <!-- Discrete Zoom controls slider -->
+                                    <div class="flex items-center gap-2 text-xs bg-gray-50 dark:bg-gray-750 px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-700">
+                                        <button id="mech-zoom-out-btn" class="w-6 h-6 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 font-bold text-sm flex items-center justify-center transition" title="Decrease magnification">－</button>
+                                        <div class="flex flex-col items-center">
+                                            <input type="range" id="mech-zoom-slider" min="1.0" max="5.0" step="0.5" value="1.0" list="zoom-stepped-ticks" class="w-24 sm:w-28 cursor-pointer h-2" />
+                                            <datalist id="zoom-stepped-ticks">
+                                                <option value="1.0"></option>
+                                                <option value="1.5"></option>
+                                                <option value="2.0"></option>
+                                                <option value="2.5"></option>
+                                                <option value="3.0"></option>
+                                                <option value="3.5"></option>
+                                                <option value="4.0"></option>
+                                                <option value="4.5"></option>
+                                                <option value="5.0"></option>
+                                            </datalist>
+                                        </div>
+                                        <button id="mech-zoom-in-btn" class="w-6 h-6 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 font-bold text-sm flex items-center justify-center transition" title="Increase magnification">＋</button>
+                                        <span id="mech-zoom-value" class="w-10 font-mono font-bold text-blue-600 dark:text-blue-400 text-right">1.0x</span>
+                                    </div>
+
+                                    <!-- Focus in Modal Pop-out Button -->
+                                    <button id="expand-mech-anim-btn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700 text-xs font-semibold shadow-sm transition hover:scale-[1.02]" title="Focus on animation in a large modal pop-out">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 1v-4m0 0h-4m4 0l-5 5"></path>
+                                        </svg>
+                                        <span>Focus in Modal</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Canvas Interactive Container -->
+                            <div class="canvas-container w-full h-[460px] sm:h-[500px] bg-slate-950 rounded-xl overflow-hidden relative border border-gray-700 shadow-inner">
+                                <canvas id="mech-canvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+
+                                <!-- View Overlay Badges -->
+                                <div class="absolute top-3 left-3 pointer-events-none flex flex-col gap-1.5">
+                                    <div id="mech-view-badge" class="px-2.5 py-1 bg-slate-900/80 backdrop-blur border border-slate-700 text-white rounded-lg text-xs font-semibold flex items-center gap-2 shadow">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                        <span id="mech-view-badge-text">Macro View: Potato in Test Tube</span>
+                                    </div>
+                                    <div id="mech-state-badge" class="px-2.5 py-1 bg-slate-900/80 backdrop-blur border border-slate-700 text-cyan-300 rounded-lg text-xs font-medium shadow">
+                                        Cell Status: <span id="mech-state-badge-text" class="font-bold text-white">Turgid (Expanding)</span>
+                                    </div>
+                                </div>
+
+                                <!-- Floating Legend Overlay -->
+                                <div class="absolute top-3 right-3 bg-slate-900/85 backdrop-blur border border-slate-700/80 rounded-xl p-2.5 text-xs text-slate-300 shadow-lg space-y-1.5 pointer-events-auto">
+                                    <div class="font-bold text-slate-200 text-[11px] uppercase tracking-wider pb-1 border-b border-slate-700/80 flex justify-between items-center">
+                                        <span>Key &amp; Particle Legend</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-3 h-3 rounded-full bg-cyan-400 shadow-sm shadow-cyan-500/50"></span>
+                                        <span>Water (H₂O) Molecule</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-3.5 h-3.5 bg-amber-400 rotate-45 rounded-sm shadow-sm"></span>
+                                        <span>Sucrose Solute (Cannot cross)</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-4 h-0.5 bg-emerald-400 inline-block"></span>
+                                        <span>Cellulose Wall / Membrane</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 text-[10px] text-slate-400 pt-1 border-t border-slate-800">
+                                        <span>Net Flux:</span>
+                                        <span id="legend-flux-arrow" class="font-bold text-cyan-400">➜ Inflow into Potato</span>
+                                    </div>
+                                </div>
+
+                                <!-- Bottom Canvas HUD Controls -->
+                                <div class="absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2 bg-slate-900/85 backdrop-blur border border-slate-700/80 rounded-xl p-2 text-xs text-slate-300 shadow-lg">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex items-center gap-1 font-mono">
+                                            <span class="text-slate-400">Sim Time:</span>
+                                            <span id="mech-sim-clock" class="font-bold text-amber-400">00:00</span>
+                                        </div>
+                                        <div class="h-4 w-px bg-slate-700"></div>
+                                        <div class="hidden sm:flex items-center gap-1 font-mono">
+                                            <span class="text-slate-400">Volume:</span>
+                                            <span id="mech-hud-volume" class="font-bold text-white">25.0 mL</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Quick Particle Toggles -->
+                                    <div class="flex items-center gap-2 text-[11px]">
+                                        <label class="flex items-center gap-1 cursor-pointer hover:text-white">
+                                            <input type="checkbox" id="toggle-particles" checked class="rounded border-slate-700 text-blue-500" />
+                                            <span>Molecules</span>
+                                        </label>
+                                        <label class="flex items-center gap-1 cursor-pointer hover:text-white">
+                                            <input type="checkbox" id="toggle-calipers" checked class="rounded border-slate-700 text-blue-500" />
+                                            <span>Calipers</span>
+                                        </label>
+                                        <label class="flex items-center gap-1 cursor-pointer hover:text-white">
+                                            <input type="checkbox" id="toggle-flux" checked class="rounded border-slate-700 text-blue-500" />
+                                            <span>Flux Vectors</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Playback & Speed Controls Dock -->
+                            <div class="flex flex-wrap items-center justify-between gap-4 mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                <!-- Play / Pause / Step / Reset -->
+                                <div class="flex items-center gap-2">
+                                    <button id="mech-play-btn" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow transition flex items-center gap-1.5 text-sm">
+                                        <span id="mech-play-icon">⏸</span>
+                                        <span id="mech-play-text">Pause</span>
+                                    </button>
+                                    <button id="mech-step-btn" class="px-3.5 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium rounded-lg transition text-sm" title="Step forward 10 seconds">
+                                        ⏭ +10s
+                                    </button>
+                                    <button id="mech-reset-btn" class="px-3.5 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium rounded-lg transition text-sm" title="Reset sample to initial state">
+                                        ↺ Reset
+                                    </button>
+                                </div>
+
+                                <!-- Discrete Stepped Speed Control Slider & Presets -->
+                                <div class="flex items-center gap-2 text-xs bg-gray-50 dark:bg-gray-750 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700">
+                                    <span class="font-bold text-gray-600 dark:text-gray-400">Speed:</span>
+                                    <div class="flex items-center gap-1">
+                                        <button data-speed="0.25" class="mech-speed-preset px-1.5 py-0.5 rounded text-[11px] bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition font-medium">0.25x</button>
+                                        <button data-speed="0.5" class="mech-speed-preset px-1.5 py-0.5 rounded text-[11px] bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition font-medium">0.5x</button>
+                                        <button data-speed="1.0" class="mech-speed-preset px-1.5 py-0.5 rounded text-[11px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-bold transition">1.0x</button>
+                                        <button data-speed="2.0" class="mech-speed-preset px-1.5 py-0.5 rounded text-[11px] bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition font-medium">2.0x</button>
+                                        <button data-speed="4.0" class="mech-speed-preset px-1.5 py-0.5 rounded text-[11px] bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition font-medium">4.0x</button>
+                                    </div>
+                                    <div class="flex flex-col items-center">
+                                        <input type="range" id="mech-speed-slider" min="0.25" max="4.0" step="0.25" value="1.0" list="speed-stepped-ticks" class="w-24 cursor-pointer h-2" />
+                                        <datalist id="speed-stepped-ticks">
+                                            <option value="0.25"></option>
+                                            <option value="0.5"></option>
+                                            <option value="0.75"></option>
+                                            <option value="1.0"></option>
+                                            <option value="1.5"></option>
+                                            <option value="2.0"></option>
+                                            <option value="2.5"></option>
+                                            <option value="3.0"></option>
+                                            <option value="4.0"></option>
+                                        </datalist>
+                                    </div>
+                                    <span id="mech-speed-label" class="font-mono font-bold w-10 text-right text-blue-600 dark:text-blue-400">1.0x</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Adjustable Size Container & Potato Dimensions Panel -->
+                        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-5 border border-gray-200 dark:border-gray-700 space-y-4">
+                            <div class="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-700">
+                                <div>
+                                    <h4 class="font-bold text-gray-900 dark:text-white text-base flex items-center gap-2">
+                                        <span>🧪 Adjustable Container &amp; Potato Sample Dimensions</span>
+                                    </h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Modify test tube geometry, liquid volume, and potato core size to see the direct mathematical effect on mass, length, and diffusion rate.</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <!-- Container Size Controls -->
+                                <div class="bg-gray-50 dark:bg-gray-750 p-4 rounded-xl border border-gray-200 dark:border-gray-700 space-y-3">
+                                    <div class="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-300 flex items-center gap-1.5">
+                                        <span>Test Tube / Container Setup</span>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Container Vessel Type:</label>
+                                        <div class="grid grid-cols-3 gap-1.5 text-xs">
+                                            <button data-vessel="tube" class="mech-vessel-btn py-2 px-2 rounded-lg font-semibold border-2 transition bg-blue-500 text-white border-blue-600 text-center">
+                                                Standard Tube<br><span class="text-[10px] opacity-80">16mm Ø</span>
+                                            </button>
+                                            <button data-vessel="boiling" class="mech-vessel-btn py-2 px-2 rounded-lg font-semibold border-2 transition bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 text-center">
+                                                Boiling Tube<br><span class="text-[10px] opacity-80">24mm Ø</span>
+                                            </button>
+                                            <button data-vessel="beaker" class="mech-vessel-btn py-2 px-2 rounded-lg font-semibold border-2 transition bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 text-center">
+                                                Wide Beaker<br><span class="text-[10px] opacity-80">45mm Ø</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div class="flex justify-between text-xs font-medium mb-1">
+                                            <span class="text-gray-700 dark:text-gray-300">Solution Liquid Volume:</span>
+                                            <span id="mech-volume-label" class="font-mono font-bold text-blue-600 dark:text-blue-400">25.0 mL</span>
+                                        </div>
+                                        <input type="range" id="mech-volume-slider" min="10" max="60" step="1" value="25" class="w-full cursor-pointer" />
+                                        <div class="flex justify-between text-[10px] text-gray-400">
+                                            <span>10 mL (Partially submerged)</span>
+                                            <span>60 mL (Deep bath)</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Potato Core Sizing Controls -->
+                                <div class="bg-gray-50 dark:bg-gray-750 p-4 rounded-xl border border-gray-200 dark:border-gray-700 space-y-3">
+                                    <div class="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-300 flex items-center gap-1.5">
+                                        <span>Potato Cylinder Initial Size</span>
+                                    </div>
+
+                                    <div>
+                                        <div class="flex justify-between text-xs font-medium mb-1">
+                                            <span class="text-gray-700 dark:text-gray-300">Cork Borer Core Diameter:</span>
+                                            <span id="mech-core-diam-label" class="font-mono font-bold text-blue-600 dark:text-blue-400">8.0 mm</span>
+                                        </div>
+                                        <input type="range" id="mech-core-diam-slider" min="4" max="12" step="0.5" value="8" class="w-full cursor-pointer" />
+                                        <div class="flex justify-between text-[10px] text-gray-400">
+                                            <span>4.0 mm (Thin core)</span>
+                                            <span>12.0 mm (Thick core)</span>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div class="flex justify-between text-xs font-medium mb-1">
+                                            <span class="text-gray-700 dark:text-gray-300">Initial Cut Length:</span>
+                                            <span id="mech-core-len-label" class="font-mono font-bold text-blue-600 dark:text-blue-400">30.0 mm</span>
+                                        </div>
+                                        <input type="range" id="mech-core-len-slider" min="15" max="50" step="1" value="30" class="w-full cursor-pointer" />
+                                        <div class="flex justify-between text-[10px] text-gray-400">
+                                            <span>15.0 mm</span>
+                                            <span>50.0 mm</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Surface Area to Volume Ratio Indicator -->
+                                    <div class="p-2 rounded-lg bg-blue-100/60 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800 text-[11px] text-blue-900 dark:text-blue-200 flex justify-between items-center">
+                                        <div>
+                                            <span class="font-semibold">Surface Area to Volume (SA:V):</span>
+                                            <div class="text-[10px] text-blue-700 dark:text-blue-300">Higher ratio increases rate of osmotic exchange</div>
+                                        </div>
+                                        <div id="mech-sav-label" class="font-mono font-bold text-sm text-blue-600 dark:text-blue-400">
+                                            0.57 mm⁻¹
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Live Scientific Measurements & Real-time Chart -->
+                    <div class="lg:col-span-4 space-y-4">
+                        <!-- Primary Live Physical Metrics Card -->
+                        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-5 border border-gray-200 dark:border-gray-700 space-y-4">
+                            <div class="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-700">
+                                <h4 class="font-bold text-gray-900 dark:text-white text-base">Live Potato Physics</h4>
+                                <span class="px-2 py-0.5 text-xs font-semibold rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300">Real-Time</span>
+                            </div>
+
+                            <!-- Mass Card -->
+                            <div class="p-3.5 rounded-xl bg-gray-50 dark:bg-gray-750 border border-gray-200 dark:border-gray-700">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Potato Cylinder Mass</span>
+                                    <span id="mech-badge-mass-change" class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/80 text-emerald-700 dark:text-emerald-300">+0.0%</span>
+                                </div>
+                                <div class="flex items-baseline gap-2">
+                                    <span id="mech-stat-mass" class="text-2xl font-black text-gray-900 dark:text-white font-mono">1.63</span>
+                                    <span class="text-sm font-semibold text-gray-500">g</span>
+                                    <span class="text-xs text-gray-400 ml-auto font-mono">Initial: <span id="mech-stat-init-mass">1.63</span> g</span>
+                                </div>
+                                <!-- Progress fill bar representing mass change -->
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                                    <div id="mech-bar-mass" class="bg-emerald-500 h-full rounded-full transition-all duration-150" style="width: 50%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Length Card -->
+                            <div class="p-3.5 rounded-xl bg-gray-50 dark:bg-gray-750 border border-gray-200 dark:border-gray-700">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cylinder Length</span>
+                                    <span id="mech-badge-len-change" class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/80 text-emerald-700 dark:text-emerald-300">+0.0%</span>
+                                </div>
+                                <div class="flex items-baseline gap-2">
+                                    <span id="mech-stat-len" class="text-2xl font-black text-gray-900 dark:text-white font-mono">30.0</span>
+                                    <span class="text-sm font-semibold text-gray-500">mm</span>
+                                    <span class="text-xs text-gray-400 ml-auto font-mono">Initial: <span id="mech-stat-init-len">30.0</span> mm</span>
+                                </div>
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                                    <div id="mech-bar-len" class="bg-blue-500 h-full rounded-full transition-all duration-150" style="width: 50%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Diameter Card -->
+                            <div class="p-3.5 rounded-xl bg-gray-50 dark:bg-gray-750 border border-gray-200 dark:border-gray-700">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cylinder Diameter</span>
+                                    <span id="mech-badge-diam-change" class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/80 text-emerald-700 dark:text-emerald-300">+0.0%</span>
+                                </div>
+                                <div class="flex items-baseline gap-2">
+                                    <span id="mech-stat-diam" class="text-xl font-black text-gray-900 dark:text-white font-mono">8.0</span>
+                                    <span class="text-sm font-semibold text-gray-500">mm</span>
+                                    <span class="text-xs text-gray-400 ml-auto font-mono">Initial: <span id="mech-stat-init-diam">8.0</span> mm</span>
+                                </div>
+                            </div>
+
+                            <!-- Cell State / Turgor Description -->
+                            <div class="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-xs space-y-1.5">
+                                <div class="font-bold text-blue-900 dark:text-blue-200 flex items-center justify-between">
+                                    <span>Turgor Pressure State:</span>
+                                    <span id="mech-turgor-label" class="font-extrabold text-blue-600 dark:text-blue-400">Normal / Equilibrium</span>
+                                </div>
+                                <p id="mech-turgor-explanation" class="text-blue-800 dark:text-blue-300 text-[11px] leading-relaxed">
+                                    Water enters by osmosis down the water potential gradient. The vacuole expands, pushing the cytoplasm against the rigid cell wall, generating high turgor pressure.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Real-time Dynamic Osmosis Chart -->
+                        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-5 border border-gray-200 dark:border-gray-700 flex flex-col">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="font-bold text-gray-900 dark:text-white text-sm">Dynamic % Change Curves</h4>
+                                    <p class="text-[11px] text-gray-500 dark:text-gray-400">Live kinetics as cylinder approaches equilibrium</p>
+                                </div>
+                                <button id="mech-clear-chart-btn" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">Clear</button>
+                            </div>
+                            <div class="relative h-48 w-full">
+                                <canvas id="mech-live-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="text-center mt-12 text-gray-500 dark:text-gray-400 text-sm">
+                <p>&copy; 2024 Advanced Science Simulations. Potato Osmosis Mechanics &amp; Required Practical.</p>
+            </footer>
         </div>
     </div>
     
@@ -136,9 +561,11 @@
       </div>
     </div>
 
-
+    <!-- MODULE SCRIPT -->
     <script type="module">
-        // --- CONSTANTS & TYPES ---
+        // ==========================================
+        // SECTION 1: LAB EXPERIMENT (TAB 1) CODE
+        // ==========================================
         const SolutionType = {
             SUGAR_HIGH: '0.5 M Sugar',
             SUGAR_LOW: '0.25 M Sugar',
@@ -151,7 +578,7 @@
             FINISHED: 'finished',
         };
 
-        const SIMULATION_DURATION = 30; // in seconds
+        const SIMULATION_DURATION = 30; // seconds
         const TICK_INTERVAL = 250; // ms
         const INITIAL_POTATO_LENGTH = 3.0; // cm
         const INITIAL_POTATO_MASS = 2.5; // g
@@ -169,12 +596,11 @@
         };
 
         const CHART_COLORS = {
-            [SolutionType.SUGAR_HIGH]: '#ef4444', // red-500
-            [SolutionType.SUGAR_LOW]: '#f97316', // orange-500
-            [SolutionType.WATER]: '#22c55e', // green-500
+            [SolutionType.SUGAR_HIGH]: '#ef4444',
+            [SolutionType.SUGAR_LOW]: '#f97316',
+            [SolutionType.WATER]: '#22c55e',
         };
         
-        // --- STATE ---
         let state = {
             simulationState: SimulationState.IDLE,
             potatoSamples: [],
@@ -192,8 +618,10 @@
 
         let modalChartInstance = null;
         let modalChartType = null;
+        let isMechModalActive = false;
+        let mechModalCanvas = null;
+        let mechModalCleanups = [];
 
-        // --- DOM ELEMENTS ---
         const DOMElements = {
             testTubesContainer: document.getElementById('test-tubes-container'),
             progressBarContainer: document.getElementById('progress-bar-container'),
@@ -212,9 +640,9 @@
             expandLengthChartBtn: document.getElementById('expand-length-chart-btn'),
             expandMassChartBtn: document.getElementById('expand-mass-chart-btn'),
             expandFinalChartBtn: document.getElementById('expand-final-chart-btn'),
+            expandMechAnimBtn: document.getElementById('expand-mech-anim-btn'),
         };
 
-        // --- UTILITY FUNCTIONS ---
         const createInitialSamples = () => {
             const solutions = [SolutionType.SUGAR_HIGH, SolutionType.SUGAR_LOW, SolutionType.WATER];
             return solutions.map((solution, index) => {
@@ -236,7 +664,6 @@
             return ((final - initial) / initial) * 100;
         };
         
-        // --- MODAL LOGIC ---
         const openModal = (title, contentHTML) => {
             if (modalChartInstance) {
                 modalChartInstance.destroy();
@@ -246,13 +673,24 @@
             DOMElements.modalTitle.textContent = title;
             DOMElements.modalBody.innerHTML = contentHTML;
             DOMElements.modal.classList.remove('hidden');
-            // Force layout flush so CSS transition starts cleanly
             void DOMElements.modal.offsetWidth;
             DOMElements.modal.classList.remove('opacity-0');
             DOMElements.modalContent.classList.remove('scale-95');
         };
 
         const closeModal = () => {
+            if (isMechModalActive) {
+                isMechModalActive = false;
+                mechModalCanvas = null;
+                mechModalCleanups.forEach(fn => fn());
+                mechModalCleanups = [];
+                // Reset modal width container back to standard max-w-4xl
+                if (DOMElements.modalContent) {
+                    DOMElements.modalContent.classList.remove('max-w-6xl', 'w-[96vw]');
+                    DOMElements.modalContent.classList.add('max-w-4xl');
+                }
+                initParticles();
+            }
             if (modalChartInstance) {
                 modalChartInstance.destroy();
                 modalChartInstance = null;
@@ -266,14 +704,13 @@
             }, 300);
         };
         
-        // --- RENDERING FUNCTIONS ---
         const renderTestTubes = (container) => {
             container.innerHTML = state.potatoSamples.map(sample => {
                 const scaleY = sample.currentLength / sample.initialLength;
                 const scaleX = Math.sqrt(sample.currentMass / sample.initialMass / scaleY);
                 return `
                     <div class="flex flex-col items-center space-y-2">
-                        <div class="relative w-20 h-48 bg-white/20 border-2 border-gray-400 rounded-b-3xl rounded-t-lg overflow-hidden flex justify-center items-end">
+                        <div class="relative w-20 h-48 bg-white/20 border-2 border-gray-400 rounded-b-3xl rounded-t-lg overflow-hidden flex justify-center items-end shadow-inner">
                             <div class="absolute bottom-0 w-full h-1/2 ${SOLUTION_COLORS[sample.solution]} transition-all duration-300"></div>
                             <div id="potato-${sample.id}" class="relative z-10 w-6 h-24 mb-2 bg-yellow-200 border-2 border-yellow-400 rounded-lg transition-transform duration-300 ease-in-out origin-bottom" style="transform: scaleY(${scaleY}) scaleX(${scaleX})"></div>
                         </div>
@@ -300,8 +737,8 @@
         };
 
         const renderResultsTable = () => {
-            const getValidationClass = (state) => {
-                switch (state) {
+            const getValidationClass = (validation) => {
+                switch (validation) {
                     case 'correct': return 'bg-green-100 dark:bg-green-900 border-green-500 focus:ring-green-500 focus:border-green-500';
                     case 'incorrect': return 'bg-red-100 dark:bg-red-900 border-red-500 focus:ring-red-500 focus:border-red-500';
                     default: return 'bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500';
@@ -368,9 +805,8 @@
                     </table>
                 </div>
             `;
-            // Re-attach event listeners after re-render
-             document.getElementById('expand-table-btn')?.addEventListener('click', () => {
-                openModal('Experiment Results', `<div class="overflow-x-auto">${DOMElements.resultsTableContainer.querySelector('table').outerHTML}</div>`)
+            document.getElementById('expand-table-btn')?.addEventListener('click', () => {
+                openModal('Experiment Results', `<div class="overflow-x-auto">${DOMElements.resultsTableContainer.querySelector('table').outerHTML}</div>`);
             });
             DOMElements.resultsTableContainer.querySelectorAll('input[type="number"]').forEach(input => {
                 input.addEventListener('input', handleTableInputChange);
@@ -449,11 +885,7 @@
                 }
             };
 
-            return {
-                type: 'line',
-                data: { labels, datasets },
-                options
-            };
+            return { type: 'line', data: { labels, datasets }, options };
         };
 
         const getFinalChartConfig = (isModal = false) => {
@@ -536,7 +968,7 @@
                         ticks: { 
                             callback: value => `${value.toFixed(0)}%`,
                             color: textColor,
-                            font: { size: isModal ? 13 : 11, weight: '600' }
+                            font: { size: isModal ? 13 : 11, weight: '600' } 
                         }
                     }
                 },
@@ -622,7 +1054,6 @@
             state.charts.finalMassChart = createChart(document.getElementById('final-mass-chart').getContext('2d'), type, data, options);
         };
         
-        // --- EVENT HANDLERS ---
         const handleStart = () => {
             resetSimulation();
             state.simulationState = SimulationState.RUNNING;
@@ -730,11 +1161,9 @@
         };
         
         const updateUIState = () => {
-            // Buttons
             DOMElements.startBtn.disabled = state.simulationState === SimulationState.RUNNING;
             DOMElements.startBtn.textContent = state.simulationState === SimulationState.RUNNING ? 'Running...' : 'Start Experiment';
 
-            // Progress Bar
             if (state.simulationState === SimulationState.RUNNING) {
                 DOMElements.progressBarContainer.classList.remove('hidden');
                 const progress = (state.elapsedTime / SIMULATION_DURATION) * 100;
@@ -744,22 +1173,1327 @@
                 DOMElements.progressBarContainer.classList.add('hidden');
             }
 
-            // Final Chart
-             DOMElements.finalChartWrapper.classList.toggle('hidden', state.simulationState !== SimulationState.FINISHED);
-            
-            // Table
+            DOMElements.finalChartWrapper.classList.toggle('hidden', state.simulationState !== SimulationState.FINISHED);
             renderResultsTable();
         };
-        
-        // --- INITIALIZATION ---
+
+        // ==============================================================
+        // SECTION 2: RICH OSMOSIS MECHANICS ANIMATION (TAB 2) ENGINE
+        // ==============================================================
+        const MechSolutions = {
+            WATER: {
+                id: 'water',
+                name: 'Pure Distilled Water (0.0 M)',
+                title: 'Pure Distilled Water (0.0 M)',
+                short: '0.0 M H₂O',
+                molarity: 0.0,
+                waterPotential: 0, // kPa
+                potatoEquilWaterPot: -650, // fresh tissue approx -650 kPa
+                osmoticEquilibriumFactor: 0.165, // ~ +16.5% mass equilibrium in pure water
+                lengthFactor: 0.11, // ~ +11% length equilibrium
+                color: 'rgba(56, 189, 248, 0.28)',
+                liquidStroke: 'rgba(14, 165, 233, 0.65)',
+                themeColor: '#0ea5e9',
+                status: 'Hypotonic',
+                gradientTitle: 'Hypotonic: External Solution Water Potential > Potato Tissue',
+                gradientDesc: 'High concentration of free water molecules outside. Net osmotic movement INTO potato cells. Cytoplasm expands against cell wall producing high turgor pressure (Turgid).',
+                fluxIcon: '⬇',
+                fluxDirection: 'in',
+                stateLabel: 'Turgid (Firm & Swollen)',
+                explanation: 'Water enters by osmosis down the steep water potential gradient. The vacuole swells, pressing the plasma membrane firmly against the cell wall, producing high turgor pressure.',
+            },
+            SUGAR_025: {
+                id: 'sugar_025',
+                name: '0.25 M Sugar Solution',
+                title: '0.25 M Sugar (~Equilibrium)',
+                short: '0.25 M Sucrose',
+                molarity: 0.25,
+                waterPotential: -650, // matched to potato tissue (~isotonic)
+                potatoEquilWaterPot: -650,
+                osmoticEquilibriumFactor: -0.015, // near zero net change
+                lengthFactor: -0.01,
+                color: 'rgba(245, 158, 11, 0.22)',
+                liquidStroke: 'rgba(217, 119, 6, 0.65)',
+                themeColor: '#f59e0b',
+                status: 'Isotonic (~Equilibrium)',
+                gradientTitle: 'Isotonic: Water Potential of Solution ≈ Potato Tissue',
+                gradientDesc: 'Concentration of free water molecules is balanced. Dynamic equilibrium: water moves in and out across the membrane at EQUAL rates. No significant net change in mass or length.',
+                fluxIcon: '⇄',
+                fluxDirection: 'neutral',
+                stateLabel: 'Incipient Plasmolysis / Balanced',
+                explanation: 'Dynamic equilibrium: water molecules diffuse across the semi-permeable cell membrane in both directions at equal rates. Cell turgor pressure is moderate; no net change in mass or dimensions.',
+            },
+            SUGAR_05: {
+                id: 'sugar_05',
+                name: '0.5 M Sugar Solution',
+                title: '0.5 M Sugar (Hypertonic)',
+                short: '0.5 M Sucrose',
+                molarity: 0.50,
+                waterPotential: -1350, // low water potential
+                potatoEquilWaterPot: -650,
+                osmoticEquilibriumFactor: -0.21, // ~ -21% mass loss
+                lengthFactor: -0.14, // ~ -14% length shrinkage
+                color: 'rgba(239, 68, 68, 0.22)',
+                liquidStroke: 'rgba(220, 38, 38, 0.65)',
+                themeColor: '#ef4444',
+                status: 'Hypertonic',
+                gradientTitle: 'Hypertonic: External Solution Water Potential < Potato Tissue',
+                gradientDesc: 'Low concentration of free water molecules outside (high solute concentration). Net osmotic movement OUT OF potato cells into solution. Vacuole collapses, cell membrane pulls away from cell wall (Plasmolysis).',
+                fluxIcon: '⬆',
+                fluxDirection: 'out',
+                stateLabel: 'Plasmolysed (Flaccid & Limp)',
+                explanation: 'Water leaves cells by osmosis down the water potential gradient into the hypertonic sugar bath. The vacuole shrivels and the plasma membrane detaches from the cell wall (plasmolysis). Potato loses mass and length, becoming limp.',
+            }
+        };
+
+        // Container vessel presets
+        const VesselPresets = {
+            tube: { name: 'Standard Test Tube', diameterMm: 16, maxVolume: 30, tubeColor: '#94a3b8' },
+            boiling: { name: 'Boiling Tube', diameterMm: 24, maxVolume: 50, tubeColor: '#94a3b8' },
+            beaker: { name: 'Laboratory Beaker', diameterMm: 45, maxVolume: 100, tubeColor: '#94a3b8' },
+        };
+
+        // Mechanics simulation state
+        let mechState = {
+            currentSolKey: 'water',
+            vesselKey: 'tube',
+            liquidVolumeMl: 25.0, // mL
+            coreDiameterMm: 8.0, // mm (cork borer)
+            coreLengthMm: 30.0, // mm
+            potatoDensity: 1.08, // g/cm³
+
+            // Dynamic physics progress
+            simTimeSeconds: 0,
+            isPlaying: true,
+            simSpeed: 1.0,
+            zoom: 1.0, // 1.0 = macro test tube, 2.5 = tissue, 5.0 = micro membrane
+
+            // Dynamic measurements
+            currentMass: 1.63,
+            initialMass: 1.63,
+            currentLength: 30.0,
+            initialLength: 30.0,
+            currentDiameter: 8.0,
+            initialDiameter: 8.0,
+            massChangePercent: 0.0,
+            lengthChangePercent: 0.0,
+            diamChangePercent: 0.0,
+            osmoticProgress: 0.0, // 0 to 1 toward current equilibrium
+
+            // Visual toggles
+            showParticles: true,
+            showCalipers: true,
+            showFlux: true,
+
+            // Particles
+            particles: [],
+            lastFrameTimestamp: 0,
+            liveChart: null,
+            chartDataHistory: [],
+        };
+
+        // Calculate initial mass from dimensions
+        const calcSampleInitialMass = (diamMm, lenMm) => {
+            const radiusCm = (diamMm / 2) / 10;
+            const lengthCm = lenMm / 10;
+            const volumeCm3 = Math.PI * radiusCm * radiusCm * lengthCm;
+            return volumeCm3 * mechState.potatoDensity;
+        };
+
+        // Calculate Surface Area to Volume ratio
+        const calcSurfaceAreaToVolume = (diamMm, lenMm) => {
+            const r = diamMm / 2;
+            const h = lenMm;
+            const sa = 2 * Math.PI * r * r + 2 * Math.PI * r * h;
+            const vol = Math.PI * r * r * h;
+            return (sa / vol);
+        };
+
+        // Calculate Vessel and Potato Geometry
+        const getVesselGeometry = () => {
+            const vesselPreset = VesselPresets[mechState.vesselKey] || VesselPresets.tube;
+            let tubeWidth = 90;
+            let tubeHeight = 310;
+            let tubeBottomRadius = 45;
+
+            if (mechState.vesselKey === 'boiling') {
+                tubeWidth = 130;
+                tubeHeight = 310;
+                tubeBottomRadius = 65;
+            } else if (mechState.vesselKey === 'beaker') {
+                tubeWidth = 200;
+                tubeHeight = 270;
+                tubeBottomRadius = 25;
+            }
+
+            const liquidFillPercent = Math.min(Math.max((mechState.liquidVolumeMl || 25) / vesselPreset.maxVolume, 0.25), 0.90);
+            const liquidTopFromTubeTop = tubeHeight * (1 - liquidFillPercent);
+
+            const lenScale = (mechState.currentLength || 30.0) / 30.0;
+            const diamScale = (mechState.currentDiameter || 8.0) / 8.0;
+            const potatoW = 34 * diamScale;
+            const potatoH = 130 * lenScale;
+            const potatoBottom = tubeHeight - 20;
+            const potatoTop = potatoBottom - potatoH;
+
+            return {
+                vesselPreset,
+                tubeWidth,
+                tubeHeight,
+                tubeBottomRadius,
+                liquidFillPercent,
+                liquidTopFromTubeTop,
+                potatoW,
+                potatoH,
+                potatoTop,
+                potatoBottom,
+                potatoCenterY: potatoTop + potatoH / 2
+            };
+        };
+
+        // Initialize particles in simulation (relative to tube center & liquid)
+        const initParticles = () => {
+            const geom = getVesselGeometry();
+            const sol = MechSolutions[mechState.currentSolKey.toUpperCase()] || MechSolutions.WATER;
+            mechState.particles = [];
+            const count = 130;
+
+            const sugarCount = sol.molarity === 0 ? 0 : Math.round(count * (sol.molarity === 0.25 ? 0.22 : 0.38));
+            const waterCount = count - sugarCount;
+
+            const halfWidth = geom.tubeWidth / 2 - 8;
+            const liquidTop = geom.liquidTopFromTubeTop + 8;
+            const liquidBottom = geom.tubeHeight - 16;
+            const potHalfW = geom.potatoW / 2;
+
+            // Spawn water molecules distributed through potato tissue & surrounding liquid
+            for (let i = 0; i < waterCount; i++) {
+                const inPotato = Math.random() < 0.35;
+                let u, v;
+                if (inPotato) {
+                    u = (Math.random() - 0.5) * Math.max(geom.potatoW - 8, 4);
+                    v = geom.potatoTop + 6 + Math.random() * Math.max(geom.potatoH - 12, 10);
+                } else {
+                    v = liquidTop + Math.random() * (liquidBottom - liquidTop);
+                    if (v < geom.potatoTop) {
+                        u = (Math.random() - 0.5) * 2 * halfWidth;
+                    } else {
+                        const side = Math.random() < 0.5 ? -1 : 1;
+                        const minOffset = potHalfW + 3;
+                        const maxOffset = halfWidth;
+                        u = side * (minOffset + Math.random() * Math.max(maxOffset - minOffset, 4));
+                    }
+                }
+
+                mechState.particles.push({
+                    u,
+                    v,
+                    vu: (Math.random() - 0.5) * 1.4,
+                    vv: (Math.random() - 0.5) * 1.4,
+                    type: 'water',
+                    inPotato,
+                    radius: 2.5,
+                    pulse: Math.random() * Math.PI * 2
+                });
+            }
+
+            // Spawn sugar solute molecules (only in external liquid bath, never inside potato)
+            for (let i = 0; i < sugarCount; i++) {
+                const v = liquidTop + Math.random() * (liquidBottom - liquidTop);
+                let u;
+                if (v < geom.potatoTop) {
+                    u = (Math.random() - 0.5) * 2 * halfWidth;
+                } else {
+                    const side = Math.random() < 0.5 ? -1 : 1;
+                    const minOffset = potHalfW + 5;
+                    const maxOffset = halfWidth;
+                    u = side * (minOffset + Math.random() * Math.max(maxOffset - minOffset, 4));
+                }
+
+                mechState.particles.push({
+                    u,
+                    v,
+                    vu: (Math.random() - 0.5) * 0.9,
+                    vv: (Math.random() - 0.5) * 0.9,
+                    type: 'sugar',
+                    inPotato: false,
+                    radius: 4.5,
+                    pulse: Math.random() * Math.PI * 2
+                });
+            }
+        };
+
+        // Update particles Brownian motion and osmotic flux
+        const updateParticles = () => {
+            if (!mechState.particles || mechState.particles.length === 0) return;
+            const geom = getVesselGeometry();
+            const sol = MechSolutions[mechState.currentSolKey.toUpperCase()] || MechSolutions.WATER;
+            const halfWidth = geom.tubeWidth / 2 - 6;
+            const liquidTop = geom.liquidTopFromTubeTop + 5;
+            const liquidBottom = geom.tubeHeight - 12;
+
+            const potHalfW = geom.potatoW / 2;
+            const potTop = geom.potatoTop;
+            const potBottom = geom.potatoBottom;
+
+            const speed = mechState.simSpeed;
+            const isPlaying = mechState.isPlaying;
+
+            mechState.particles.forEach(p => {
+                // Thermal Brownian motion (always present in fluid, enhanced by speed)
+                const jitter = (p.type === 'water' ? 0.35 : 0.18) * (isPlaying ? speed : 0.6);
+                p.vu += (Math.random() - 0.5) * jitter;
+                p.vv += (Math.random() - 0.5) * jitter;
+
+                // Net osmotic flux drift (active when simulation is playing)
+                if (isPlaying) {
+                    if (p.type === 'water') {
+                        if (sol.fluxDirection === 'in') {
+                            // HYPOTONIC (Pure water): Net osmotic diffusion INTO potato
+                            if (!p.inPotato) {
+                                const toX = 0 - p.u;
+                                const toY = geom.potatoCenterY - p.v;
+                                const dist = Math.hypot(toX, toY) || 1;
+                                p.vu += (toX / dist) * 0.10 * speed;
+                                p.vv += (toY / dist) * 0.07 * speed;
+                            }
+                        } else if (sol.fluxDirection === 'out') {
+                            // HYPERTONIC (0.5M sugar): Net osmotic movement OUT of potato into solution
+                            if (p.inPotato) {
+                                const fromX = p.u === 0 ? (Math.random() < 0.5 ? 1 : -1) : Math.sign(p.u);
+                                p.vu += fromX * 0.12 * speed;
+                                p.vv += (Math.random() - 0.5) * 0.06 * speed;
+                            }
+                        } else {
+                            // ISOTONIC (0.25M dynamic equilibrium): Equal bidirectional diffusion
+                            const nearBoundary = Math.abs(Math.abs(p.u) - potHalfW) < 6 && p.v >= potTop && p.v <= potBottom;
+                            if (nearBoundary) {
+                                p.vu += (Math.random() - 0.5) * 0.25 * speed;
+                            }
+                        }
+                    } else {
+                        // SUGAR solute: cannot cross partially permeable membrane
+                        if (p.v >= potTop && p.v <= potBottom && Math.abs(p.u) < potHalfW + 3) {
+                            p.u = Math.sign(p.u || 1) * (potHalfW + 4);
+                            p.vu = Math.sign(p.u || 1) * Math.abs(p.vu || 0.4);
+                        }
+                    }
+                }
+
+                // Dampen velocities
+                const maxV = (p.type === 'water' ? 2.0 : 1.1) * (isPlaying ? 1 : 0.5);
+                p.vu = Math.max(Math.min(p.vu, maxV), -maxV);
+                p.vv = Math.max(Math.min(p.vv, maxV), -maxV);
+
+                // Advance position
+                p.u += p.vu * (isPlaying ? speed : 0.6);
+                p.v += p.vv * (isPlaying ? speed : 0.6);
+
+                // Container boundary checks
+                // 1. Left/right tube walls: rebound smoothly towards center
+                if (p.u < -halfWidth) {
+                    p.u = -halfWidth;
+                    p.vu = Math.abs(p.vu) * 0.8 + 0.2;
+                } else if (p.u > halfWidth) {
+                    p.u = halfWidth;
+                    p.vu = -Math.abs(p.vu) * 0.8 - 0.2;
+                }
+
+                // 2. Meniscus / liquid top
+                if (p.v < liquidTop) {
+                    p.v = liquidTop;
+                    p.vv = Math.abs(p.vv) * 0.8 + 0.1;
+                }
+
+                // 3. Tube rounded bottom
+                const roundBottomRadius = geom.tubeBottomRadius;
+                const roundStartY = geom.tubeHeight - roundBottomRadius;
+                if (p.v > roundStartY) {
+                    const dy = p.v - roundStartY;
+                    const allowedHalfW = halfWidth * Math.sqrt(Math.max(0, 1 - (dy * dy) / (roundBottomRadius * roundBottomRadius)));
+                    if (Math.abs(p.u) > allowedHalfW) {
+                        p.u = Math.sign(p.u) * Math.max(0, allowedHalfW - 1);
+                        p.vu = -Math.sign(p.u) * (Math.abs(p.vu) * 0.7 + 0.2);
+                    }
+                }
+                if (p.v > liquidBottom) {
+                    p.v = liquidBottom;
+                    p.vv = -Math.abs(p.vv) * 0.8 - 0.1;
+                }
+
+                // Update inPotato state flag
+                p.inPotato = (Math.abs(p.u) <= potHalfW && p.v >= potTop && p.v <= potBottom);
+            });
+        };
+
+        // Initialize Live Chart for mechanics tab
+        const initMechChart = () => {
+            const ctx = document.getElementById('mech-live-chart');
+            if (!ctx) return;
+            const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)';
+            const textColor = isDarkMode ? '#cbd5e1' : '#475569';
+
+            if (mechState.liveChart) {
+                mechState.liveChart.destroy();
+                mechState.liveChart = null;
+            }
+
+            mechState.liveChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: '% Mass Change',
+                            data: [],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.2,
+                            pointRadius: 0,
+                        },
+                        {
+                            label: '% Length Change',
+                            data: [],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 2,
+                            borderDash: [4, 4],
+                            tension: 0.2,
+                            pointRadius: 0,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Sim Time (s)', color: textColor, font: { size: 10 } },
+                            grid: { color: gridColor },
+                            ticks: { color: textColor, font: { size: 9 }, maxTicksLimit: 6 }
+                        },
+                        y: {
+                            title: { display: true, text: '% Change', color: textColor, font: { size: 10 } },
+                            grid: { color: gridColor },
+                            ticks: { 
+                                color: textColor, 
+                                font: { size: 9 },
+                                callback: v => `${v > 0 ? '+' : ''}${v.toFixed(0)}%`
+                            },
+                            suggestedMin: -25,
+                            suggestedMax: 20,
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { color: textColor, font: { size: 10 }, boxWidth: 10, padding: 8 }
+                        }
+                    }
+                }
+            });
+        };
+
+        // Reset mechanics experiment parameters
+        const resetMechSimulation = () => {
+            mechState.simTimeSeconds = 0;
+            mechState.initialMass = calcSampleInitialMass(mechState.coreDiameterMm, mechState.coreLengthMm);
+            mechState.currentMass = mechState.initialMass;
+            mechState.initialLength = mechState.coreLengthMm;
+            mechState.currentLength = mechState.initialLength;
+            mechState.initialDiameter = mechState.coreDiameterMm;
+            mechState.currentDiameter = mechState.initialDiameter;
+            mechState.massChangePercent = 0.0;
+            mechState.lengthChangePercent = 0.0;
+            mechState.diamChangePercent = 0.0;
+            mechState.osmoticProgress = 0.0;
+            mechState.chartDataHistory = [];
+
+            if (mechState.liveChart) {
+                mechState.liveChart.data.labels = [];
+                mechState.liveChart.data.datasets[0].data = [];
+                mechState.liveChart.data.datasets[1].data = [];
+                mechState.liveChart.update();
+            }
+
+            initParticles();
+            updateMechUIElements();
+        };
+
+        // Update DOM labels & values in mechanics tab
+        const updateMechUIElements = () => {
+            const sol = MechSolutions[mechState.currentSolKey.toUpperCase()] || MechSolutions.WATER;
+            
+            // Mass elements
+            const massEl = document.getElementById('mech-stat-mass');
+            const initMassEl = document.getElementById('mech-stat-init-mass');
+            const massBadge = document.getElementById('mech-badge-mass-change');
+            const massBar = document.getElementById('mech-bar-mass');
+            if (massEl) massEl.textContent = mechState.currentMass.toFixed(2);
+            if (initMassEl) initMassEl.textContent = mechState.initialMass.toFixed(2);
+            if (massBadge) {
+                const sign = mechState.massChangePercent > 0 ? '+' : '';
+                massBadge.textContent = `${sign}${mechState.massChangePercent.toFixed(1)}%`;
+                massBadge.className = `text-xs font-bold px-2 py-0.5 rounded ${
+                    mechState.massChangePercent > 0 ? 'bg-emerald-100 dark:bg-emerald-900/80 text-emerald-700 dark:text-emerald-300' :
+                    mechState.massChangePercent < -0.5 ? 'bg-red-100 dark:bg-red-900/80 text-red-700 dark:text-red-300' :
+                    'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                }`;
+            }
+            if (massBar) {
+                // map -25% to +20% to 0% to 100%
+                const pct = Math.min(Math.max(((mechState.massChangePercent + 25) / 45) * 100, 5), 95);
+                massBar.style.width = `${pct}%`;
+                massBar.className = `h-full rounded-full transition-all duration-150 ${mechState.massChangePercent >= 0 ? 'bg-emerald-500' : 'bg-red-500'}`;
+            }
+
+            // Length elements
+            const lenEl = document.getElementById('mech-stat-len');
+            const initLenEl = document.getElementById('mech-stat-init-len');
+            const lenBadge = document.getElementById('mech-badge-len-change');
+            const lenBar = document.getElementById('mech-bar-len');
+            if (lenEl) lenEl.textContent = mechState.currentLength.toFixed(1);
+            if (initLenEl) initLenEl.textContent = mechState.initialLength.toFixed(1);
+            if (lenBadge) {
+                const sign = mechState.lengthChangePercent > 0 ? '+' : '';
+                lenBadge.textContent = `${sign}${mechState.lengthChangePercent.toFixed(1)}%`;
+                lenBadge.className = `text-xs font-bold px-2 py-0.5 rounded ${
+                    mechState.lengthChangePercent > 0 ? 'bg-blue-100 dark:bg-blue-900/80 text-blue-700 dark:text-blue-300' :
+                    mechState.lengthChangePercent < -0.5 ? 'bg-amber-100 dark:bg-amber-900/80 text-amber-700 dark:text-amber-300' :
+                    'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                }`;
+            }
+            if (lenBar) {
+                const pct = Math.min(Math.max(((mechState.lengthChangePercent + 20) / 35) * 100, 5), 95);
+                lenBar.style.width = `${pct}%`;
+            }
+
+            // Diameter elements
+            const diamEl = document.getElementById('mech-stat-diam');
+            const initDiamEl = document.getElementById('mech-stat-init-diam');
+            const diamBadge = document.getElementById('mech-badge-diam-change');
+            if (diamEl) diamEl.textContent = mechState.currentDiameter.toFixed(1);
+            if (initDiamEl) initDiamEl.textContent = mechState.initialDiameter.toFixed(1);
+            if (diamBadge) {
+                const sign = mechState.diamChangePercent > 0 ? '+' : '';
+                diamBadge.textContent = `${sign}${mechState.diamChangePercent.toFixed(1)}%`;
+            }
+
+            // SA:V element
+            const savEl = document.getElementById('mech-sav-label');
+            if (savEl) {
+                const sav = calcSurfaceAreaToVolume(mechState.coreDiameterMm, mechState.coreLengthMm);
+                savEl.textContent = `${sav.toFixed(2)} mm⁻¹`;
+            }
+
+            // Labels in controls
+            const volLabel = document.getElementById('mech-volume-label');
+            if (volLabel) volLabel.textContent = `${mechState.liquidVolumeMl.toFixed(1)} mL`;
+            const coreDiamLabel = document.getElementById('mech-core-diam-label');
+            if (coreDiamLabel) coreDiamLabel.textContent = `${mechState.coreDiameterMm.toFixed(1)} mm`;
+            const coreLenLabel = document.getElementById('mech-core-len-label');
+            if (coreLenLabel) coreLenLabel.textContent = `${mechState.coreLengthMm.toFixed(1)} mm`;
+
+            // Turgor text
+            const turgorLabel = document.getElementById('mech-turgor-label');
+            const turgorDesc = document.getElementById('mech-turgor-explanation');
+            if (turgorLabel) turgorLabel.textContent = sol.stateLabel;
+            if (turgorDesc) turgorDesc.textContent = sol.explanation;
+
+            // Status badges in canvas HUD
+            const stateBadgeText = document.getElementById('mech-state-badge-text');
+            if (stateBadgeText) stateBadgeText.textContent = sol.stateLabel;
+
+            const legendFlux = document.getElementById('legend-flux-arrow');
+            if (legendFlux) {
+                if (sol.fluxDirection === 'in') {
+                    legendFlux.textContent = '➜ Influx into Potato';
+                    legendFlux.className = 'font-bold text-cyan-400';
+                } else if (sol.fluxDirection === 'out') {
+                    legendFlux.textContent = '➜ Efflux out of Potato';
+                    legendFlux.className = 'font-bold text-red-400';
+                } else {
+                    legendFlux.textContent = '⇄ Dynamic Equilibrium';
+                    legendFlux.className = 'font-bold text-amber-400';
+                }
+            }
+
+            // Sim Clock
+            const clockEl = document.getElementById('mech-sim-clock');
+            if (clockEl) {
+                const mins = Math.floor(mechState.simTimeSeconds / 60);
+                const secs = Math.floor(mechState.simTimeSeconds % 60);
+                clockEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }
+
+            const hudVol = document.getElementById('mech-hud-volume');
+            if (hudVol) hudVol.textContent = `${mechState.liquidVolumeMl.toFixed(1)} mL`;
+
+            // Synchronize Modal KPI readouts if modal is active
+            if (isMechModalActive) {
+                const mMass = document.getElementById('modal-stat-mass');
+                const mMassBadge = document.getElementById('modal-stat-mass-badge');
+                const mLen = document.getElementById('modal-stat-len');
+                const mLenBadge = document.getElementById('modal-stat-len-badge');
+                const mClock = document.getElementById('modal-sim-clock');
+
+                if (mMass) mMass.textContent = `${mechState.currentMass.toFixed(2)}g`;
+                if (mMassBadge) {
+                    const sign = mechState.massChangePercent >= 0 ? '+' : '';
+                    mMassBadge.textContent = `(${sign}${mechState.massChangePercent.toFixed(1)}%)`;
+                    mMassBadge.className = `font-bold text-[11px] ${mechState.massChangePercent >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+                }
+                if (mLen) mLen.textContent = `${mechState.currentLength.toFixed(1)}mm`;
+                if (mLenBadge) {
+                    const sign = mechState.lengthChangePercent >= 0 ? '+' : '';
+                    mLenBadge.textContent = `(${sign}${mechState.lengthChangePercent.toFixed(1)}%)`;
+                    mLenBadge.className = `font-bold text-[11px] ${mechState.lengthChangePercent >= 0 ? 'text-cyan-400' : 'text-amber-400'}`;
+                }
+                if (mClock && clockEl) {
+                    mClock.textContent = clockEl.textContent;
+                }
+                const mTurgor = document.getElementById('modal-turgor-text');
+                const curSol = MechSolutions[mechState.currentSolKey.toUpperCase()] || MechSolutions.WATER;
+                if (mTurgor) {
+                    mTurgor.innerHTML = `Cell Status: <span class="font-bold text-white">${curSol.stateLabel}</span> (${curSol.status})`;
+                }
+            }
+        };
+
+        // Switch selected solution in mechanics tab
+        const selectMechSolution = (solKey) => {
+            mechState.currentSolKey = solKey;
+            const sol = MechSolutions[solKey.toUpperCase()] || MechSolutions.WATER;
+
+            // Update selector button styles
+            document.querySelectorAll('.mech-sol-btn').forEach(btn => {
+                const key = btn.dataset.sol;
+                if (key === solKey) {
+                    btn.className = 'mech-sol-btn px-4 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 border-2 shadow-md bg-blue-600 text-white border-blue-600 scale-[1.02]';
+                } else {
+                    btn.className = 'mech-sol-btn px-4 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 border-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:border-blue-400';
+                }
+            });
+
+            // Update Gradient header card
+            const titleEl = document.getElementById('mech-gradient-title');
+            const descEl = document.getElementById('mech-gradient-desc');
+            const iconEl = document.getElementById('mech-flux-icon');
+            if (titleEl) titleEl.textContent = sol.gradientTitle;
+            if (descEl) descEl.innerHTML = sol.gradientDesc;
+            if (iconEl) {
+                iconEl.textContent = sol.fluxIcon;
+                iconEl.className = `w-10 h-10 rounded-full flex items-center justify-center font-bold text-xl shadow flex-shrink-0 text-white ${
+                    sol.fluxDirection === 'in' ? 'bg-cyan-500' :
+                    sol.fluxDirection === 'out' ? 'bg-red-500' :
+                    'bg-amber-500'
+                }`;
+            }
+
+            // Adjust particles in solution
+            initParticles();
+            updateMechUIElements();
+        };
+
+        // Switch container vessel type
+        const selectMechVessel = (vesselKey) => {
+            mechState.vesselKey = vesselKey;
+            document.querySelectorAll('.mech-vessel-btn').forEach(btn => {
+                const key = btn.dataset.vessel;
+                if (key === vesselKey) {
+                    btn.className = 'mech-vessel-btn py-2 px-2 rounded-lg font-semibold border-2 transition bg-blue-600 text-white border-blue-600 text-center shadow-sm';
+                } else {
+                    btn.className = 'mech-vessel-btn py-2 px-2 rounded-lg font-semibold border-2 transition bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 text-center';
+                }
+            });
+            initParticles();
+            updateMechUIElements();
+        };
+
+        // Render Canvas Scene (Supports both main page canvas and modal canvas)
+        const renderSingleCanvas = (canvas) => {
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            // Handle retina scaling
+            const rect = canvas.getBoundingClientRect();
+            if (rect.width <= 0 || rect.height <= 0) return;
+
+            const dpr = window.devicePixelRatio || 1;
+            if (canvas.width !== Math.floor(rect.width * dpr) || canvas.height !== Math.floor(rect.height * dpr)) {
+                canvas.width = Math.floor(rect.width * dpr);
+                canvas.height = Math.floor(rect.height * dpr);
+            }
+
+            ctx.save();
+            ctx.scale(dpr, dpr);
+
+            const width = rect.width;
+            const height = rect.height;
+
+            // Background lab bench / dark slate chamber
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(0, 0, width, height);
+
+            // Subtle grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+            ctx.lineWidth = 1;
+            const gridSize = 30;
+            for (let x = 0; x < width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+
+            const currentSol = MechSolutions[mechState.currentSolKey.toUpperCase()] || MechSolutions.WATER;
+            const zoom = mechState.zoom;
+
+            // Update View badge in UI
+            const viewBadgeText = document.getElementById('mech-view-badge-text');
+            if (viewBadgeText) {
+                if (zoom < 1.8) {
+                    viewBadgeText.textContent = 'Macro View: Potato in Test Tube';
+                } else if (zoom < 3.8) {
+                    viewBadgeText.textContent = 'Meso View: Potato Tissue Boundary';
+                } else {
+                    viewBadgeText.textContent = 'Micro View: Cell Membrane & Aquaporin Pores';
+                }
+            }
+
+            // Center of canvas
+            const centerX = width / 2;
+            const centerY = height / 2;
+
+            if (zoom < 3.8) {
+                // Focus camera vertically onto potato cylinder as zoom increases from 1.0x to 3.5x
+                const focusT = Math.min(Math.max((zoom - 1.0) / 2.5, 0), 1);
+                const geom = getVesselGeometry();
+                const vesselPreset = geom.vesselPreset;
+                
+                // Geometry of container based on preset
+                const tubeWidth = geom.tubeWidth;
+                const tubeHeight = geom.tubeHeight;
+                const tubeBottomRadius = geom.tubeBottomRadius;
+
+                const tubeX = centerX - tubeWidth / 2;
+                const tubeY = centerY - tubeHeight / 2 + 15;
+
+                const potatoW = geom.potatoW;
+                const potatoH = geom.potatoH;
+                const potatoX = centerX - potatoW / 2;
+                const potatoY = tubeY + geom.potatoTop;
+                const potatoCenterY = potatoY + potatoH / 2;
+
+                const targetFocusY = centerY + (potatoCenterY - centerY) * focusT;
+
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.scale(zoom, zoom);
+                ctx.translate(-centerX, -targetFocusY);
+
+                // Liquid height proportional to volume (10 to 60 mL)
+                const liquidTopY = tubeY + geom.liquidTopFromTubeTop;
+
+                // Lab stand / tube rack base
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(centerX - 130, tubeY + tubeHeight + 8, 260, 16);
+                ctx.fillStyle = '#334155';
+                ctx.fillRect(centerX - 120, tubeY + tubeHeight + 5, 240, 4);
+
+                // Glass container background reflection
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+                drawVesselPath(ctx, tubeX, tubeY, tubeWidth, tubeHeight, tubeBottomRadius);
+                ctx.fill();
+
+                // Solution Liquid fill
+                ctx.save();
+                ctx.beginPath();
+                drawVesselPath(ctx, tubeX, tubeY, tubeWidth, tubeHeight, tubeBottomRadius);
+                ctx.clip();
+
+                // Liquid gradient
+                const liquidGrad = ctx.createLinearGradient(tubeX, liquidTopY, tubeX, tubeY + tubeHeight);
+                liquidGrad.addColorStop(0, currentSol.color);
+                liquidGrad.addColorStop(1, 'rgba(15, 23, 42, 0.85)');
+                ctx.fillStyle = liquidGrad;
+                ctx.fillRect(tubeX, liquidTopY, tubeWidth, tubeY + tubeHeight - liquidTopY);
+
+                // Meniscus curve
+                ctx.beginPath();
+                ctx.ellipse(centerX, liquidTopY, tubeWidth / 2 - 2, 8, 0, 0, Math.PI * 2);
+                ctx.fillStyle = currentSol.liquidStroke;
+                ctx.fill();
+
+                // ------------------------------------------
+                // SUBMERGED POTATO CYLINDER
+                // ------------------------------------------
+                // Potato cylinder shadow inside liquid
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+                ctx.beginPath();
+                ctx.ellipse(centerX, tubeY + tubeHeight - 16, potatoW * 0.7, 6, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Potato tissue gradient (organic starchy potato texture)
+                const potatoGrad = ctx.createLinearGradient(potatoX, potatoY, potatoX + potatoW, potatoY);
+                potatoGrad.addColorStop(0, '#d97706'); // darker crust
+                potatoGrad.addColorStop(0.2, '#fef08a'); // potato flesh highlight
+                potatoGrad.addColorStop(0.6, '#fde047'); // starchy yellow
+                potatoGrad.addColorStop(0.9, '#ca8a04'); // potato core
+                potatoGrad.addColorStop(1.0, '#b45309');
+
+                ctx.fillStyle = potatoGrad;
+                ctx.strokeStyle = '#a16207';
+                ctx.lineWidth = 2;
+                
+                // Draw rounded cylinder
+                drawRoundedRect(ctx, potatoX, potatoY, potatoW, potatoH, 8);
+                ctx.fill();
+                ctx.stroke();
+
+                // Subtle cellular grain lines on potato
+                ctx.strokeStyle = 'rgba(161, 98, 7, 0.3)';
+                ctx.lineWidth = 1;
+                for (let gy = potatoY + 12; gy < potatoY + potatoH - 6; gy += 14) {
+                    ctx.beginPath();
+                    ctx.moveTo(potatoX + 4, gy);
+                    ctx.lineTo(potatoX + potatoW - 4, gy);
+                    ctx.stroke();
+                }
+
+                // ------------------------------------------
+                // PARTICLES IN SOLUTION & POTATO
+                // ------------------------------------------
+                if (mechState.showParticles) {
+                    drawParticles(ctx, centerX, tubeY, currentSol);
+                }
+
+                // ------------------------------------------
+                // FLUX ARROWS
+                // ------------------------------------------
+                if (mechState.showFlux && currentSol.fluxDirection !== 'neutral') {
+                    drawFluxArrows(ctx, centerX, potatoY + potatoH / 2, potatoW, currentSol);
+                }
+
+                ctx.restore(); // end clip for liquid
+
+                // Glass container walls, highlights & graduations
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.lineWidth = 3.5;
+                drawVesselPath(ctx, tubeX, tubeY, tubeWidth, tubeHeight, tubeBottomRadius);
+                ctx.stroke();
+
+                // Container top lip
+                ctx.beginPath();
+                ctx.ellipse(centerX, tubeY, tubeWidth / 2 + 3, 5, 0, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.fill();
+                ctx.stroke();
+
+                // Glass specular reflection highlight down left edge
+                ctx.beginPath();
+                ctx.moveTo(tubeX + 6, tubeY + 10);
+                ctx.lineTo(tubeX + 6, tubeY + tubeHeight - tubeBottomRadius);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+
+                // Graduated volume marks (mL)
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+                ctx.font = '9px monospace';
+                ctx.textAlign = 'right';
+                for (let m = 1; m <= 5; m++) {
+                    const markY = tubeY + tubeHeight - (tubeHeight / 6) * m;
+                    ctx.beginPath();
+                    ctx.moveTo(tubeX + tubeWidth - 12, markY);
+                    ctx.lineTo(tubeX + tubeWidth - 2, markY);
+                    ctx.stroke();
+                    ctx.fillText(`${m * 5}mL`, tubeX + tubeWidth - 16, markY + 3);
+                }
+
+                // ------------------------------------------
+                // MEASUREMENT CALIPERS / RULERS
+                // ------------------------------------------
+                if (mechState.showCalipers) {
+                    drawCalipers(ctx, potatoX, potatoY, potatoW, potatoH);
+                }
+
+                ctx.restore(); // end macro/meso transform
+            } else {
+                // ==========================================
+                // RENDER MICROSCOPIC VIEW (PLANT CELL & MEMBRANE)
+                // ==========================================
+                ctx.save();
+                drawMicroscopicView(ctx, centerX, centerY, width, height, currentSol, zoom);
+                ctx.restore();
+            }
+        };
+
+        const renderMechCanvas = () => {
+            // Update particle Brownian / osmotic dynamics
+            updateParticles();
+
+            // If modal is open, render only modal canvas; otherwise render main canvas
+            if (isMechModalActive && mechModalCanvas) {
+                renderSingleCanvas(mechModalCanvas);
+            } else {
+                const mainCanvas = document.getElementById('mech-canvas');
+                if (mainCanvas) renderSingleCanvas(mainCanvas);
+            }
+
+            // Request next animation frame
+            if (mechState.isPlaying) {
+                updatePhysics();
+            }
+            requestAnimationFrame(renderMechCanvas);
+        };
+
+        // Draw vessel shape
+        const drawVesselPath = (ctx, x, y, w, h, r) => {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x, y + h - r);
+            ctx.quadraticCurveTo(x, y + h, x + r, y + h);
+            ctx.lineTo(x + w - r, y + h);
+            ctx.quadraticCurveTo(x + w, y + h, x + w, y + h - r);
+            ctx.lineTo(x + w, y);
+        };
+
+        // Draw rounded rectangle
+        const drawRoundedRect = (ctx, x, y, w, h, r) => {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+        };
+
+        // Draw particles in macro & meso view (Pure rendering: no physics mutation)
+        const drawParticles = (ctx, centerX, tubeY, sol) => {
+            mechState.particles.forEach((p) => {
+                const x = centerX + p.u;
+                const y = tubeY + p.v;
+
+                if (p.type === 'water') {
+                    // Water Molecule (Glowing cyan droplet)
+                    ctx.fillStyle = p.inPotato ? 'rgba(56, 189, 248, 0.82)' : '#38bdf8';
+                    ctx.shadowColor = '#0284c7';
+                    ctx.shadowBlur = 4;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                } else {
+                    // Sugar Solute Molecule (Amber hexagonal ring - only in sugar sol)
+                    if (sol.molarity > 0) {
+                        ctx.fillStyle = '#fbbf24';
+                        ctx.shadowColor = '#d97706';
+                        ctx.shadowBlur = 4;
+                        ctx.beginPath();
+                        ctx.arc(x, y, 4.5, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                        ctx.strokeStyle = '#b45309';
+                        ctx.lineWidth = 1.2;
+                        ctx.stroke();
+
+                        ctx.fillStyle = '#78350f';
+                        ctx.font = 'bold 5px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('S', x, y);
+                    }
+                }
+            });
+        };
+
+        // Draw Net Flux flow arrows
+        const drawFluxArrows = (ctx, cx, cy, potatoW, sol) => {
+            const time = performance.now() * 0.003 * mechState.simSpeed;
+            const arrowCount = 4;
+            const dir = sol.fluxDirection === 'in' ? 1 : -1;
+            const arrowColor = sol.fluxDirection === 'in' ? '#38bdf8' : '#ef4444';
+
+            ctx.fillStyle = arrowColor;
+            ctx.strokeStyle = arrowColor;
+            ctx.lineWidth = 2;
+
+            for (let i = 0; i < arrowCount; i++) {
+                const side = i % 2 === 0 ? -1 : 1;
+                const offset = (i * 0.25 + time) % 1;
+                const startDist = side * (potatoW / 2 + 25);
+                const endDist = side * (potatoW / 2 + 4);
+
+                let curX;
+                if (dir === 1) { // IN
+                    curX = startDist - (startDist - endDist) * offset;
+                } else { // OUT
+                    curX = endDist + (startDist - endDist) * offset;
+                }
+
+                const curY = cy + (i - 1.5) * 24;
+
+                ctx.beginPath();
+                ctx.moveTo(curX - 6 * side * dir, curY);
+                ctx.lineTo(curX + 6 * side * dir, curY);
+                ctx.stroke();
+
+                // Arrow head
+                ctx.beginPath();
+                ctx.moveTo(curX + 6 * side * dir, curY);
+                ctx.lineTo(curX + 2 * side * dir, curY - 4);
+                ctx.lineTo(curX + 2 * side * dir, curY + 4);
+                ctx.closePath();
+                ctx.fill();
+            }
+        };
+
+        // Draw measurement caliper brackets around potato
+        const drawCalipers = (ctx, px, py, pw, ph) => {
+            // Vertical Length Caliper (right side)
+            const calX = px + pw + 16;
+            ctx.strokeStyle = '#38bdf8';
+            ctx.fillStyle = '#38bdf8';
+            ctx.lineWidth = 1.5;
+
+            // Bracket top and bottom ticks
+            ctx.beginPath();
+            ctx.moveTo(calX - 6, py);
+            ctx.lineTo(calX + 2, py);
+            ctx.lineTo(calX + 2, py + ph);
+            ctx.lineTo(calX - 6, py + ph);
+            ctx.stroke();
+
+            // Length text
+            ctx.font = 'bold 11px monospace';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`${mechState.currentLength.toFixed(1)} mm`, calX + 8, py + ph / 2);
+
+            // Horizontal Width Caliper (top side)
+            const calY = py - 14;
+            ctx.beginPath();
+            ctx.moveTo(px, calY + 6);
+            ctx.lineTo(px, calY - 2);
+            ctx.lineTo(px + pw, calY - 2);
+            ctx.lineTo(px + pw, calY + 6);
+            ctx.stroke();
+
+            // Diameter text
+            ctx.textAlign = 'center';
+            ctx.fillText(`Ø ${mechState.currentDiameter.toFixed(1)} mm`, px + pw / 2, calY - 8);
+
+            // Mass badge attached to cylinder
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            drawRoundedRect(ctx, px - 65, py + ph / 2 - 12, 58, 24, 6);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 10px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${mechState.currentMass.toFixed(2)} g`, px - 36, py + ph / 2 + 4);
+        };
+
+        // Draw Microscopic View: Cellular Membrane & Aquaporins
+        const drawMicroscopicView = (ctx, cx, cy, w, h, sol, zoom = 5.0) => {
+            const time = performance.now() * 0.002 * mechState.simSpeed;
+
+            // Background split: Left is Plant Cell Interior, Right is External Sugar Bath
+            const wallX = cx - 20;
+
+            // External solution (Right)
+            ctx.fillStyle = sol.color;
+            ctx.fillRect(wallX + 35, 0, w - (wallX + 35), h);
+
+            // Plant Cell Interior (Left)
+            ctx.fillStyle = '#064e3b'; // Cytoplasm
+            ctx.fillRect(0, 0, wallX - 35, h);
+
+            // 1. Plant Cell Wall (Cellulose microfibrils matrix)
+            ctx.fillStyle = '#065f46';
+            ctx.fillRect(wallX - 35, 0, 70, h);
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(wallX - 35, 0, 70, h);
+
+            // Microfibril texture lines in cell wall
+            ctx.strokeStyle = 'rgba(52, 211, 153, 0.25)';
+            ctx.lineWidth = 1.5;
+            for (let y = 0; y < h; y += 12) {
+                ctx.beginPath();
+                ctx.moveTo(wallX - 35, y);
+                ctx.lineTo(wallX + 35, y);
+                ctx.stroke();
+            }
+
+            // 2. Plasma Membrane (Phospholipid Bilayer)
+            // Position moves depending on turgor state!
+            // In pure water: membrane pressed right against cell wall
+            // In 0.5M sugar: membrane pulls far away from wall (Plasmolysis!)
+            let membraneOffset = 0;
+            if (sol.fluxDirection === 'in') {
+                membraneOffset = 0; // pressed tight against wall
+            } else if (sol.fluxDirection === 'out') {
+                membraneOffset = 85 * (mechState.osmoticProgress); // pulled away inwards!
+            } else {
+                membraneOffset = 20;
+            }
+
+            const memX = wallX - 35 - membraneOffset;
+
+            // Membrane bilayer
+            ctx.fillStyle = '#d97706'; // Phospholipid heads
+            ctx.fillRect(memX - 10, 0, 20, h);
+
+            // Aquaporin Protein Channels (Pores)
+            const poreCount = 4;
+            const poreSpacing = h / (poreCount + 1);
+            for (let i = 1; i <= poreCount; i++) {
+                const py = i * poreSpacing;
+
+                // Protein channel boundary
+                ctx.fillStyle = '#2563eb';
+                ctx.fillRect(memX - 12, py - 18, 24, 36);
+
+                // Aquaporin pore channel opening (water passes through here!)
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillRect(memX - 4, py - 10, 8, 20);
+
+                // Label channel
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 8px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('AQP', memX, py + 3);
+            }
+
+            // 3. Central Vacuole
+            ctx.fillStyle = 'rgba(6, 95, 70, 0.7)';
+            ctx.fillRect(0, 0, memX - 15, h);
+
+            // Vacuole tone / Tonoplast boundary
+            ctx.strokeStyle = '#34d399';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(memX - 15, 0);
+            ctx.lineTo(memX - 15, h);
+            ctx.stroke();
+
+            // Labels on diagram
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.textAlign = 'center';
+
+            ctx.fillText('PLANT CELL INTERIOR', cx - 180, 40);
+            ctx.font = '10px sans-serif';
+            ctx.fillStyle = '#a7f3d0';
+            ctx.fillText('(Large Central Vacuole & Cytoplasm)', cx - 180, 56);
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.fillText('EXTERNAL SUGAR SOLUTION', cx + 160, 40);
+            ctx.font = '10px sans-serif';
+            ctx.fillStyle = '#fed7aa';
+            ctx.fillText(`(${sol.name})`, cx + 160, 56);
+
+            // Structural Callouts
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 10px sans-serif';
+            ctx.fillText('Cellulose Cell Wall (Permeable)', wallX, h - 35);
+
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillText('Partially Permeable Membrane', memX - 25, h - 18);
+
+            // Plasmolysis label if shrunken
+            if (membraneOffset > 30) {
+                ctx.fillStyle = '#ef4444';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.fillText('⚠️ PLASMOLYSIS DETACHMENT', (wallX - 35 + memX) / 2, h / 2);
+                ctx.font = '9px sans-serif';
+                ctx.fillText('Membrane pulled away from wall', (wallX - 35 + memX) / 2, h / 2 + 16);
+            }
+
+            // 4. Microscopic Particle Trajectories
+            const microParticleCount = 60;
+            for (let i = 0; i < microParticleCount; i++) {
+                const isWater = (i % 4 !== 0) || sol.molarity === 0;
+                const basePhase = i / microParticleCount;
+                const animPhase = (basePhase + time * 0.04) % 1;
+
+                if (isWater) {
+                    // WATER MOLECULES (Small, blue, can pass through aquaporins!)
+                    let px, py;
+                    if (sol.fluxDirection === 'in') {
+                        // High concentration on right, moving through pores to left
+                        px = (cx + 220) - animPhase * 440;
+                        const poreY = ((i % 4) + 1) * (h / 5);
+                        const distToMem = Math.abs(px - memX);
+                        const funnel = Math.max(0, 1 - distToMem / 60);
+                        const waveY = ((i * 37) % h) + Math.sin(time + i) * 12;
+                        py = waveY * (1 - funnel) + poreY * funnel;
+                    } else if (sol.fluxDirection === 'out') {
+                        // High concentration on left, moving out through pores to right
+                        px = (cx - 220) + animPhase * 440;
+                        const poreY = ((i % 4) + 1) * (h / 5);
+                        const distToMem = Math.abs(px - memX);
+                        const funnel = Math.max(0, 1 - distToMem / 60);
+                        const waveY = ((i * 37) % h) + Math.sin(time + i) * 12;
+                        py = waveY * (1 - funnel) + poreY * funnel;
+                    } else {
+                        // Equal back and forth
+                        px = cx + Math.sin(time * 0.5 + i * 1.3) * 170;
+                        py = ((i * 37) % h) + Math.cos(time * 0.4 + i) * 14;
+                    }
+
+                    // Water molecule with dipole (H-O-H)
+                    ctx.fillStyle = '#38bdf8';
+                    ctx.beginPath();
+                    ctx.arc(px, py, 4, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Tiny hydrogen atoms
+                    ctx.fillStyle = '#e0f2fe';
+                    ctx.beginPath();
+                    ctx.arc(px - 3, py - 3, 2, 0, Math.PI * 2);
+                    ctx.arc(px + 3, py - 3, 2, 0, Math.PI * 2);
+                    ctx.fill();
+
+                } else {
+                    // SUCROSE SOLUTE MOLECULES (Large, golden, bounce off membrane!)
+                    if (sol.molarity > 0) {
+                        const px = wallX + 55 + (Math.sin(time * 0.6 + i * 1.7) * 70 + 70);
+                        const py = ((i * 43) % h) + Math.cos(time * 0.5 + i) * 18;
+
+                        // Large Hexagonal sugar ring
+                        ctx.fillStyle = '#fbbf24';
+                        ctx.strokeStyle = '#b45309';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.arc(px, py, 8, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.stroke();
+
+                        ctx.fillStyle = '#78350f';
+                        ctx.font = 'bold 7px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('Sucrose', px, py);
+                    }
+                }
+            }
+        };
+
+        // Physics integration loop for potato mass & length kinetics
+        const updatePhysics = () => {
+            const now = performance.now();
+            if (!mechState.lastFrameTimestamp) mechState.lastFrameTimestamp = now;
+            const dt = (now - mechState.lastFrameTimestamp) / 1000;
+            mechState.lastFrameTimestamp = now;
+
+            if (dt <= 0 || dt > 0.5) return;
+
+            // Increment sim time
+            mechState.simTimeSeconds += dt * mechState.simSpeed;
+
+            const sol = MechSolutions[mechState.currentSolKey.toUpperCase()] || MechSolutions.WATER;
+
+            // SA:V factor: higher SA:V accelerates rate of approach to equilibrium
+            const sav = calcSurfaceAreaToVolume(mechState.coreDiameterMm, mechState.coreLengthMm);
+            const rateK = 0.045 * (sav / 0.5); // base rate modulated by SA:V
+
+            // Asymptotic approach: delta = target * (1 - e^(-k * t))
+            const targetMassPct = sol.osmoticEquilibriumFactor * 100;
+            const targetLenPct = sol.lengthFactor * 100;
+
+            const progress = 1 - Math.exp(-rateK * (mechState.simTimeSeconds / 6));
+            mechState.osmoticProgress = progress;
+
+            mechState.massChangePercent = targetMassPct * progress;
+            mechState.lengthChangePercent = targetLenPct * progress;
+            mechState.diamChangePercent = targetLenPct * progress * 0.9;
+
+            // Update physical quantities
+            mechState.currentMass = mechState.initialMass * (1 + mechState.massChangePercent / 100);
+            mechState.currentLength = mechState.initialLength * (1 + mechState.lengthChangePercent / 100);
+            mechState.currentDiameter = mechState.initialDiameter * (1 + mechState.diamChangePercent / 100);
+
+            // Update live chart periodically (every 0.5s sim time)
+            if (mechState.liveChart && Math.floor(mechState.simTimeSeconds * 2) > mechState.chartDataHistory.length) {
+                const timeSec = Math.floor(mechState.simTimeSeconds);
+                mechState.chartDataHistory.push(timeSec);
+                mechState.liveChart.data.labels.push(timeSec);
+                mechState.liveChart.data.datasets[0].data.push(mechState.massChangePercent);
+                mechState.liveChart.data.datasets[1].data.push(mechState.lengthChangePercent);
+
+                if (mechState.liveChart.data.labels.length > 50) {
+                    mechState.liveChart.data.labels.shift();
+                    mechState.liveChart.data.datasets[0].data.shift();
+                    mechState.liveChart.data.datasets[1].data.shift();
+                }
+                mechState.liveChart.update();
+            }
+
+            updateMechUIElements();
+        };
+
+        // ==============================================================
+        // SECTION 3: APP INITIALIZATION & EVENT LISTENERS
+        // ==============================================================
         const init = () => {
+            // Tab Switcher
+            const tabLabBtn = document.getElementById('tab-lab-btn');
+            const tabMechBtn = document.getElementById('tab-mechanics-btn');
+            const tabContentLab = document.getElementById('tab-content-lab');
+            const tabContentMech = document.getElementById('tab-content-mechanics');
+
+            const switchTab = (tabName) => {
+                if (tabName === 'lab') {
+                    tabLabBtn.className = 'flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400';
+                    tabMechBtn.className = 'flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white';
+                    tabContentLab.classList.remove('hidden');
+                    tabContentMech.classList.add('hidden');
+                } else {
+                    tabMechBtn.className = 'flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400';
+                    tabLabBtn.className = 'flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white';
+                    tabContentMech.classList.remove('hidden');
+                    tabContentLab.classList.add('hidden');
+
+                    // Resize canvas & chart when tab becomes visible
+                    setTimeout(() => {
+                        if (mechState.liveChart) mechState.liveChart.resize();
+                    }, 100);
+                }
+            };
+
+            tabLabBtn?.addEventListener('click', () => switchTab('lab'));
+            tabMechBtn?.addEventListener('click', () => switchTab('mechanics'));
+
+            // Lab Experiment Listeners
             DOMElements.startBtn.addEventListener('click', handleStart);
             DOMElements.resetBtn.addEventListener('click', resetSimulation);
             DOMElements.modal.addEventListener('click', closeModal);
             DOMElements.modalCloseBtn.addEventListener('click', closeModal);
             DOMElements.modalContent.addEventListener('click', (e) => e.stopPropagation());
 
-             // Modal expand buttons
             DOMElements.expandSimBtn.addEventListener('click', () => {
                 const container = document.createElement('div');
                 container.className = 'flex flex-col sm:flex-row justify-around items-center gap-8 p-4';
@@ -823,10 +2557,586 @@
                 }
             });
 
-            window.addEventListener('resize', () => {
-                if (modalChartInstance) {
-                    modalChartInstance.resize();
+            // Focus on Animation in Modal Handler
+            const openMechanicsModal = () => {
+                isMechModalActive = true;
+                if (DOMElements.modalContent) {
+                    DOMElements.modalContent.classList.remove('max-w-4xl');
+                    DOMElements.modalContent.classList.add('max-w-6xl', 'w-[96vw]');
                 }
+
+                const currentSol = MechSolutions[mechState.currentSolKey.toUpperCase()] || MechSolutions.WATER;
+
+                const modalHTML = `
+                    <div class="flex flex-col space-y-4">
+                        <!-- Top Modal Toolbar: Solution switch, discrete zoom & live KPIs -->
+                        <div class="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-900 rounded-xl border border-slate-700/80 shadow">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Solution:</span>
+                                <div class="flex flex-wrap gap-1.5" id="modal-mech-solution-selectors">
+                                    <button data-sol="water" class="modal-sol-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition border flex items-center gap-1.5 ${mechState.currentSolKey === 'water' ? 'bg-blue-600 text-white border-blue-500 shadow-sm' : 'bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500'}">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-cyan-300"></span>
+                                        <span>Pure Water (0.0 M)</span>
+                                    </button>
+                                    <button data-sol="sugar_025" class="modal-sol-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition border flex items-center gap-1.5 ${mechState.currentSolKey === 'sugar_025' ? 'bg-amber-600 text-white border-amber-500 shadow-sm' : 'bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500'}">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                                        <span>0.25 M Sugar (~Eq)</span>
+                                    </button>
+                                    <button data-sol="sugar_05" class="modal-sol-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition border flex items-center gap-1.5 ${mechState.currentSolKey === 'sugar_05' ? 'bg-rose-600 text-white border-rose-500 shadow-sm' : 'bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500'}">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
+                                        <span>0.5 M Sugar (Hypertonic)</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Top Magnification Quick Controls in Modal Header -->
+                            <div class="flex items-center gap-2 bg-slate-800/90 border border-slate-700 px-2.5 py-1 rounded-lg">
+                                <span class="text-xs font-bold text-slate-300">🔍 Zoom:</span>
+                                <div class="inline-flex rounded-lg bg-slate-900 p-0.5 text-xs font-semibold">
+                                    <button id="modal-top-zoom-macro" class="px-2 py-0.5 rounded text-xs transition ${Math.abs(mechState.zoom - 1.0) < 0.25 ? 'bg-blue-600 text-white font-bold' : 'text-slate-300 hover:text-white'}">1.0x Tube</button>
+                                    <button id="modal-top-zoom-meso" class="px-2 py-0.5 rounded text-xs transition ${Math.abs(mechState.zoom - 2.5) < 0.25 ? 'bg-blue-600 text-white font-bold' : 'text-slate-300 hover:text-white'}">2.5x Tissue</button>
+                                    <button id="modal-top-zoom-micro" class="px-2 py-0.5 rounded text-xs transition ${Math.abs(mechState.zoom - 5.0) < 0.25 ? 'bg-blue-600 text-white font-bold' : 'text-slate-300 hover:text-white'}">5.0x Cell</button>
+                                </div>
+                                <div class="flex items-center gap-1.5 pl-1.5 border-l border-slate-700">
+                                    <button id="modal-top-zoom-down" class="w-6 h-6 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs flex items-center justify-center transition" title="Decrease magnification">－</button>
+                                    <input type="range" id="modal-top-zoom-slider" min="1.0" max="5.0" step="0.5" value="${mechState.zoom}" class="w-16 sm:w-20 cursor-pointer h-2 accent-blue-500" />
+                                    <button id="modal-top-zoom-up" class="w-6 h-6 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs flex items-center justify-center transition" title="Increase magnification">＋</button>
+                                    <span id="modal-top-zoom-val" class="font-mono text-cyan-300 font-bold text-xs w-9 text-center">${mechState.zoom.toFixed(1)}x</span>
+                                </div>
+                            </div>
+
+                            <!-- Live KPIs in modal toolbar -->
+                            <div class="flex items-center gap-3 font-mono text-xs">
+                                <div class="px-2.5 py-1 rounded bg-slate-800 border border-slate-700 flex items-center gap-1.5">
+                                    <span class="text-slate-400">Mass:</span>
+                                    <span id="modal-stat-mass" class="font-bold text-white">${mechState.currentMass.toFixed(2)}g</span>
+                                    <span id="modal-stat-mass-badge" class="font-bold text-[11px] ${mechState.massChangePercent >= 0 ? 'text-emerald-400' : 'text-rose-400'}">(${mechState.massChangePercent >= 0 ? '+' : ''}${mechState.massChangePercent.toFixed(1)}%)</span>
+                                </div>
+                                <div class="px-2.5 py-1 rounded bg-slate-800 border border-slate-700 flex items-center gap-1.5">
+                                    <span class="text-slate-400">Length:</span>
+                                    <span id="modal-stat-len" class="font-bold text-white">${mechState.currentLength.toFixed(1)}mm</span>
+                                    <span id="modal-stat-len-badge" class="font-bold text-[11px] ${mechState.lengthChangePercent >= 0 ? 'text-cyan-400' : 'text-amber-400'}">(${mechState.lengthChangePercent >= 0 ? '+' : ''}${mechState.lengthChangePercent.toFixed(1)}%)</span>
+                                </div>
+                                <div class="px-2.5 py-1 rounded bg-slate-800 border border-slate-700 text-slate-300">
+                                    Time: <span id="modal-sim-clock" class="font-bold text-amber-400">00:00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Canvas Stage Viewport in Modal -->
+                        <div class="relative w-full h-[58vh] min-h-[420px] bg-slate-950 rounded-xl overflow-hidden border border-slate-700 shadow-2xl">
+                            <canvas id="mech-modal-canvas" class="w-full h-full block cursor-grab active:cursor-grabbing" title="Scroll mouse wheel or double-click to zoom in/out"></canvas>
+
+                            <!-- Modal Floating Status Badges with tactile Zoom buttons -->
+                            <div class="absolute top-3 left-3 pointer-events-auto flex flex-col gap-1.5 z-20">
+                                <div id="modal-view-badge" class="px-3 py-1.5 bg-slate-900/90 backdrop-blur border border-slate-700 text-white rounded-lg text-xs font-semibold flex items-center gap-2 shadow-lg">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    <span id="modal-view-badge-text">${mechState.zoom < 1.8 ? '1.0x Macro View: Test Tube' : (mechState.zoom < 3.8 ? '2.5x Meso View: Tissue Edge' : '5.0x Micro View: Cell Membrane')} (${mechState.zoom.toFixed(1)}x)</span>
+                                    <div class="flex items-center gap-1 ml-2 pl-2 border-l border-slate-700">
+                                        <button id="modal-badge-zoom-down" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold flex items-center justify-center transition border border-slate-600" title="Zoom Out">－</button>
+                                        <span id="modal-badge-zoom-val" class="font-mono text-cyan-300 font-bold px-1 text-xs">${mechState.zoom.toFixed(1)}x</span>
+                                        <button id="modal-badge-zoom-up" class="w-6 h-6 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center justify-center transition shadow" title="Zoom In">＋</button>
+                                    </div>
+                                </div>
+                                <div class="px-3 py-1 bg-slate-900/90 backdrop-blur border border-slate-700 text-cyan-300 rounded-lg text-xs font-medium shadow-lg">
+                                    <span id="modal-turgor-text">Cell Status: <strong class="text-white">${currentSol.stateLabel}</strong> (${currentSol.status})</span>
+                                </div>
+                            </div>
+
+                            <!-- Modal Floating Legend -->
+                            <div class="absolute top-3 right-3 bg-slate-900/90 backdrop-blur border border-slate-700/80 rounded-xl p-2.5 text-xs text-slate-300 shadow-xl space-y-1.5 pointer-events-auto max-w-[210px]">
+                                <div class="font-bold text-slate-200 text-[11px] uppercase tracking-wider pb-1 border-b border-slate-700 flex justify-between items-center">
+                                    <span>Key &amp; Particle Legend</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-cyan-400 shadow-sm shadow-cyan-500/50"></span>
+                                    <span>Water Molecule (H₂O)</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3.5 h-3.5 bg-amber-400 rotate-45 rounded-sm shadow-sm"></span>
+                                    <span>Sucrose Solute (Ring)</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-4 h-0.5 bg-emerald-400 inline-block"></span>
+                                    <span>Cellulose Wall / Membrane</span>
+                                </div>
+                            </div>
+
+                            <!-- Bottom Floating Controls Overlay inside Canvas -->
+                            <div class="absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2 bg-slate-900/90 backdrop-blur border border-slate-700/80 rounded-xl p-2.5 text-xs text-slate-200 shadow-xl">
+                                <div class="flex items-center gap-2">
+                                    <button id="modal-mech-play-btn" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow transition flex items-center gap-1.5 text-xs">
+                                        <span id="modal-mech-play-icon">${mechState.isPlaying ? '⏸' : '▶'}</span>
+                                        <span id="modal-mech-play-text">${mechState.isPlaying ? 'Pause' : 'Play'}</span>
+                                    </button>
+                                    <button id="modal-mech-step-btn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-lg transition text-xs border border-slate-700">
+                                        ⏭ +10s
+                                    </button>
+                                    <button id="modal-mech-reset-btn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-lg transition text-xs border border-slate-700">
+                                        ↺ Reset
+                                    </button>
+                                </div>
+
+                                <div class="flex flex-wrap items-center gap-3 text-xs">
+                                    <label class="flex items-center gap-1 cursor-pointer hover:text-white">
+                                        <input type="checkbox" id="modal-toggle-particles" ${mechState.showParticles ? 'checked' : ''} class="rounded border-slate-700 text-blue-500" />
+                                        <span>Particles</span>
+                                    </label>
+                                    <label class="flex items-center gap-1 cursor-pointer hover:text-white">
+                                        <input type="checkbox" id="modal-toggle-calipers" ${mechState.showCalipers ? 'checked' : ''} class="rounded border-slate-700 text-blue-500" />
+                                        <span>Calipers</span>
+                                    </label>
+                                    <label class="flex items-center gap-1 cursor-pointer hover:text-white">
+                                        <input type="checkbox" id="modal-toggle-flux" ${mechState.showFlux ? 'checked' : ''} class="rounded border-slate-700 text-blue-500" />
+                                        <span>Flux Vectors</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dedicated Stepped Sliders Dock for Modal: Magnification & Speed -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-50 dark:bg-slate-900/90 rounded-xl border border-gray-200 dark:border-slate-700 shadow-md">
+                            <!-- Discrete Magnification Slider -->
+                            <div class="space-y-2 p-3 bg-white dark:bg-slate-800/80 rounded-lg border border-gray-200 dark:border-slate-700">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
+                                            <span>🔍 Magnification Zoom:</span>
+                                        </span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">(0.5x discrete steps)</span>
+                                    </div>
+                                    <span id="modal-zoom-display" class="font-mono font-black text-blue-600 dark:text-blue-400 text-base">${mechState.zoom.toFixed(1)}x</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <button id="modal-zoom-down-btn" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 font-bold text-base flex items-center justify-center transition">－</button>
+                                    <div class="flex-grow">
+                                        <input type="range" id="modal-zoom-slider" min="1.0" max="5.0" step="0.5" value="${mechState.zoom}" list="modal-zoom-ticks" class="w-full cursor-pointer h-2.5" />
+                                        <datalist id="modal-zoom-ticks">
+                                            <option value="1.0" label="1.0x"></option>
+                                            <option value="1.5"></option>
+                                            <option value="2.0"></option>
+                                            <option value="2.5" label="2.5x"></option>
+                                            <option value="3.0"></option>
+                                            <option value="3.5"></option>
+                                            <option value="4.0"></option>
+                                            <option value="4.5"></option>
+                                            <option value="5.0" label="5.0x"></option>
+                                        </datalist>
+                                        <div class="flex justify-between text-[10px] text-gray-500 dark:text-gray-400 mt-1 font-mono">
+                                            <span>1.0x (Test Tube)</span>
+                                            <span>2.5x (Tissue)</span>
+                                            <span>5.0x (Cell)</span>
+                                        </div>
+                                    </div>
+                                    <button id="modal-zoom-up-btn" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 font-bold text-base flex items-center justify-center transition">＋</button>
+                                </div>
+                                <div class="flex justify-center gap-2 pt-1">
+                                    <button data-mzoom="1.0" class="modal-zoom-quick-btn px-2.5 py-1 rounded text-xs font-semibold ${Math.abs(mechState.zoom - 1.0) < 0.25 ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300'} transition">1.0x Macro Tube</button>
+                                    <button data-mzoom="2.5" class="modal-zoom-quick-btn px-2.5 py-1 rounded text-xs font-semibold ${Math.abs(mechState.zoom - 2.5) < 0.25 ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300'} transition">2.5x Tissue Edge</button>
+                                    <button data-mzoom="5.0" class="modal-zoom-quick-btn px-2.5 py-1 rounded text-xs font-semibold ${Math.abs(mechState.zoom - 5.0) < 0.25 ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300'} transition">5.0x Micro Cell</button>
+                                </div>
+                            </div>
+
+                            <!-- Discrete Speed Slider -->
+                            <div class="space-y-2 p-3 bg-white dark:bg-slate-800/80 rounded-lg border border-gray-200 dark:border-slate-700">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
+                                            <span>⚡ Animation Speed:</span>
+                                        </span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">(0.25x steps)</span>
+                                    </div>
+                                    <span id="modal-speed-display" class="font-mono font-black text-amber-500 dark:text-amber-400 text-base">${mechState.simSpeed.toFixed(2)}x</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <button id="modal-speed-down-btn" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 font-bold text-base flex items-center justify-center transition">－</button>
+                                    <div class="flex-grow">
+                                        <input type="range" id="modal-speed-slider" min="0.25" max="4.0" step="0.25" value="${mechState.simSpeed}" list="modal-speed-ticks" class="w-full cursor-pointer h-2.5" />
+                                        <datalist id="modal-speed-ticks">
+                                            <option value="0.25" label="0.25x"></option>
+                                            <option value="0.5"></option>
+                                            <option value="1.0" label="1.0x"></option>
+                                            <option value="1.5"></option>
+                                            <option value="2.0" label="2.0x"></option>
+                                            <option value="3.0"></option>
+                                            <option value="4.0" label="4.0x"></option>
+                                        </datalist>
+                                        <div class="flex justify-between text-[10px] text-gray-500 dark:text-gray-400 mt-1 font-mono">
+                                            <span>0.25x (Slow-Mo)</span>
+                                            <span>1.0x (Standard)</span>
+                                            <span>2.0x</span>
+                                            <span>4.0x (Fast)</span>
+                                        </div>
+                                    </div>
+                                    <button id="modal-speed-up-btn" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 font-bold text-base flex items-center justify-center transition">＋</button>
+                                </div>
+                                <div class="flex justify-center gap-2 pt-1">
+                                    <button data-mspeed="0.25" class="modal-speed-quick-btn px-2.5 py-1 rounded text-xs font-semibold bg-gray-100 dark:bg-slate-700 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-gray-700 dark:text-gray-300 transition">0.25x Slow</button>
+                                    <button data-mspeed="0.5" class="modal-speed-quick-btn px-2.5 py-1 rounded text-xs font-semibold bg-gray-100 dark:bg-slate-700 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-gray-700 dark:text-gray-300 transition">0.5x Half</button>
+                                    <button data-mspeed="1.0" class="modal-speed-quick-btn px-2.5 py-1 rounded text-xs font-semibold bg-gray-100 dark:bg-slate-700 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-gray-700 dark:text-gray-300 transition">1.0x Normal</button>
+                                    <button data-mspeed="2.0" class="modal-speed-quick-btn px-2.5 py-1 rounded text-xs font-semibold bg-gray-100 dark:bg-slate-700 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-gray-700 dark:text-gray-300 transition">2.0x Double</button>
+                                    <button data-mspeed="4.0" class="modal-speed-quick-btn px-2.5 py-1 rounded text-xs font-semibold bg-gray-100 dark:bg-slate-700 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-gray-700 dark:text-gray-300 transition">4.0x Fast</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                openModal('Osmosis Mechanics Animation — Focus View', modalHTML);
+
+                // Initialize canvas & bindings inside the modal immediately
+                mechModalCanvas = document.getElementById('mech-modal-canvas');
+                initParticles();
+
+                const handleModalZoom = (val) => {
+                    const stepped = Math.round(parseFloat(val) * 2) / 2; // snap to 0.5 steps
+                    setZoom(stepped);
+                };
+
+                // 1. Bind Magnification controls in modal top header
+                const mTopSlider = document.getElementById('modal-top-zoom-slider');
+                const mTopDown = document.getElementById('modal-top-zoom-down');
+                const mTopUp = document.getElementById('modal-top-zoom-up');
+                mTopSlider?.addEventListener('input', (e) => handleModalZoom(e.target.value));
+                mTopDown?.addEventListener('click', () => handleModalZoom(mechState.zoom - 0.5));
+                mTopUp?.addEventListener('click', () => handleModalZoom(mechState.zoom + 0.5));
+
+                document.getElementById('modal-top-zoom-macro')?.addEventListener('click', () => handleModalZoom(1.0));
+                document.getElementById('modal-top-zoom-meso')?.addEventListener('click', () => handleModalZoom(2.5));
+                document.getElementById('modal-top-zoom-micro')?.addEventListener('click', () => handleModalZoom(5.0));
+
+                // 2. Bind floating badge zoom buttons
+                document.getElementById('modal-badge-zoom-down')?.addEventListener('click', () => handleModalZoom(mechState.zoom - 0.5));
+                document.getElementById('modal-badge-zoom-up')?.addEventListener('click', () => handleModalZoom(mechState.zoom + 0.5));
+
+                // 3. Bind discrete magnification slider inside bottom dock
+                const mZoomSlider = document.getElementById('modal-zoom-slider');
+                const mZoomDown = document.getElementById('modal-zoom-down-btn');
+                const mZoomUp = document.getElementById('modal-zoom-up-btn');
+                mZoomSlider?.addEventListener('input', (e) => handleModalZoom(e.target.value));
+                mZoomDown?.addEventListener('click', () => handleModalZoom(mechState.zoom - 0.5));
+                mZoomUp?.addEventListener('click', () => handleModalZoom(mechState.zoom + 0.5));
+
+                document.querySelectorAll('.modal-zoom-quick-btn').forEach(btn => {
+                    btn.addEventListener('click', () => handleModalZoom(btn.dataset.mzoom));
+                });
+
+                // 4. Mouse wheel & double-click zoom directly on the modal canvas
+                if (mechModalCanvas) {
+                    mechModalCanvas.addEventListener('wheel', (e) => {
+                        e.preventDefault();
+                        if (e.deltaY < 0) {
+                            handleModalZoom(mechState.zoom + 0.5);
+                        } else if (e.deltaY > 0) {
+                            handleModalZoom(mechState.zoom - 0.5);
+                        }
+                    }, { passive: false });
+
+                    mechModalCanvas.addEventListener('dblclick', (e) => {
+                        e.preventDefault();
+                        const nextZoom = mechState.zoom >= 5.0 ? 1.0 : (mechState.zoom >= 2.5 ? 5.0 : 2.5);
+                        handleModalZoom(nextZoom);
+                    });
+                }
+
+                // 5. Bind discrete speed slider inside modal
+                const mSpeedSlider = document.getElementById('modal-speed-slider');
+                const mSpeedDown = document.getElementById('modal-speed-down-btn');
+                const mSpeedUp = document.getElementById('modal-speed-up-btn');
+
+                const handleModalSpeed = (val) => {
+                    const stepped = Math.round(parseFloat(val) * 4) / 4; // snap to 0.25 steps
+                    setSpeed(stepped);
+                };
+
+                mSpeedSlider?.addEventListener('input', (e) => handleModalSpeed(e.target.value));
+                mSpeedDown?.addEventListener('click', () => handleModalSpeed(mechState.simSpeed - 0.25));
+                mSpeedUp?.addEventListener('click', () => handleModalSpeed(mechState.simSpeed + 0.25));
+
+                document.querySelectorAll('.modal-speed-quick-btn').forEach(btn => {
+                    btn.addEventListener('click', () => handleModalSpeed(btn.dataset.mspeed));
+                });
+
+                // 6. Solution switcher inside modal
+                document.querySelectorAll('.modal-sol-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        selectMechSolution(btn.dataset.sol);
+                        document.querySelectorAll('.modal-sol-btn').forEach(b => {
+                            const active = b.dataset.sol === mechState.currentSolKey;
+                            const isWater = b.dataset.sol === 'water';
+                            const isSugar025 = b.dataset.sol === 'sugar_025';
+                            if (active) {
+                                b.className = `modal-sol-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition border flex items-center gap-1.5 ${
+                                    isWater ? 'bg-blue-600 text-white border-blue-500 shadow-sm' :
+                                    isSugar025 ? 'bg-amber-600 text-white border-amber-500 shadow-sm' :
+                                    'bg-rose-600 text-white border-rose-500 shadow-sm'
+                                }`;
+                            } else {
+                                b.className = 'modal-sol-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition border flex items-center gap-1.5 bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500';
+                            }
+                        });
+                        const turgorLabel = document.getElementById('modal-turgor-text');
+                        const s = MechSolutions[mechState.currentSolKey.toUpperCase()] || MechSolutions.WATER;
+                        if (turgorLabel) {
+                            turgorLabel.innerHTML = `Cell Status: <strong class="text-white">${s.stateLabel}</strong> (${s.status})`;
+                        }
+                    });
+                });
+
+                // 7. Modal play/pause
+                const mPlayBtn = document.getElementById('modal-mech-play-btn');
+                const mPlayIcon = document.getElementById('modal-mech-play-icon');
+                const mPlayText = document.getElementById('modal-mech-play-text');
+
+                mPlayBtn?.addEventListener('click', () => {
+                    mechState.isPlaying = !mechState.isPlaying;
+                    if (mechState.isPlaying) {
+                        mechState.lastFrameTimestamp = performance.now();
+                        if (mPlayIcon) mPlayIcon.textContent = '⏸';
+                        if (mPlayText) mPlayText.textContent = 'Pause';
+                        const pIcon = document.getElementById('mech-play-icon');
+                        const pText = document.getElementById('mech-play-text');
+                        if (pIcon) pIcon.textContent = '⏸';
+                        if (pText) pText.textContent = 'Pause';
+                    } else {
+                        if (mPlayIcon) mPlayIcon.textContent = '▶';
+                        if (mPlayText) mPlayText.textContent = 'Play';
+                        const pIcon = document.getElementById('mech-play-icon');
+                        const pText = document.getElementById('mech-play-text');
+                        if (pIcon) pIcon.textContent = '▶';
+                        if (pText) pText.textContent = 'Play';
+                    }
+                });
+
+                document.getElementById('modal-mech-step-btn')?.addEventListener('click', () => {
+                    mechState.simTimeSeconds += 10;
+                    updatePhysics();
+                    updateMechUIElements();
+                });
+
+                document.getElementById('modal-mech-reset-btn')?.addEventListener('click', () => {
+                    resetMechSimulation();
+                });
+
+                // 8. Toggles in modal
+                document.getElementById('modal-toggle-particles')?.addEventListener('change', (e) => {
+                    mechState.showParticles = e.target.checked;
+                    const mainToggle = document.getElementById('toggle-particles');
+                    if (mainToggle) mainToggle.checked = e.target.checked;
+                });
+                document.getElementById('modal-toggle-calipers')?.addEventListener('change', (e) => {
+                    mechState.showCalipers = e.target.checked;
+                    const mainToggle = document.getElementById('toggle-calipers');
+                    if (mainToggle) mainToggle.checked = e.target.checked;
+                });
+                document.getElementById('modal-toggle-flux')?.addEventListener('change', (e) => {
+                    mechState.showFlux = e.target.checked;
+                    const mainToggle = document.getElementById('toggle-flux');
+                    if (mainToggle) mainToggle.checked = e.target.checked;
+                });
+            };
+
+            DOMElements.expandMechAnimBtn?.addEventListener('click', openMechanicsModal);
+
+            // Mechanics Tab Solution buttons
+            document.querySelectorAll('.mech-sol-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    selectMechSolution(btn.dataset.sol);
+                });
+            });
+
+            // Mechanics Tab Vessel buttons
+            document.querySelectorAll('.mech-vessel-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    selectMechVessel(btn.dataset.vessel);
+                });
+            });
+
+            // Mechanics Zoom Controls (Discrete 0.5x increments: 1.0x, 1.5x, 2.0x, 2.5x, 3.0x, 3.5x, 4.0x, 4.5x, 5.0x)
+            const zoomSlider = document.getElementById('mech-zoom-slider');
+            const zoomVal = document.getElementById('mech-zoom-value');
+            const zoomInBtn = document.getElementById('mech-zoom-in-btn');
+            const zoomOutBtn = document.getElementById('mech-zoom-out-btn');
+
+            const setZoom = (val) => {
+                const z = Math.min(Math.max(Math.round(parseFloat(val) * 2) / 2, 1.0), 5.0);
+                mechState.zoom = z;
+                if (zoomSlider) zoomSlider.value = z;
+                if (zoomVal) zoomVal.textContent = `${z.toFixed(1)}x`;
+
+                // Main page view badge text
+                const viewBadgeText = document.getElementById('mech-view-badge-text');
+                if (viewBadgeText) {
+                    if (z < 1.8) viewBadgeText.textContent = `Macro View: Potato in Test Tube (${z.toFixed(1)}x)`;
+                    else if (z < 3.8) viewBadgeText.textContent = `Meso View: Potato Tissue Boundary (${z.toFixed(1)}x)`;
+                    else viewBadgeText.textContent = `Micro View: Cell Membrane & Aquaporin Pores (${z.toFixed(1)}x)`;
+                }
+
+                // Sync modal bottom slider dock
+                const mZoomSlider = document.getElementById('modal-zoom-slider');
+                const mZoomDisplay = document.getElementById('modal-zoom-display');
+                if (mZoomSlider) mZoomSlider.value = z;
+                if (mZoomDisplay) mZoomDisplay.textContent = `${z.toFixed(1)}x`;
+
+                // Sync modal top toolbar zoom controls
+                const mTopSlider = document.getElementById('modal-top-zoom-slider');
+                const mTopVal = document.getElementById('modal-top-zoom-val');
+                if (mTopSlider) mTopSlider.value = z;
+                if (mTopVal) mTopVal.textContent = `${z.toFixed(1)}x`;
+
+                // Sync modal floating badge zoom
+                const mBadgeVal = document.getElementById('modal-badge-zoom-val');
+                if (mBadgeVal) mBadgeVal.textContent = `${z.toFixed(1)}x`;
+
+                const modalBadge = document.getElementById('modal-view-badge-text');
+                if (modalBadge) {
+                    if (z < 1.8) modalBadge.textContent = `1.0x Macro View: Test Tube (${z.toFixed(1)}x)`;
+                    else if (z < 3.8) modalBadge.textContent = `2.5x Meso View: Tissue Edge (${z.toFixed(1)}x)`;
+                    else modalBadge.textContent = `5.0x Micro View: Cell Membrane (${z.toFixed(1)}x)`;
+                }
+
+                // Sync modal top presets styling
+                const mTopMacro = document.getElementById('modal-top-zoom-macro');
+                const mTopMeso = document.getElementById('modal-top-zoom-meso');
+                const mTopMicro = document.getElementById('modal-top-zoom-micro');
+                if (mTopMacro && mTopMeso && mTopMicro) {
+                    mTopMacro.className = `px-2 py-0.5 rounded text-xs transition ${Math.abs(z - 1.0) < 0.25 ? 'bg-blue-600 text-white font-bold' : 'text-slate-300 hover:text-white'}`;
+                    mTopMeso.className = `px-2 py-0.5 rounded text-xs transition ${Math.abs(z - 2.5) < 0.25 ? 'bg-blue-600 text-white font-bold' : 'text-slate-300 hover:text-white'}`;
+                    mTopMicro.className = `px-2 py-0.5 rounded text-xs transition ${Math.abs(z - 5.0) < 0.25 ? 'bg-blue-600 text-white font-bold' : 'text-slate-300 hover:text-white'}`;
+                }
+
+                // Sync bottom dock preset buttons styling
+                document.querySelectorAll('.modal-zoom-quick-btn').forEach(btn => {
+                    const bz = parseFloat(btn.dataset.mzoom);
+                    if (Math.abs(z - bz) < 0.25) {
+                        btn.className = 'modal-zoom-quick-btn px-2.5 py-1 rounded text-xs font-semibold bg-blue-600 text-white shadow-sm transition';
+                    } else {
+                        btn.className = 'modal-zoom-quick-btn px-2.5 py-1 rounded text-xs font-semibold bg-gray-100 dark:bg-slate-700 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-gray-700 dark:text-gray-300 transition';
+                    }
+                });
+
+                // Update main page preset buttons styling
+                const macroBtn = document.getElementById('zoom-preset-macro');
+                const mesoBtn = document.getElementById('zoom-preset-meso');
+                const microBtn = document.getElementById('zoom-preset-micro');
+                if (macroBtn && mesoBtn && microBtn) {
+                    const activeClass = 'px-2.5 py-1 rounded-md bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm transition';
+                    const inactiveClass = 'px-2.5 py-1 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition';
+                    macroBtn.className = Math.abs(z - 1.0) < 0.25 ? activeClass : inactiveClass;
+                    mesoBtn.className = Math.abs(z - 2.5) < 0.25 ? activeClass : inactiveClass;
+                    microBtn.className = Math.abs(z - 5.0) < 0.25 ? activeClass : inactiveClass;
+                }
+            };
+
+            zoomSlider?.addEventListener('input', (e) => setZoom(e.target.value));
+            zoomInBtn?.addEventListener('click', () => setZoom(mechState.zoom + 0.5));
+            zoomOutBtn?.addEventListener('click', () => setZoom(mechState.zoom - 0.5));
+
+            document.getElementById('zoom-preset-macro')?.addEventListener('click', () => setZoom(1.0));
+            document.getElementById('zoom-preset-meso')?.addEventListener('click', () => setZoom(2.5));
+            document.getElementById('zoom-preset-micro')?.addEventListener('click', () => setZoom(5.0));
+
+            // Mechanics Play / Pause / Step / Reset
+            const playBtn = document.getElementById('mech-play-btn');
+            const playIcon = document.getElementById('mech-play-icon');
+            const playText = document.getElementById('mech-play-text');
+
+            playBtn?.addEventListener('click', () => {
+                mechState.isPlaying = !mechState.isPlaying;
+                if (mechState.isPlaying) {
+                    mechState.lastFrameTimestamp = performance.now();
+                    playIcon.textContent = '⏸';
+                    playText.textContent = 'Pause';
+                } else {
+                    playIcon.textContent = '▶';
+                    playText.textContent = 'Play';
+                }
+                const mPlayIcon = document.getElementById('modal-mech-play-icon');
+                const mPlayText = document.getElementById('modal-mech-play-text');
+                if (mPlayIcon) mPlayIcon.textContent = playIcon.textContent;
+                if (mPlayText) mPlayText.textContent = playText.textContent;
+            });
+
+            document.getElementById('mech-step-btn')?.addEventListener('click', () => {
+                mechState.simTimeSeconds += 10;
+                updatePhysics();
+                updateMechUIElements();
+            });
+
+            document.getElementById('mech-reset-btn')?.addEventListener('click', () => {
+                resetMechSimulation();
+            });
+
+            // Mechanics Discrete Speed Slider & Presets (0.25x increments: 0.25x, 0.5x, 0.75x, 1.0x, ..., 4.0x)
+            const speedSlider = document.getElementById('mech-speed-slider');
+            const speedLabel = document.getElementById('mech-speed-label');
+
+            const setSpeed = (spd) => {
+                const s = Math.min(Math.max(Math.round(parseFloat(spd) * 4) / 4, 0.25), 4.0);
+                mechState.simSpeed = s;
+                if (speedSlider) speedSlider.value = s;
+                if (speedLabel) speedLabel.textContent = `${s.toFixed(2)}x`;
+
+                // Sync modal speed slider if open
+                const mSpeedSlider = document.getElementById('modal-speed-slider');
+                const mSpeedDisplay = document.getElementById('modal-speed-display');
+                if (mSpeedSlider) mSpeedSlider.value = s;
+                if (mSpeedDisplay) mSpeedDisplay.textContent = `${s.toFixed(2)}x`;
+
+                document.querySelectorAll('.mech-speed-preset').forEach(btn => {
+                    if (Math.abs(parseFloat(btn.dataset.speed) - s) < 0.05) {
+                        btn.className = 'mech-speed-preset px-1.5 py-0.5 rounded text-[11px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-bold transition';
+                    } else {
+                        btn.className = 'mech-speed-preset px-1.5 py-0.5 rounded text-[11px] bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition font-medium';
+                    }
+                });
+            };
+
+            speedSlider?.addEventListener('input', (e) => setSpeed(e.target.value));
+            document.querySelectorAll('.mech-speed-preset').forEach(btn => {
+                btn.addEventListener('click', () => setSpeed(btn.dataset.speed));
+            });
+
+            // Dimension Sliders
+            document.getElementById('mech-volume-slider')?.addEventListener('input', (e) => {
+                mechState.liquidVolumeMl = parseFloat(e.target.value);
+                updateMechUIElements();
+            });
+
+            document.getElementById('mech-core-diam-slider')?.addEventListener('input', (e) => {
+                mechState.coreDiameterMm = parseFloat(e.target.value);
+                resetMechSimulation();
+            });
+
+            document.getElementById('mech-core-len-slider')?.addEventListener('input', (e) => {
+                mechState.coreLengthMm = parseFloat(e.target.value);
+                resetMechSimulation();
+            });
+
+            // Toggles
+            document.getElementById('toggle-particles')?.addEventListener('change', (e) => {
+                mechState.showParticles = e.target.checked;
+            });
+            document.getElementById('toggle-calipers')?.addEventListener('change', (e) => {
+                mechState.showCalipers = e.target.checked;
+            });
+            document.getElementById('toggle-flux')?.addEventListener('change', (e) => {
+                mechState.showFlux = e.target.checked;
+            });
+
+            document.getElementById('mech-clear-chart-btn')?.addEventListener('click', () => {
+                if (mechState.liveChart) {
+                    mechState.liveChart.data.labels = [];
+                    mechState.liveChart.data.datasets[0].data = [];
+                    mechState.liveChart.data.datasets[1].data = [];
+                    mechState.chartDataHistory = [];
+                    mechState.liveChart.update();
+                }
+            });
+
+            window.addEventListener('resize', () => {
+                if (modalChartInstance) modalChartInstance.resize();
+                if (mechState.liveChart) mechState.liveChart.resize();
             });
 
             window.addEventListener('keydown', (e) => {
@@ -835,7 +3145,13 @@
                 }
             });
 
+            // Start Tab 1 simulation in initial state
             resetSimulation();
+
+            // Start Tab 2 mechanics animation engine
+            resetMechSimulation();
+            initMechChart();
+            requestAnimationFrame(renderMechCanvas);
         };
 
         init();
