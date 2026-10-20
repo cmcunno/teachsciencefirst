@@ -104,6 +104,19 @@
     "fileName": "index.html"
   },
   {
+    "id": "res-ks4-biology-simulations-meiosis",
+    "title": "Meiosis Live Animations & Chromosome Modelling",
+    "keyStage": "KS4",
+    "stageLevel": "KS4 / GCSE (Ages 14-16)",
+    "subject": "Biology",
+    "category": "Simulations",
+    "slug": "meiosis",
+    "description": "AQA Combined Science: Trilogy (4.6.1.2) Meiosis: live stage-by-stage continuous animations, chromosome replication, two divisions into 4 genetically unique gametes, WS 1.2 modelling, and fertilisation & mitosis.",
+    "url": "/resources/ks4/Biology/simulations/meiosis/index.html",
+    "path": "resources/ks4/Biology/simulations/meiosis/index.html",
+    "fileName": "index.html"
+  },
+  {
     "id": "res-ks4-biology-simulations-pondweed",
     "title": "Pondweed Photosynthesis Simulation",
     "keyStage": "KS4",

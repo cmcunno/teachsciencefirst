@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { X, ExternalLink, RefreshCw, Folder, FileCode2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, ExternalLink, RefreshCw, Folder, FileCode2, Maximize2, Minimize2 } from 'lucide-react';
 import { ScienceResource } from '../types';
 import { resolveResourceUrl } from '../utils/url';
 
@@ -9,15 +9,21 @@ interface PreviewModalProps {
 }
 
 export const PreviewModal: React.FC<PreviewModalProps> = ({ repo, onClose }) => {
+  const [isMaximized, setIsMaximized] = useState(false);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose();
+        if (isMaximized) {
+          setIsMaximized(false);
+        } else {
+          onClose();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  }, [onClose, isMaximized]);
 
   if (!repo) return null;
 
@@ -31,8 +37,10 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({ repo, onClose }) => 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/85 backdrop-blur-md">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-6xl h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md ${isMaximized ? 'p-0' : 'p-2 sm:p-4'}`}>
+      <div className={`bg-slate-900 border border-slate-800 flex flex-col shadow-2xl overflow-hidden transition-all duration-200 ${
+        isMaximized ? 'w-screen h-screen rounded-none border-none' : 'rounded-2xl w-full max-w-6xl h-[92vh]'
+      }`}>
         
         {/* Top Control Bar */}
         <div className="px-4 py-3 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-3">
@@ -70,6 +78,14 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({ repo, onClose }) => 
             </a>
 
             <button
+              onClick={() => setIsMaximized(!isMaximized)}
+              className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition-colors flex items-center gap-1 cursor-pointer"
+              title={isMaximized ? "Exit Fullscreen" : "Maximize Fullscreen"}
+            >
+              {isMaximized ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+            </button>
+
+            <button
               onClick={onClose}
               className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
               title="Close Preview (Esc)"
@@ -86,7 +102,9 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({ repo, onClose }) => 
             src={resolvedUrl}
             title={repo.title}
             className="w-full h-full border-0"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            allow="fullscreen; autoplay"
+            allowFullScreen
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
           />
         </div>
 

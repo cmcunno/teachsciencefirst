@@ -137,6 +137,22 @@ export const INITIAL_REPOSITORIES: ScienceResource[] = [
     authorNotes: 'Required practical plotting percentage change in mass against sucrose molarity.'
   },
   {
+    id: 'res-ks4-biology-simulations-meiosis',
+    title: 'Meiosis Live Animations & Chromosome Modelling',
+    keyStage: 'KS4',
+    stageLevel: 'KS4 / GCSE (Ages 14-16)',
+    subject: 'Biology',
+    category: 'Simulations',
+    slug: 'meiosis',
+    description: 'AQA Trilogy 4.6.1.2 Meiosis: live stage-by-stage continuous animation, DNA replication, two divisions into 4 genetically unique gametes, WS 1.2 interactive chromosome modelling, and fertilisation & mitosis.',
+    url: '/resources/ks4/Biology/simulations/meiosis/index.html',
+    path: 'resources/ks4/Biology/simulations/meiosis/index.html',
+    fileName: 'index.html',
+    isLocalRepo: true,
+    isFavorite: true,
+    authorNotes: 'Official AQA Trilogy 4.6.1.2 specification: halves chromosomes in gametes, fertilisation restores full number. Includes WS 1.2 chromosome modelling.'
+  },
+  {
     id: 'res-ks4-biology-simulations-pondweed',
     title: 'Pondweed Photosynthesis Simulation',
     keyStage: 'KS4',
