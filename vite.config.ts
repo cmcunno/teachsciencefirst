@@ -13,6 +13,11 @@ function copyResourcesPlugin() {
       if (fs.existsSync(src)) {
         fs.cpSync(src, dest, { recursive: true });
       }
+      const publicAssets = path.resolve(import.meta.dirname, 'public/assets');
+      const distAssets = path.resolve(import.meta.dirname, 'dist/assets');
+      if (fs.existsSync(publicAssets)) {
+        fs.cpSync(publicAssets, distAssets, { recursive: true });
+      }
       // GitHub Pages support:
       // 1. .nojekyll disables Jekyll processing so folders with underscores or assets aren't ignored
       const noJekyllPath = path.resolve(import.meta.dirname, 'dist/.nojekyll');

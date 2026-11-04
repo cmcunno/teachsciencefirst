@@ -13,6 +13,19 @@
     "fileName": "index.html"
   },
   {
+    "id": "res-ks3-biology-concepts-body-systems",
+    "title": "Body Systems Cut & Stick",
+    "keyStage": "KS3",
+    "stageLevel": "KS3 (Ages 11-14)",
+    "subject": "Biology",
+    "category": "Concepts",
+    "slug": "body_systems",
+    "description": "Interactive classroom matcher and 1-page-per-sheet printable worksheets for the 8 major human body systems.",
+    "url": "/resources/ks3/Biology/concepts/body_systems/index.html",
+    "path": "resources/ks3/Biology/concepts/body_systems/index.html",
+    "fileName": "index.html"
+  },
+  {
     "id": "res-ks3-chemistry-concepts-particle-explorer",
     "title": "NeuroLab-Particle Explorer",
     "keyStage": "KS3",

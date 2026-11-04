@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Body Systems Cut & Stick: Interactive Classroom Matcher</title>
+  <!-- Tailwind CSS via CDN for self-contained iframe delivery -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0284c7',
+              600: '#0369a1',
+              700: '#075985',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Dashed cut border styling */
+    .border-dashed-cut {
+      background-image: repeating-linear-gradient(0deg, #94a3b8, #94a3b8 6px, transparent 6px, transparent 12px), repeating-linear-gradient(90deg, #94a3b8, #94a3b8 6px, transparent 6px, transparent 12px), repeating-linear-gradient(180deg, #94a3b8, #94a3b8 6px, transparent 6px, transparent 12px), repeating-linear-gradient(270deg, #94a3b8, #94a3b8 6px, transparent 6px, transparent 12px);
+      background-size: 2px 100%, 100% 2px, 2px 100%, 100% 2px;
+      background-position: 0 0, 0 0, 100% 0, 0 100%;
+      background-repeat: no-repeat;
+    }
+
+    @keyframes gentle-shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-4px); }
+      40%, 80% { transform: translateX(4px); }
+    }
+    .shake-animation {
+      animation: gentle-shake 0.4s ease-in-out;
+    }
+
+    @keyframes pop-in {
+      0% { transform: scale(0.92); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .pop-in-animation {
+      animation: pop-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Print Styles: Configured so Page 1 and Page 2 fit on exactly 1 page each */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 7mm 8mm;
+      }
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-size: 10pt !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .page-break-after {
+        page-break-after: always;
+        break-after: page;
+      }
+      .print-card {
+        border: 1.5px solid #64748b !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+        box-shadow: none !important;
+        background: #ffffff !important;
+      }
+      .print-cut-slip {
+        border: 2px dashed #334155 !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+    }
+
+    @media screen {
+      .print-only {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-white">
+
+  <!-- Interactive App Container (Screen Mode) -->
+  <div id="screen-container" class="no-print flex flex-col min-h-screen">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-slate-950/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 py-3">
+      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+        <!-- Title & Subtitle -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white font-bold text-xl">
+            ✂️
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-mono tracking-wider uppercase px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 font-semibold">KS3 Biology</span>
+              <span class="text-xs text-slate-400">Human Biology & Organ Systems</span>
+            </div>
+            <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+              Body Systems Cut &amp; Stick: <span class="text-cyan-400 font-normal">Interactive Classroom Matcher</span>
+            </h1>
+          </div>
+        </div>
+
+        <!-- Global Navigation & Action Buttons -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <!-- View Tabs -->
+          <div class="bg-slate-800/80 p-1 rounded-xl border border-slate-700/60 flex items-center text-xs">
+            <button id="tab-matcher" class="px-3 py-1.5 rounded-lg font-medium transition-all bg-cyan-500 text-white shadow-sm flex items-center gap-1.5">
+              <span>🧩</span> Matcher
+            </button>
+            <button id="tab-answers" class="px-3 py-1.5 rounded-lg font-medium text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all flex items-center gap-1.5">
+              <span>🔑</span> Master Answer Key
+            </button>
+          </div>
+
+          <!-- Print Worksheet Button -->
+          <button id="btn-open-print" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-900/30 transition-all flex items-center gap-1.5">
+            <span>🖨️</span> Print Worksheet (1-Page Each)
+          </button>
+
+          <!-- Audio Toggle -->
+          <button id="btn-toggle-sound" class="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-750 flex items-center justify-center transition-all" title="Toggle Sound Effects">
+            <span id="sound-icon">🔊</span>
+          </button>
+
+          <!-- Touch Assist Toggle -->
+          <button id="btn-toggle-touch" class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-750 transition-all flex items-center gap-1" title="Tap slip then tap card (Ideal for Interactive Whiteboards & Touch Devices)">
+            <span>👆</span> <span id="touch-label">Touch Assist</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Teacher Action & Progress Toolbar -->
+    <div class="bg-slate-900/95 border-b border-slate-800 px-4 py-2.5 sticky top-[65px] z-30 shadow-sm backdrop-blur">
+      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+        
+        <!-- Score & Progress Bar -->
+        <div class="flex items-center gap-3">
+          <div class="flex items-baseline gap-1.5">
+            <span class="text-xs uppercase font-mono tracking-wider text-slate-400">Progress:</span>
+            <span id="matched-tally" class="text-sm font-bold font-mono text-cyan-400">0 / 8</span>
+            <span class="text-xs text-slate-500">systems matched</span>
+          </div>
+          <div class="w-32 sm:w-44 h-2.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+            <div id="progress-bar-fill" class="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 transition-all duration-300 w-0"></div>
+          </div>
+          <div id="validation-status" class="text-xs font-medium px-2 py-0.5 rounded hidden"></div>
+        </div>
+
+        <!-- Teacher Action Buttons -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <button id="btn-check-answers" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 active:scale-95 text-white transition-all shadow flex items-center gap-1">
+            <span>✓</span> Check Answers
+          </button>
+          <button id="btn-reveal-next" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white transition-all shadow flex items-center gap-1">
+            <span>✨</span> Reveal Next
+          </button>
+          <button id="btn-reveal-all" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all flex items-center gap-1">
+            <span>👀</span> Reveal All
+          </button>
+          <button id="btn-scramble" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all flex items-center gap-1" title="Scramble remaining slips in tray">
+            <span>🔀</span> Scramble
+          </button>
+          <button id="btn-reset" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/50 transition-all flex items-center gap-1">
+            <span>↺</span> Reset
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Touch Assist Notification Banner -->
+    <div id="touch-active-banner" class="hidden bg-amber-500/10 border-b border-amber-500/30 px-4 py-2 text-center text-xs text-amber-300 flex items-center justify-center gap-2">
+      <span class="animate-pulse">👉</span>
+      <span>Selected: <strong id="touch-active-verb"></strong>. Now tap any dashed drop-box on a body system card below to assign it!</span>
+      <button id="btn-cancel-touch" class="ml-2 underline text-amber-400 hover:text-white">Cancel</button>
+    </div>
+
+    <!-- MAIN VIEW AREA -->
+    <main class="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6 space-y-6">
+
+      <!-- ========================================== -->
+      <!-- VIEW 1: INTERACTIVE MATCHER -->
+      <!-- ========================================== -->
+      <div id="view-matcher" class="space-y-6">
+
+        <!-- Available Statement Slips (Tray / Cutting Bank) -->
+        <section class="bg-slate-950/80 rounded-2xl border-2 border-dashed border-slate-700 p-4 md:p-5 shadow-xl relative">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">✂️</span>
+              <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wide flex items-center gap-2">
+                Available Function Cut Slips
+                <span id="tray-count-badge" class="text-xs font-mono font-normal px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800">8 in tray</span>
+              </h2>
+            </div>
+            <p class="text-xs text-slate-400 hidden sm:block">
+              Drag slip into matching system below, or tap slip then tap card.
+            </p>
+          </div>
+
+          <!-- Slips Grid / Flow in Tray -->
+          <div id="slips-tray" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 min-h-[90px]">
+            <!-- Rendered by JS -->
+          </div>
+
+          <!-- Empty tray notice -->
+          <div id="tray-empty-notice" class="hidden py-8 text-center">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 mb-2 text-xl">🎉</div>
+            <h3 class="text-sm font-bold text-emerald-400">All 8 statement slips have been placed!</h3>
+            <p class="text-xs text-slate-400 mt-1">Click "Check Answers" above to verify all your matches.</p>
+          </div>
+        </section>
+
+        <!-- 8 Body System Cards Grid -->
+        <section>
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-base font-bold text-slate-100 flex items-center gap-2">
+                <span>🫀</span> The 8 Major Human Body Systems
+              </h2>
+              <p class="text-xs text-slate-400">
+                Match each lead verb and physiological function statement to the correct anatomical system.
+              </p>
+            </div>
+            <div class="text-xs text-slate-400">
+              Click <span class="text-cyan-400 font-semibold">🔍 Info</span> on any card for deep organ analysis.
+            </div>
+          </div>
+
+          <!-- Cards Grid: 8 Cards in a 4-column layout on desktop -->
+          <div id="systems-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Rendered by JS -->
+          </div>
+        </section>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 2: MASTER ANSWER KEY -->
+      <!-- ========================================== -->
+      <div id="view-answers" class="hidden space-y-6">
+        <div class="bg-slate-950 rounded-2xl border border-slate-800 p-6 shadow-xl">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+            <div>
+              <span class="text-xs font-mono text-cyan-400 uppercase tracking-wider font-semibold">Teacher Reference Sheet</span>
+              <h2 class="text-xl font-bold text-white mt-0.5">Master Answer Key &amp; Organ Breakdown (8 Systems)</h2>
+              <p class="text-xs text-slate-400 mt-1">Complete reference for all 8 Key Stage 3 body systems, lead verbs, and primary physiological roles.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input id="answers-search" type="text" placeholder="Filter by organ, verb, or system..." class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500 w-64">
+              <button id="btn-copy-solutions" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition-all">
+                <span>📋</span> Copy All
+              </button>
+            </div>
+          </div>
+
+          <!-- Table of 8 Systems -->
+          <div class="overflow-x-auto mt-4">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-slate-800 text-slate-400 font-mono uppercase text-[10px]">
+                  <th class="py-3 px-3">System Name</th>
+                  <th class="py-3 px-3">Lead Verb</th>
+                  <th class="py-3 px-3">Primary Biological Function (Cut Slip Statement)</th>
+                  <th class="py-3 px-3">Key Organs</th>
+                  <th class="py-3 px-3 text-right">Inspect</th>
+                </tr>
+              </thead>
+              <tbody id="answers-table-body" class="divide-y divide-slate-800/60">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-slate-800/80 bg-slate-950 px-4 py-3 text-center text-xs text-slate-500">
+      Key Stage 3 Biology • Body Systems Cut &amp; Stick Curriculum Resource • Designed for Interactive Whiteboards, Tablets &amp; Classrooms
+    </footer>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 1: SYSTEM DETAIL & KS3 FACTS MODAL -->
+  <!-- ========================================== -->
+  <div id="system-detail-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden no-print">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden pop-in-animation">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div id="modal-system-icon" class="w-10 h-10 rounded-xl bg-cyan-950 border border-cyan-800 flex items-center justify-center text-2xl">
+            🫀
+          </div>
+          <div>
+            <span id="modal-system-category" class="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-semibold">Organ System</span>
+            <h3 id="modal-system-name" class="text-lg font-bold text-white leading-tight">Cardiovascular System</h3>
+          </div>
+        </div>
+        <button id="btn-close-detail-modal" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-all">
+          ✕
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-300">
+        
+        <!-- Illustration & Statement Box -->
+        <div class="flex flex-col sm:flex-row gap-4 items-center bg-slate-950/60 rounded-xl p-4 border border-slate-800">
+          <div id="modal-system-diagram" class="w-28 h-44 shrink-0 flex items-center justify-center bg-slate-900/90 rounded-lg p-2 border border-slate-800">
+            <!-- Diagram SVG -->
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-950 text-amber-400 border border-amber-800 font-semibold">Lead Verb</span>
+              <span id="modal-system-verb" class="font-bold text-amber-300 text-sm">Circulates</span>
+            </div>
+            <p id="modal-system-statement" class="text-slate-200 leading-relaxed italic bg-slate-900/70 p-3 rounded-lg border border-slate-800 font-medium">
+              Statement text here
+            </p>
+          </div>
+        </div>
+
+        <!-- Key Organs Section -->
+        <div>
+          <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider font-mono mb-2 flex items-center gap-1.5">
+            <span>🏷️</span> Key Organs &amp; Components:
+          </h4>
+          <div id="modal-system-organs" class="flex flex-wrap gap-1.5">
+            <!-- Badges -->
+          </div>
+        </div>
+
+        <!-- Classroom Discussion & KS3 Fact -->
+        <div class="bg-cyan-950/30 border border-cyan-800/60 rounded-xl p-4 space-y-1.5">
+          <h4 class="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+            <span>💡</span> Classroom Discussion &amp; KS3 Biological Fact:
+          </h4>
+          <p id="modal-system-fact" class="text-slate-300 leading-relaxed text-xs">
+            Fact text here
+          </p>
+        </div>
+
+        <!-- AQA / KS3 Exam Tip -->
+        <div class="bg-indigo-950/30 border border-indigo-800/60 rounded-xl p-4 space-y-1.5">
+          <h4 class="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
+            <span>🎯</span> KS3 / GCSE Exam Tip:
+          </h4>
+          <p id="modal-system-exam" class="text-slate-300 leading-relaxed text-xs">
+            Exam tip here
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3 bg-slate-950 border-t border-slate-800 flex justify-end">
+        <button id="btn-close-detail-modal-2" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 transition-all">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 2: PRINT WORKSHEET MODAL (1-PAGE EACH) -->
+  <!-- ========================================== -->
+  <div id="print-config-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm hidden no-print">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 space-y-5 shadow-2xl pop-in-animation">
+      
+      <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-emerald-950 border border-emerald-800 flex items-center justify-center text-xl">
+            🖨️
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">Print Cut &amp; Stick Classroom Worksheet</h3>
+            <p class="text-xs text-slate-400">8 Systems formatted to fit on exactly 1 page each</p>
+          </div>
+        </div>
+        <button id="btn-close-print-modal" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center">
+          ✕
+        </button>
+      </div>
+
+      <!-- Print Options -->
+      <div class="space-y-3">
+        <label class="text-xs font-bold text-slate-300 uppercase tracking-wide block">Select Worksheet Type:</label>
+        
+        <label class="flex items-start gap-3 p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:border-slate-700 cursor-pointer">
+          <input type="radio" name="print-type" value="blank" checked class="mt-0.5 text-cyan-500 focus:ring-0">
+          <div>
+            <div class="text-xs font-bold text-slate-100">Student 2-Page Worksheet (1 Page Diagram Sheet + 1 Page Cut Slips)</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Page 1 has the 8 anatomical system boxes (fits 1 page); Page 2 has the 8 statement slips to be cut out with scissors (fits 1 page).</div>
+          </div>
+        </label>
+
+        <label class="flex items-start gap-3 p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:border-slate-700 cursor-pointer">
+          <input type="radio" name="print-type" value="solved" class="mt-0.5 text-cyan-500 focus:ring-0">
+          <div>
+            <div class="text-xs font-bold text-slate-100">Teacher Complete Answer Key (Single 1-Page Summary)</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Prints the complete 8 body systems with all statements pre-filled and key organs highlighted on a single A4 page for grading.</div>
+          </div>
+        </label>
+      </div>
+
+      <!-- Notice -->
+      <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-[11px] text-slate-400">
+        💡 <strong>Print layout note:</strong> With 8 body systems in 2 columns × 4 rows, both the Diagram Worksheet and the Cut Slips fit onto <strong>exactly 1 page each</strong> without page spillover!
+      </div>
+
+      <!-- Print Actions -->
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button id="btn-cancel-print" class="px-4 py-2 rounded-xl text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all">
+          Cancel
+        </button>
+        <button id="btn-trigger-print" class="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/30 transition-all flex items-center gap-1.5">
+          <span>🖨️</span> Open Print Dialog
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- DEDICATED PRINTABLE PAGES (PRINT ONLY) -->
+  <!-- ========================================== -->
+  <div id="print-area" class="print-only font-sans text-black">
+    
+    <!-- ==================== PAGE 1: DIAGRAM WORKSHEET (FITS 1 PAGE) ==================== -->
+    <div id="print-page-1" class="page-break-after">
+      
+      <!-- Worksheet Header (Compact) -->
+      <div class="border-b-2 border-black pb-1.5 mb-2 flex justify-between items-end">
+        <div>
+          <span class="text-[8pt] font-bold uppercase tracking-wider text-slate-600">Key Stage 3 Science • Biology</span>
+          <h1 class="text-base font-black uppercase tracking-tight">The 8 Major Human Body Systems</h1>
+          <p class="text-[8pt] text-slate-600">Glue each matching statement slip into the designated dashed box below each anatomical system.</p>
+        </div>
+        <div class="text-right text-[8pt] space-y-0.5 leading-tight">
+          <div><strong>Student Name:</strong> ___________________________</div>
+          <div><strong>Class:</strong> ____________ <strong>Date:</strong> _________</div>
+        </div>
+      </div>
+
+      <!-- 8 Systems Grid for Print Page 1: 2 columns x 4 rows (fits exactly 1 page) -->
+      <div id="print-grid-page-1" class="grid grid-cols-2 gap-2">
+        <!-- Rendered by JS based on blank vs solved -->
+      </div>
+    </div>
+
+    <!-- ==================== PAGE 2: CUT SLIPS SHEET (FITS 1 PAGE) ==================== -->
+    <div id="print-page-2">
+      
+      <!-- Cut Slips Header (Compact) -->
+      <div class="border-b-2 border-dashed border-black pb-2 mb-3 flex justify-between items-end">
+        <div>
+          <span class="text-[8pt] font-bold uppercase tracking-wider text-slate-600">Cut &amp; Stick Function Slips</span>
+          <h2 class="text-base font-black uppercase">✂️ Statement Cutting Sheet (8 Systems)</h2>
+          <p class="text-[8pt] text-slate-600">Carefully cut along the dashed lines around each slip, then glue it under its matching body system on Page 1.</p>
+        </div>
+        <div class="text-right text-[8pt]">
+          <div><strong>Student Name:</strong> ___________________________</div>
+          <div><strong>Score:</strong> _____ / 8</div>
+        </div>
+      </div>
+
+      <!-- 8 Cut Slips for Students to Cut Out: 2 columns x 4 rows (fits exactly 1 page) -->
+      <div id="print-slips-container" class="grid grid-cols-2 gap-3">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+  </div>
+
+  <!-- APPLICATION JAVASCRIPT & ANATOMICAL VECTOR GENERATOR -->
+  <script>
+    // =========================================================================
+    // 1. DATA: 8 KEY STAGE 3 HUMAN BODY SYSTEMS (Endocrine, Integumentary, Urinary removed)
+    // =========================================================================
+    const BODY_SYSTEMS = [
+      {
+        id: 'cardiovascular',
+        name: 'Cardiovascular System',
+        leadVerb: 'Circulates',
+        statement: 'Circulates blood throughout the body via the heart and blood vessels. Its role is to deliver oxygen and nutrients to tissues while carrying away carbon dioxide and waste products.',
+        keyOrgans: ['Heart', 'Arteries', 'Veins', 'Capillaries', 'Blood'],
+        icon: '🫀',
+        image: 'images/cardiovascular.png',
+        fallbackImage: '/assets/aistudio/cardiovascular_ce1e59f7.png',
+        fact: 'The adult heart beats approximately 100,000 times each day, pumping roughly 7,500 litres of blood through over 60,000 miles of blood vessels in your body.',
+        examTip: 'AQA KS3 questions often focus on the direction of blood flow: Arteries carry oxygenated blood Away from the heart (except the pulmonary artery), while Veins return deoxygenated blood to the heart.',
+        color: '#ef4444'
+      },
+      {
+        id: 'digestive',
+        name: 'Digestive System',
+        leadVerb: 'Breaks',
+        statement: 'Breaks down ingested food into absorbable nutrients and energy. Its role is to supply the body with essential fuel while expelling undigested waste.',
+        keyOrgans: ['Mouth', 'Oesophagus', 'Stomach', 'Liver', 'Small Intestine', 'Large Intestine'],
+        icon: '🍽️',
+        image: 'images/digestive.png',
+        fallbackImage: '/assets/aistudio/digestive_f7d9a158.png',
+        fact: 'The inner lining of the small intestine is covered in millions of microscopic finger-like villi, giving it an absorptive surface area roughly the size of a standard tennis court!',
+        examTip: 'Always link structure to function: bile produced by the liver emulsifies fats (increasing surface area) and neutralises stomach hydrochloric acid to provide an alkaline pH for enzymes.',
+        color: '#f97316'
+      },
+      {
+        id: 'lymphatic',
+        name: 'Lymphatic System',
+        leadVerb: 'Consists',
+        statement: 'Consists of a network of vessels, nodes, and organs that drain excess fluid back into the bloodstream. Its role is to protect the body against infections by supporting the immune response.',
+        keyOrgans: ['Lymph Nodes', 'Lymph Vessels', 'Spleen', 'Thymus'],
+        icon: '🛡️',
+        image: 'images/lymphatic.png',
+        fallbackImage: '/assets/aistudio/lymphatic_bb2b9ab4.png',
+        fact: 'When you are fighting a bacterial or viral infection, your lymph nodes in the neck and armpits often swell because white blood cells (lymphocytes) multiply rapidly to trap pathogens.',
+        examTip: 'Lymph is formed from filtered tissue fluid. Lymph nodes contain clusters of phagocytes and lymphocytes that filter foreign microbes before returning fluid to the circulatory veins.',
+        color: '#10b981'
+      },
+      {
+        id: 'muscular',
+        name: 'Muscular System',
+        leadVerb: 'Made',
+        statement: 'Made up of skeletal, smooth, and cardiac muscles that enable movement. Its role is to produce body movement, maintain posture, and generate body heat.',
+        keyOrgans: ['Skeletal Muscles', 'Smooth Muscle', 'Cardiac Muscle', 'Tendons'],
+        icon: '💪',
+        image: 'images/muscular.png',
+        fallbackImage: '/assets/aistudio/muscular_dc276d3c.png',
+        fact: 'There are over 600 skeletal muscles in your body. Based on weight, the masseter (jaw chewing muscle) is the strongest muscle, while the gluteus maximus is the largest.',
+        examTip: 'Muscles can only pull, they cannot push! Therefore skeletal muscles always work in antagonistic pairs across joints (e.g., biceps contract while triceps relax to bend the forearm).',
+        color: '#f43f5e'
+      },
+      {
+        id: 'nervous',
+        name: 'Nervous System',
+        leadVerb: 'Composes',
+        statement: 'Composes the brain, spinal cord, and nerves to process and transmit electrical signals. Its role is to control, coordinate, and regulate all body activities and respond to environmental changes.',
+        keyOrgans: ['Brain', 'Spinal Cord', 'Peripheral Nerves', 'Sensory Receptors'],
+        icon: '⚡',
+        image: 'images/nervous.png',
+        fallbackImage: '/assets/aistudio/nervous_18affe81.png',
+        fact: 'Electrical nerve impulses can travel along myelinated neurons at speeds up to 120 metres per second (over 260 miles per hour) to trigger rapid involuntary reflexes.',
+        examTip: 'Be able to sequence the reflex arc: Stimulus -> Receptor -> Sensory Neuron -> Relay Neuron in Spinal Cord (synapses) -> Motor Neuron -> Effector (muscle/gland) -> Response.',
+        color: '#38bdf8'
+      },
+      {
+        id: 'reproductive',
+        name: 'Reproductive System',
+        leadVerb: 'Consists',
+        statement: 'Consists of organs involved in producing offspring. Its role is to produce gametes (egg and sperm cells), synthesize sex hormones, and support offspring development.',
+        keyOrgans: ['Testes', 'Ovaries', 'Uterus', 'Fallopian Tubes'],
+        icon: '🧬',
+        image: 'images/reproductive.png',
+        fallbackImage: '/assets/aistudio/reproductive_251bd380.png',
+        fact: 'The human ovum (egg cell) is one of the largest single cells in the human body (about the size of a period dot .), while the sperm cell is the smallest human cell.',
+        examTip: 'Gametes are haploid (contain 23 individual chromosomes in humans), produced via meiosis. During fertilisation, gametes fuse to form a diploid zygote with 46 chromosomes (23 pairs).',
+        color: '#a855f7'
+      },
+      {
+        id: 'respiratory',
+        name: 'Respiratory System',
+        leadVerb: 'Includes',
+        statement: 'Includes the lungs and airways that facilitate gaseous exchange with the environment. Its role is to supply oxygen to the blood and remove carbon dioxide waste from the body.',
+        keyOrgans: ['Nose', 'Trachea', 'Bronchi', 'Lungs', 'Alveoli', 'Diaphragm'],
+        icon: '🫁',
+        image: 'images/respiratory.png',
+        fallbackImage: '/assets/aistudio/respiratory_b7f92486.png',
+        fact: 'Your lungs contain approximately 300 to 500 million microscopic air sacs called alveoli, creating an enormous gas exchange surface area equivalent to about 70 square metres.',
+        examTip: 'Alveolar adaptations for efficient diffusion: extremely thin walls (one cell thick), moist lining, rich capillary network for steep concentration gradient, and huge surface area.',
+        color: '#06b6d4'
+      },
+      {
+        id: 'skeletal',
+        name: 'Skeletal System',
+        leadVerb: 'Forms',
+        statement: 'Forms the structural framework of bones, cartilage, and joints. Its role is to support and protect vital organs, assist in movement, and store minerals and blood-cell-producing marrow.',
+        keyOrgans: ['Bones', 'Cartilage', 'Joints', 'Ligaments', 'Bone Marrow'],
+        icon: '🦴',
+        image: 'images/skeletal.png',
+        fallbackImage: '/assets/aistudio/skeletal_9b63ac44.png',
+        fact: 'Humans are born with roughly 270 soft cartilaginous bones; as we develop into adulthood, many fuse together, leaving an adult human skeleton with exactly 206 rigid bones.',
+        examTip: 'Key functions of the skeleton: Support body posture, Protect vital soft organs (e.g., cranium protects brain, ribcage protects heart/lungs), Movement via levers, and Blood cell production.',
+        color: '#94a3b8'
+      }
+    ];
+
+    // =========================================================================
+    // 2. VECTOR ANATOMICAL DIAGRAM GENERATOR
+    // Detailed, crisp SVGs matching the visual layout of the 8 body systems
+    // =========================================================================
+    function getSystemSvg(systemId, width = 110, height = 180, isPrint = false) {
+      const outlineColor = isPrint ? '#334155' : '#64748b';
+      const bodyFill = isPrint ? '#f8fafc' : '#0f172a';
+      
+      // Standard human body silhouette path
+      const baseSilhouette = `
+        <!-- Head -->
+        <ellipse cx="60" cy="22" rx="13" ry="16" fill="${bodyFill}" stroke="${outlineColor}" stroke-width="1.6"/>
+        <!-- Neck -->
+        <path d="M 54 36 L 54 44 L 66 44 L 66 36" fill="${bodyFill}" stroke="${outlineColor}" stroke-width="1.4"/>
+        <!-- Torso & Limbs -->
+        <path d="
+          M 54 44
+          C 42 46, 30 54, 26 66
+          L 15 106 C 13 114, 10 120, 8 130 C 6 138, 12 142, 16 136
+          L 23 118 L 27 106 L 33 76
+          C 33 90, 34 110, 36 130
+          L 37 180 L 40 230 L 41 248 C 41 254, 45 256, 48 256 C 53 256, 54 250, 53 244
+          L 53 200 L 58 148 L 62 148 L 67 200 L 67 244
+          C 66 250, 67 256, 72 256 C 75 256, 79 254, 79 248
+          L 80 230 L 83 180 L 84 130
+          C 86 110, 87 90, 87 76
+          L 93 106 L 97 118 L 104 136 C 108 142, 114 138, 112 130 C 110 120, 107 114, 105 106
+          L 94 66 C 90 54, 78 46, 66 44 Z
+        " fill="${bodyFill}" stroke="${outlineColor}" stroke-width="1.6" stroke-linejoin="round"/>
+      `;
+
+      let organLayer = '';
+
+      switch (systemId) {
+        case 'cardiovascular':
+          organLayer = `
+            <!-- Heart -->
+            <path d="M 60 74 C 54 66, 46 72, 50 82 C 54 90, 60 97, 60 97 C 60 97, 66 90, 70 82 C 74 72, 66 66, 60 74 Z" fill="#ef4444" stroke="#b91c1c" stroke-width="1.5"/>
+            <!-- Aorta & Major Arteries -->
+            <path d="M 59 74 Q 59 60 62 50 M 60 84 Q 58 110 59 135" stroke="#ef4444" stroke-width="2.2" fill="none"/>
+            <path d="M 59 135 Q 50 160 48 200 M 59 135 Q 70 160 72 200" stroke="#ef4444" stroke-width="1.8" fill="none"/>
+            <path d="M 60 64 Q 40 78 26 105 M 60 64 Q 80 78 94 105" stroke="#ef4444" stroke-width="1.6" fill="none"/>
+            <!-- Vena Cava & Major Veins -->
+            <path d="M 62 76 Q 63 60 64 50 M 62 84 Q 63 110 62 135" stroke="#3b82f6" stroke-width="2" fill="none"/>
+            <path d="M 62 135 Q 53 160 51 200 M 62 135 Q 73 160 75 200" stroke="#3b82f6" stroke-width="1.6" fill="none"/>
+            <path d="M 62 65 Q 43 80 28 108 M 62 65 Q 82 80 92 108" stroke="#3b82f6" stroke-width="1.5" fill="none"/>
+          `;
+          break;
+
+        case 'digestive':
+          organLayer = `
+            <!-- Oesophagus -->
+            <path d="M 60 40 L 60 78" stroke="#fb923c" stroke-width="2" fill="none"/>
+            <!-- Liver -->
+            <path d="M 50 78 C 44 76, 42 88, 48 94 C 54 94, 58 90, 58 84 Z" fill="#b45309" stroke="#78350f" stroke-width="1.2"/>
+            <!-- Stomach -->
+            <path d="M 58 80 C 68 80, 72 88, 66 94 C 62 98, 56 94, 56 88 Z" fill="#f87171" stroke="#dc2626" stroke-width="1.2"/>
+            <!-- Large Intestine Frame -->
+            <rect x="47" y="98" width="26" height="24" rx="4" fill="none" stroke="#ca8a04" stroke-width="2.8"/>
+            <!-- Small Intestine Coils -->
+            <path d="M 51 106 Q 59 104 69 106 Q 60 110 52 113 Q 63 115 68 116" stroke="#f472b6" stroke-width="2.4" fill="none"/>
+          `;
+          break;
+
+        case 'lymphatic':
+          organLayer = `
+            <!-- Central Thoracic Duct -->
+            <path d="M 60 50 L 60 128" stroke="#10b981" stroke-width="1.8" stroke-dasharray="2 1" fill="none"/>
+            <!-- Cervical, Axillary, Inguinal Nodes -->
+            <circle cx="56" cy="46" r="2.2" fill="#34d399"/>
+            <circle cx="64" cy="46" r="2.2" fill="#34d399"/>
+            <circle cx="43" cy="62" r="2.5" fill="#34d399"/>
+            <circle cx="77" cy="62" r="2.5" fill="#34d399"/>
+            <circle cx="53" cy="134" r="2.2" fill="#34d399"/>
+            <circle cx="67" cy="134" r="2.2" fill="#34d399"/>
+            <!-- Spleen -->
+            <ellipse cx="70" cy="88" rx="4" ry="7" fill="#059669" stroke="#047857" stroke-width="1"/>
+            <!-- Lymph vessel branches in limbs -->
+            <path d="M 43 62 Q 30 84 22 108 M 77 62 Q 90 84 98 108" stroke="#10b981" stroke-width="1.2" fill="none"/>
+            <path d="M 53 134 Q 46 170 45 210 M 67 134 Q 74 170 75 210" stroke="#10b981" stroke-width="1.2" fill="none"/>
+          `;
+          break;
+
+        case 'muscular':
+          organLayer = `
+            <!-- Striated Muscle Anatomy -->
+            <!-- Pectorals -->
+            <path d="M 46 56 C 52 56, 58 64, 58 68 C 50 68, 44 64, 46 56" fill="#f43f5e" opacity="0.85"/>
+            <path d="M 74 56 C 68 56, 62 64, 62 68 C 70 68, 76 64, 74 56" fill="#f43f5e" opacity="0.85"/>
+            <!-- Abdominals (6-pack) -->
+            <rect x="52" y="72" width="6" height="6" rx="1.5" fill="#e11d48"/>
+            <rect x="62" y="72" width="6" height="6" rx="1.5" fill="#e11d48"/>
+            <rect x="52" y="80" width="6" height="6" rx="1.5" fill="#e11d48"/>
+            <rect x="62" y="80" width="6" height="6" rx="1.5" fill="#e11d48"/>
+            <rect x="52" y="88" width="6" height="6" rx="1.5" fill="#e11d48"/>
+            <rect x="62" y="88" width="6" height="6" rx="1.5" fill="#e11d48"/>
+            <!-- Deltoids / Arms -->
+            <path d="M 33 60 C 26 70, 24 86, 22 100" stroke="#f43f5e" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            <path d="M 87 60 C 94 70, 96 86, 98 100" stroke="#f43f5e" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            <!-- Quadriceps -->
+            <path d="M 44 145 C 43 165, 42 185, 44 200" stroke="#f43f5e" stroke-width="5" fill="none" stroke-linecap="round"/>
+            <path d="M 76 145 C 77 165, 78 185, 76 200" stroke="#f43f5e" stroke-width="5" fill="none" stroke-linecap="round"/>
+          `;
+          break;
+
+        case 'nervous':
+          organLayer = `
+            <!-- Brain in Cranium -->
+            <ellipse cx="60" cy="20" rx="9" ry="11" fill="#fde047" stroke="#eab308" stroke-width="1.5"/>
+            <!-- Central Spinal Cord -->
+            <path d="M 60 30 L 60 134" stroke="#facc15" stroke-width="3" fill="none"/>
+            <!-- Peripheral Nerves Branching -->
+            <path d="M 60 48 Q 44 65 24 105 M 60 48 Q 76 65 96 105" stroke="#facc15" stroke-width="1.3" fill="none"/>
+            <path d="M 60 70 Q 45 85 28 115 M 60 70 Q 75 85 92 115" stroke="#facc15" stroke-width="1.3" fill="none"/>
+            <path d="M 60 130 Q 48 165 44 235 M 60 130 Q 72 165 76 235" stroke="#facc15" stroke-width="1.5" fill="none"/>
+          `;
+          break;
+
+        case 'reproductive':
+          organLayer = `
+            <!-- Female / Male Pelvic Reproductive Organs -->
+            <!-- Uterus & Fallopian tubes -->
+            <path d="M 52 136 C 52 130, 68 130, 68 136 C 68 143, 60 146, 60 146 C 60 146, 52 143, 52 136 Z" fill="#c084fc" stroke="#9333ea" stroke-width="1.5"/>
+            <!-- Fallopian / Gonads -->
+            <path d="M 52 134 Q 45 132 46 137 M 68 134 Q 75 132 74 137" stroke="#a855f7" stroke-width="1.6" fill="none"/>
+            <circle cx="45" cy="138" r="2.2" fill="#d8b4fe"/>
+            <circle cx="75" cy="138" r="2.2" fill="#d8b4fe"/>
+          `;
+          break;
+
+        case 'respiratory':
+          organLayer = `
+            <!-- Trachea & Larynx -->
+            <path d="M 60 38 L 60 62" stroke="#ef4444" stroke-width="2.6" fill="none"/>
+            <!-- Bronchi Branches -->
+            <path d="M 60 62 L 53 69 M 60 62 L 67 69" stroke="#ef4444" stroke-width="2" fill="none"/>
+            <!-- Left & Right Lungs -->
+            <path d="M 44 68 C 42 66, 54 62, 55 69 C 55 78, 56 86, 48 88 C 43 88, 42 78, 44 68 Z" fill="#ef4444" stroke="#b91c1c" stroke-width="1.5"/>
+            <path d="M 76 68 C 78 66, 66 62, 65 69 C 65 78, 64 86, 72 88 C 77 88, 78 78, 76 68 Z" fill="#ef4444" stroke="#b91c1c" stroke-width="1.5"/>
+            <!-- Diaphragm Curve -->
+            <path d="M 44 94 Q 60 88 76 94" stroke="#06b6d4" stroke-width="2" fill="none"/>
+          `;
+          break;
+
+        case 'skeletal':
+          organLayer = `
+            <!-- Cranium Skull -->
+            <ellipse cx="60" cy="20" rx="9" ry="11" fill="#e2e8f0" stroke="#64748b" stroke-width="1.2"/>
+            <!-- Spine / Vertebrae -->
+            <path d="M 60 32 L 60 126" stroke="#cbd5e1" stroke-width="2.5" stroke-dasharray="2 1.5" fill="none"/>
+            <!-- Ribcage -->
+            <ellipse cx="60" cy="74" rx="14" ry="16" fill="none" stroke="#94a3b8" stroke-width="1.8"/>
+            <line x1="48" y1="68" x2="72" y2="68" stroke="#94a3b8" stroke-width="1.2"/>
+            <line x1="46" y1="74" x2="74" y2="74" stroke="#94a3b8" stroke-width="1.2"/>
+            <line x1="48" y1="80" x2="72" y2="80" stroke="#94a3b8" stroke-width="1.2"/>
+            <!-- Pelvis -->
+            <path d="M 48 126 Q 60 134 72 126 Q 60 120 48 126" fill="#e2e8f0" stroke="#64748b" stroke-width="1.4"/>
+            <!-- Limb Bones -->
+            <line x1="33" y1="64" x2="22" y2="105" stroke="#94a3b8" stroke-width="2"/>
+            <line x1="87" y1="64" x2="98" y2="105" stroke="#94a3b8" stroke-width="2"/>
+            <line x1="50" y1="134" x2="44" y2="230" stroke="#94a3b8" stroke-width="2.2"/>
+            <line x1="70" y1="134" x2="76" y2="230" stroke="#94a3b8" stroke-width="2.2"/>
+          `;
+          break;
+      }
+
+      return `
+        <svg viewBox="0 0 120 270" width="${width}" height="${height}" class="mx-auto block select-none pointer-events-none drop-shadow-sm">
+          ${baseSilhouette}
+          ${organLayer}
+        </svg>
+      `;
+    }
+
+    // =========================================================================
+    // 3. SOUND SYNTHESIZER (WEB AUDIO API)
+    // =========================================================================
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playSnap() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(140, this.ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.08);
+      }
+
+      playCorrect() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [523.25, 659.25, 783.99].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+          gain.gain.setValueAtTime(0.18, now + idx * 0.09);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.28);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.09);
+          osc.stop(now + idx * 0.09 + 0.28);
+        });
+      }
+
+      playIncorrect() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(160, now);
+        osc.frequency.linearRampToValueAtTime(110, now + 0.22);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.22);
+      }
+
+      playReveal() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.25);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      }
+    }
+
+    const audio = new SoundEngine();
+
+    // =========================================================================
+    // 4. APPLICATION STATE
+    // =========================================================================
+    const state = {
+      // Mapping of systemId -> placed Slip object (or null)
+      placed: {},
+      // Array of available slip objects currently in the tray
+      traySlips: [],
+      // Touch Assist selected slip id
+      touchSelectedSlipId: null,
+      // Validation state: null | { correctIds: [], incorrectIds: [] }
+      validation: null,
+      // Active tab: 'matcher' | 'answers'
+      activeTab: 'matcher'
+    };
+
+    // Initialize state
+    function initializeSlips() {
+      state.placed = {};
+      state.validation = null;
+      state.touchSelectedSlipId = null;
+      
+      // Clone all 8 statements for the tray and shuffle them
+      const allSlips = BODY_SYSTEMS.map(sys => ({
+        id: sys.id,
+        leadVerb: sys.leadVerb,
+        statement: sys.statement
+      }));
+      state.traySlips = shuffleArray(allSlips);
+    }
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    // =========================================================================
+    // 5. DOM RENDERING
+    // =========================================================================
+
+    // Render Tray of Available Slips
+    function renderTray() {
+      const trayEl = document.getElementById('slips-tray');
+      const emptyEl = document.getElementById('tray-empty-notice');
+      const countEl = document.getElementById('tray-count-badge');
+      
+      countEl.textContent = `${state.traySlips.length} in tray`;
+
+      if (state.traySlips.length === 0) {
+        trayEl.innerHTML = '';
+        trayEl.classList.add('hidden');
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+
+      trayEl.classList.remove('hidden');
+      emptyEl.classList.add('hidden');
+
+      trayEl.innerHTML = state.traySlips.map(slip => {
+        const isSelected = state.touchSelectedSlipId === slip.id;
+        return `
+          <div 
+            id="slip-${slip.id}" 
+            draggable="true" 
+            data-slip-id="${slip.id}"
+            class="slip-item bg-slate-900 border-2 border-dashed ${isSelected ? 'border-amber-400 bg-amber-950/30 ring-2 ring-amber-400/50' : 'border-slate-700 hover:border-cyan-500 hover:bg-slate-850'} rounded-xl p-3 cursor-grab active:cursor-grabbing transition-all shadow-md group relative select-none flex flex-col justify-between"
+          >
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              <span class="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">
+                ${slip.leadVerb}
+              </span>
+              <div class="flex items-center gap-1.5 text-slate-500 group-hover:text-cyan-400 text-xs">
+                <span class="text-[10px]">✂️</span>
+                <span class="font-mono text-[10px]">drag or tap</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-200 leading-snug">
+              ${slip.statement}
+            </p>
+          </div>
+        `;
+      }).join('');
+
+      // Attach Drag & Touch events to tray slips
+      trayEl.querySelectorAll('.slip-item').forEach(el => {
+        const slipId = el.dataset.slipId;
+        
+        el.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', slipId);
+          el.classList.add('opacity-40');
+          audio.init();
+        });
+
+        el.addEventListener('dragend', () => {
+          el.classList.remove('opacity-40');
+        });
+
+        el.addEventListener('click', () => {
+          handleSlipClick(slipId);
+        });
+      });
+    }
+
+    // Render 8 Body Systems Grid
+    function renderSystemsGrid() {
+      const gridEl = document.getElementById('systems-grid');
+      
+      gridEl.innerHTML = BODY_SYSTEMS.map(sys => {
+        const placedSlip = state.placed[sys.id];
+        const isTargetActive = state.touchSelectedSlipId !== null && !placedSlip;
+        
+        // Validation highlight class
+        let validationClass = 'border-slate-800 bg-slate-950/70';
+        let badgeIcon = '';
+        if (state.validation) {
+          if (state.validation.correctIds.includes(sys.id)) {
+            validationClass = 'border-emerald-500/80 bg-emerald-950/20 ring-1 ring-emerald-500';
+            badgeIcon = '<span class="text-xs font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-700">✓ Correct</span>';
+          } else if (state.validation.incorrectIds.includes(sys.id)) {
+            validationClass = 'border-rose-500/80 bg-rose-950/20 ring-1 ring-rose-500 shake-animation';
+            badgeIcon = '<span class="text-xs font-bold text-rose-400 bg-rose-950 px-2 py-0.5 rounded border border-rose-700">✕ Incorrect</span>';
+          }
+        }
+
+        return `
+          <div 
+            id="card-${sys.id}" 
+            data-system-id="${sys.id}"
+            class="system-card rounded-2xl border transition-all duration-200 p-4 flex flex-col justify-between shadow-xl relative ${validationClass}"
+          >
+            <!-- Card Header -->
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <h3 class="text-sm font-bold text-white tracking-tight">${sys.name}</h3>
+                  <div class="flex items-center gap-1.5 mt-0.5">
+                    <span class="text-[10px] font-mono text-slate-400">Verbs:</span>
+                    <span class="text-[10px] font-mono text-amber-400/90 font-semibold">${sys.leadVerb}...</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1">
+                  ${badgeIcon}
+                  <button 
+                    onclick="openDetailModal('${sys.id}')"
+                    class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-all text-xs"
+                    title="Inspect Organs & KS3 Facts"
+                  >
+                    🔍
+                  </button>
+                </div>
+              </div>
+
+              <!-- Anatomical Illustration -->
+              <div class="my-2 py-1.5 h-44 bg-white rounded-xl border border-slate-700/60 flex items-center justify-center overflow-hidden p-1 shadow-inner group-hover:border-cyan-500/50 transition-all">
+                <img src="${sys.image}" onerror="this.onerror=null; this.src='${sys.fallbackImage}';" alt="${sys.name}" class="h-full w-auto max-w-full object-contain select-none pointer-events-none drop-shadow-sm transition-transform duration-200 group-hover:scale-105" />
+              </div>
+
+              <!-- Key Organs Chips -->
+              <div class="mb-3">
+                <span class="text-[9px] uppercase font-mono tracking-wider text-slate-500 block mb-1">Key Organs:</span>
+                <div class="flex flex-wrap gap-1">
+                  ${sys.keyOrgans.map(organ => `
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 font-medium">
+                      ${organ}
+                    </span>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+
+            <!-- Drop Zone for Function Slip -->
+            <div class="mt-auto pt-2 border-t border-slate-800/80">
+              <span class="text-[9px] uppercase font-mono tracking-wider text-slate-400 block mb-1">Function Cut Slip:</span>
+              
+              <div 
+                id="dropzone-${sys.id}"
+                data-drop-system-id="${sys.id}"
+                class="drop-target min-h-[76px] rounded-xl border-2 border-dashed transition-all p-2.5 flex flex-col justify-center ${
+                  placedSlip 
+                    ? 'border-slate-600 bg-slate-900/90' 
+                    : isTargetActive 
+                      ? 'border-amber-400 bg-amber-950/20 cursor-pointer animate-pulse' 
+                      : 'border-slate-700 bg-slate-900/40 hover:border-slate-500 cursor-pointer'
+                }"
+              >
+                ${
+                  placedSlip ? `
+                    <div class="flex items-start justify-between gap-1.5 pop-in-animation">
+                      <div class="space-y-1">
+                        <span class="text-[9px] font-mono uppercase font-bold px-1.5 py-0.2 rounded bg-amber-950 text-amber-300 border border-amber-800">
+                          ${placedSlip.leadVerb}
+                        </span>
+                        <p class="text-[11px] text-slate-200 leading-snug">
+                          ${placedSlip.statement}
+                        </p>
+                      </div>
+                      <button 
+                        onclick="unstickSlip('${sys.id}')" 
+                        class="w-5 h-5 rounded-md bg-slate-800 hover:bg-rose-950 hover:text-rose-400 text-slate-400 flex items-center justify-center shrink-0 transition-all text-xs"
+                        title="Remove slip back to tray"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ` : `
+                    <div class="text-center py-2 text-slate-500">
+                      <span class="text-xs block mb-0.5">✂️</span>
+                      <span class="text-[10px]">Drop matching slip here</span>
+                    </div>
+                  `
+                }
+              </div>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+
+      // Wire Drop Zones
+      gridEl.querySelectorAll('.drop-target').forEach(zone => {
+        const targetSystemId = zone.dataset.dropSystemId;
+
+        zone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          zone.classList.add('border-cyan-400', 'bg-cyan-950/40');
+        });
+
+        zone.addEventListener('dragleave', () => {
+          zone.classList.remove('border-cyan-400', 'bg-cyan-950/40');
+        });
+
+        zone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          zone.classList.remove('border-cyan-400', 'bg-cyan-950/40');
+          const draggedSlipId = e.dataTransfer.getData('text/plain');
+          if (draggedSlipId) {
+            assignSlipToSystem(draggedSlipId, targetSystemId);
+          }
+        });
+
+        zone.addEventListener('click', () => {
+          if (state.touchSelectedSlipId && !state.placed[targetSystemId]) {
+            assignSlipToSystem(state.touchSelectedSlipId, targetSystemId);
+          }
+        });
+      });
+
+      updateProgressTally();
+    }
+
+    // Update Progress Bar & Tally Badge
+    function updateProgressTally() {
+      const placedCount = Object.keys(state.placed).length;
+      const totalCount = BODY_SYSTEMS.length; // 8
+      document.getElementById('matched-tally').textContent = `${placedCount} / ${totalCount}`;
+      
+      const pct = (placedCount / totalCount) * 100;
+      document.getElementById('progress-bar-fill').style.width = `${pct}%`;
+
+      const statusEl = document.getElementById('validation-status');
+      if (state.validation) {
+        statusEl.classList.remove('hidden');
+        if (state.validation.incorrectIds.length === 0 && placedCount === totalCount) {
+          statusEl.textContent = `🌟 Perfect ${totalCount}/${totalCount} match!`;
+          statusEl.className = 'text-xs font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800';
+        } else {
+          statusEl.textContent = `${state.validation.correctIds.length} correct, ${state.validation.incorrectIds.length} need revision`;
+          statusEl.className = 'text-xs font-medium px-2 py-0.5 rounded bg-slate-800 text-amber-300 border border-slate-700';
+        }
+      } else {
+        statusEl.classList.add('hidden');
+      }
+    }
+
+    // =========================================================================
+    // 6. INTERACTION LOGIC: DRAG, TOUCH ASSIST, REVEAL, VALIDATION
+    // =========================================================================
+
+    function handleSlipClick(slipId) {
+      if (state.touchSelectedSlipId === slipId) {
+        state.touchSelectedSlipId = null;
+        hideTouchBanner();
+      } else {
+        state.touchSelectedSlipId = slipId;
+        const slip = state.traySlips.find(s => s.id === slipId);
+        showTouchBanner(slip ? slip.leadVerb : '');
+      }
+      renderTray();
+      renderSystemsGrid();
+    }
+
+    function showTouchBanner(verb) {
+      const banner = document.getElementById('touch-active-banner');
+      document.getElementById('touch-active-verb').textContent = `"${verb}..."`;
+      banner.classList.remove('hidden');
+    }
+
+    function hideTouchBanner() {
+      document.getElementById('touch-active-banner').classList.add('hidden');
+      state.touchSelectedSlipId = null;
+    }
+
+    function assignSlipToSystem(slipId, targetSystemId) {
+      const slipIndex = state.traySlips.findIndex(s => s.id === slipId);
+      if (slipIndex === -1) return;
+
+      const slip = state.traySlips[slipIndex];
+
+      if (state.placed[targetSystemId]) {
+        state.traySlips.push(state.placed[targetSystemId]);
+      }
+
+      state.traySlips.splice(slipIndex, 1);
+      state.placed[targetSystemId] = slip;
+      state.touchSelectedSlipId = null;
+      state.validation = null;
+      hideTouchBanner();
+
+      audio.playSnap();
+      renderTray();
+      renderSystemsGrid();
+    }
+
+    window.unstickSlip = function(systemId) {
+      const slip = state.placed[systemId];
+      if (!slip) return;
+
+      delete state.placed[systemId];
+      state.traySlips.push(slip);
+      state.validation = null;
+
+      audio.playSnap();
+      renderTray();
+      renderSystemsGrid();
+    };
+
+    // Teacher Toolbar Handlers
+    document.getElementById('btn-check-answers').addEventListener('click', () => {
+      const placedIds = Object.keys(state.placed);
+      if (placedIds.length === 0) {
+        alert('Please place at least one statement slip before checking answers.');
+        return;
+      }
+
+      const correctIds = [];
+      const incorrectIds = [];
+
+      placedIds.forEach(sysId => {
+        const placedSlip = state.placed[sysId];
+        if (placedSlip && placedSlip.id === sysId) {
+          correctIds.push(sysId);
+        } else {
+          incorrectIds.push(sysId);
+        }
+      });
+
+      state.validation = { correctIds, incorrectIds };
+      
+      if (incorrectIds.length === 0 && correctIds.length === BODY_SYSTEMS.length) {
+        audio.playCorrect();
+      } else if (incorrectIds.length > 0) {
+        audio.playIncorrect();
+      } else {
+        audio.playSnap();
+      }
+
+      renderSystemsGrid();
+    });
+
+    document.getElementById('btn-reveal-next').addEventListener('click', () => {
+      const targetSystem = BODY_SYSTEMS.find(sys => {
+        const placedSlip = state.placed[sys.id];
+        return !placedSlip || placedSlip.id !== sys.id;
+      });
+
+      if (!targetSystem) {
+        alert('All 8 body systems are already correctly matched!');
+        return;
+      }
+
+      if (state.placed[targetSystem.id]) {
+        state.traySlips.push(state.placed[targetSystem.id]);
+        delete state.placed[targetSystem.id];
+      }
+
+      let correctSlip = state.traySlips.find(s => s.id === targetSystem.id);
+      
+      if (!correctSlip) {
+        for (const [key, placed] of Object.entries(state.placed)) {
+          if (placed && placed.id === targetSystem.id) {
+            delete state.placed[key];
+            correctSlip = placed;
+            break;
+          }
+        }
+      } else {
+        state.traySlips = state.traySlips.filter(s => s.id !== targetSystem.id);
+      }
+
+      if (correctSlip) {
+        state.placed[targetSystem.id] = correctSlip;
+        audio.playReveal();
+        state.validation = null;
+        renderTray();
+        renderSystemsGrid();
+      }
+    });
+
+    document.getElementById('btn-reveal-all').addEventListener('click', () => {
+      state.traySlips = [];
+      state.placed = {};
+      
+      BODY_SYSTEMS.forEach(sys => {
+        state.placed[sys.id] = {
+          id: sys.id,
+          leadVerb: sys.leadVerb,
+          statement: sys.statement
+        };
+      });
+
+      state.validation = {
+        correctIds: BODY_SYSTEMS.map(s => s.id),
+        incorrectIds: []
+      };
+
+      audio.playCorrect();
+      renderTray();
+      renderSystemsGrid();
+    });
+
+    document.getElementById('btn-scramble').addEventListener('click', () => {
+      state.traySlips = shuffleArray(state.traySlips);
+      audio.playSnap();
+      renderTray();
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      if (confirm('Reset all placed slips back to the tray?')) {
+        initializeSlips();
+        audio.playSnap();
+        renderTray();
+        renderSystemsGrid();
+      }
+    });
+
+    document.getElementById('btn-cancel-touch').addEventListener('click', () => {
+      hideTouchBanner();
+      renderTray();
+      renderSystemsGrid();
+    });
+
+    // Sound toggle
+    document.getElementById('btn-toggle-sound').addEventListener('click', () => {
+      audio.enabled = !audio.enabled;
+      document.getElementById('sound-icon').textContent = audio.enabled ? '🔊' : '🔇';
+    });
+
+    // Touch Assist toggle
+    let touchAssistMode = false;
+    document.getElementById('btn-toggle-touch').addEventListener('click', () => {
+      touchAssistMode = !touchAssistMode;
+      const btn = document.getElementById('btn-toggle-touch');
+      if (touchAssistMode) {
+        btn.classList.add('bg-cyan-700', 'text-white', 'border-cyan-500');
+        alert('Touch Assist Enabled: Click any slip in the tray, then click any body system card to place it.');
+      } else {
+        btn.classList.remove('bg-cyan-700', 'text-white', 'border-cyan-500');
+        hideTouchBanner();
+        renderTray();
+        renderSystemsGrid();
+      }
+    });
+
+    // Navigation Tabs
+    const tabMatcher = document.getElementById('tab-matcher');
+    const tabAnswers = document.getElementById('tab-answers');
+    const viewMatcher = document.getElementById('view-matcher');
+    const viewAnswers = document.getElementById('view-answers');
+
+    tabMatcher.addEventListener('click', () => {
+      state.activeTab = 'matcher';
+      tabMatcher.className = 'px-3 py-1.5 rounded-lg font-medium transition-all bg-cyan-500 text-white shadow-sm flex items-center gap-1.5';
+      tabAnswers.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all flex items-center gap-1.5';
+      viewMatcher.classList.remove('hidden');
+      viewAnswers.classList.add('hidden');
+    });
+
+    tabAnswers.addEventListener('click', () => {
+      state.activeTab = 'answers';
+      tabAnswers.className = 'px-3 py-1.5 rounded-lg font-medium transition-all bg-cyan-500 text-white shadow-sm flex items-center gap-1.5';
+      tabMatcher.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all flex items-center gap-1.5';
+      viewAnswers.classList.remove('hidden');
+      viewMatcher.classList.add('hidden');
+      renderMasterAnswersTable();
+    });
+
+    // =========================================================================
+    // 7. MASTER ANSWER KEY RENDERING & SEARCH
+    // =========================================================================
+    function renderMasterAnswersTable(query = '') {
+      const tbody = document.getElementById('answers-table-body');
+      const q = query.toLowerCase().trim();
+
+      const filtered = BODY_SYSTEMS.filter(sys => {
+        if (!q) return true;
+        return sys.name.toLowerCase().includes(q) ||
+               sys.leadVerb.toLowerCase().includes(q) ||
+               sys.statement.toLowerCase().includes(q) ||
+               sys.keyOrgans.some(o => o.toLowerCase().includes(q));
+      });
+
+      tbody.innerHTML = filtered.map(sys => `
+        <tr class="hover:bg-slate-900/60 transition-colors">
+          <td class="py-3 px-3 font-bold text-white flex items-center gap-2">
+            <span>${sys.icon}</span> ${sys.name}
+          </td>
+          <td class="py-3 px-3">
+            <span class="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">
+              ${sys.leadVerb}
+            </span>
+          </td>
+          <td class="py-3 px-3 text-slate-300 max-w-md">
+            ${sys.statement}
+          </td>
+          <td class="py-3 px-3">
+            <div class="flex flex-wrap gap-1">
+              ${sys.keyOrgans.map(o => `
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 font-medium">
+                  ${o}
+                </span>
+              `).join('')}
+            </div>
+          </td>
+          <td class="py-3 px-3 text-right">
+            <button 
+              onclick="openDetailModal('${sys.id}')"
+              class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all text-xs"
+            >
+              Info
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('answers-search').addEventListener('input', (e) => {
+      renderMasterAnswersTable(e.target.value);
+    });
+
+    document.getElementById('btn-copy-solutions').addEventListener('click', () => {
+      const text = BODY_SYSTEMS.map(sys => 
+        `• ${sys.name} (${sys.leadVerb}): ${sys.statement}\n  Key Organs: ${sys.keyOrgans.join(', ')}`
+      ).join('\n\n');
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Master Answer Key copied to clipboard!');
+      });
+    });
+
+    // =========================================================================
+    // 8. SYSTEM DETAIL MODAL
+    // =========================================================================
+    window.openDetailModal = function(systemId) {
+      const sys = BODY_SYSTEMS.find(s => s.id === systemId);
+      if (!sys) return;
+
+      document.getElementById('modal-system-icon').textContent = sys.icon;
+      document.getElementById('modal-system-name').textContent = sys.name;
+      document.getElementById('modal-system-verb').textContent = sys.leadVerb;
+      document.getElementById('modal-system-statement').textContent = sys.statement;
+      document.getElementById('modal-system-fact').textContent = sys.fact;
+      document.getElementById('modal-system-exam').textContent = sys.examTip;
+      
+      document.getElementById('modal-system-diagram').innerHTML = `
+        <img src="${sys.image}" onerror="this.onerror=null; this.src='${sys.fallbackImage}';" alt="${sys.name}" class="max-h-full max-w-full object-contain select-none drop-shadow-sm" />
+      `;
+
+      document.getElementById('modal-system-organs').innerHTML = sys.keyOrgans.map(o => `
+        <span class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-cyan-300 border border-slate-700 font-medium">
+          ${o}
+        </span>
+      `).join('');
+
+      document.getElementById('system-detail-modal').classList.remove('hidden');
+    };
+
+    function closeDetailModal() {
+      document.getElementById('system-detail-modal').classList.add('hidden');
+    }
+
+    document.getElementById('btn-close-detail-modal').addEventListener('click', closeDetailModal);
+    document.getElementById('btn-close-detail-modal-2').addEventListener('click', closeDetailModal);
+    document.getElementById('system-detail-modal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('system-detail-modal')) {
+        closeDetailModal();
+      }
+    });
+
+    // =========================================================================
+    // 9. PRINT WORKSHEET GENERATOR (1 PAGE EACH FOR DIAGRAMS & CUT SLIPS)
+    // =========================================================================
+    const printConfigModal = document.getElementById('print-config-modal');
+
+    document.getElementById('btn-open-print').addEventListener('click', () => {
+      printConfigModal.classList.remove('hidden');
+    });
+
+    document.getElementById('btn-close-print-modal').addEventListener('click', () => {
+      printConfigModal.classList.add('hidden');
+    });
+
+    document.getElementById('btn-cancel-print').addEventListener('click', () => {
+      printConfigModal.classList.add('hidden');
+    });
+
+    document.getElementById('btn-trigger-print').addEventListener('click', () => {
+      const isSolved = document.querySelector('input[name="print-type"]:checked').value === 'solved';
+      preparePrintArea(isSolved);
+      printConfigModal.classList.add('hidden');
+      setTimeout(() => {
+        window.print();
+      }, 200);
+    });
+
+    function preparePrintArea(isSolved) {
+      const page1Grid = document.getElementById('print-grid-page-1');
+      const page2Slips = document.getElementById('print-slips-container');
+
+      // Page 1: 8 System Cards in a 2 columns x 4 rows layout
+      // Using a side-by-side card layout (diagram on left, organs + dashed box on right)
+      // so each row is ~58mm tall and all 4 rows fit cleanly within a single A4 portrait page (297mm)!
+      page1Grid.innerHTML = BODY_SYSTEMS.map(sys => `
+        <div class="print-card border border-slate-500 p-2 rounded-lg flex gap-2 items-center justify-between text-[8pt] h-[58mm] box-border">
+          <!-- Left side: Anatomical Illustration -->
+          <div class="w-[32mm] h-full shrink-0 flex flex-col items-center justify-center bg-white border border-slate-300 rounded p-1">
+            <span class="font-bold text-[8pt] leading-tight text-center truncate w-full mb-0.5">${sys.name.replace(' System', '')}</span>
+            <div class="flex-1 w-full flex items-center justify-center overflow-hidden">
+              <img src="${sys.image}" onerror="this.onerror=null; this.src='${sys.fallbackImage}';" alt="${sys.name}" class="max-h-[46mm] max-w-[30mm] object-contain" />
+            </div>
+          </div>
+
+          <!-- Right side: Organs & Dashed Paste Box -->
+          <div class="flex-1 h-full flex flex-col justify-between overflow-hidden">
+            <div>
+              <div class="flex justify-between items-center border-b border-slate-300 pb-0.5 mb-1">
+                <span class="font-bold text-[8.5pt] text-slate-900">${sys.name}</span>
+                <span class="text-[7.5pt] font-mono text-slate-600">[${sys.leadVerb}...]</span>
+              </div>
+              <div class="text-[7.5pt] text-slate-700 leading-tight mb-1">
+                <strong>Organs:</strong> ${sys.keyOrgans.join(', ')}
+              </div>
+            </div>
+
+            <div class="border-2 border-dashed border-slate-600 rounded p-1.5 flex-1 flex items-center justify-center text-center ${isSolved ? 'bg-slate-50' : ''}">
+              ${isSolved ? `
+                <div class="text-[7.5pt] text-slate-800 leading-snug">
+                  <strong>[${sys.leadVerb}]</strong> ${sys.statement}
+                </div>
+              ` : `
+                <span class="text-slate-400 text-[8pt] font-medium">✂️ Paste matching slip here</span>
+              `}
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      // Page 2: 8 Cut Slips in a 2 columns x 4 rows layout (fits exactly 1 page!)
+      const shuffledForPrint = shuffleArray([...BODY_SYSTEMS]);
+      page2Slips.innerHTML = shuffledForPrint.map(sys => `
+        <div class="print-cut-slip border-2 border-dashed border-slate-700 p-2.5 rounded-lg text-[8.5pt] leading-snug flex flex-col justify-between h-[58mm] box-border">
+          <div class="flex justify-between items-center mb-1">
+            <span class="font-mono font-bold uppercase text-[8pt] px-2 py-0.5 border border-black rounded bg-slate-100">
+              ${sys.leadVerb}
+            </span>
+            <span class="text-[7.5pt] text-slate-500">✂️ Cut along dotted line</span>
+          </div>
+          <p class="text-black my-auto font-serif text-[8.5pt] leading-normal italic px-1">
+            "${sys.statement}"
+          </p>
+          <div class="text-[7pt] text-slate-500 border-t border-slate-300 pt-1 flex justify-between">
+            <span>KS3 Biology • Human Body Systems</span>
+            <span class="font-mono">Glue onto Page 1</span>
+          </div>
+        </div>
+      `).join('');
+
+      // If solved is chosen, hide page 2 (answer key is completely on page 1)
+      const page2 = document.getElementById('print-page-2');
+      if (isSolved) {
+        page2.classList.add('hidden');
+      } else {
+        page2.classList.remove('hidden');
+      }
+    }
+
+    // Keyboard shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeDetailModal();
+        printConfigModal.classList.add('hidden');
+      }
+    });
+
+    // Start App
+    initializeSlips();
+    renderTray();
+    renderSystemsGrid();
+  </script>
+</body>
+</html>

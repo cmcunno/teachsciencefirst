@@ -21,6 +21,22 @@ export const INITIAL_REPOSITORIES: ScienceResource[] = [
     authorNotes: 'Essential introductory lab skills for Key Stage 3 science practicals.'
   },
   {
+    id: 'res-ks3-biology-concepts-body-systems',
+    title: 'Body Systems Cut & Stick',
+    keyStage: 'KS3',
+    stageLevel: 'KS3 (Ages 11-14)',
+    subject: 'Biology',
+    category: 'Concepts',
+    slug: 'body_systems',
+    description: 'Interactive classroom matcher and 1-page-per-sheet printable worksheets for 8 major human body systems: cardiovascular, respiratory, digestive, nervous, skeletal, muscular, lymphatic, and reproductive.',
+    url: '/resources/ks3/Biology/concepts/body_systems/index.html',
+    path: 'resources/ks3/Biology/concepts/body_systems/index.html',
+    fileName: 'index.html',
+    isLocalRepo: true,
+    isFavorite: true,
+    authorNotes: 'Features drag-and-drop & touch assist matching, audio feedback, master answer key, organ deep-dives, and 1-page-each cut & stick printable worksheets.'
+  },
+  {
     id: 'res-ks3-chemistry-concepts-particle-explorer',
     title: 'NeuroLab - Particle Explorer',
     keyStage: 'KS3',

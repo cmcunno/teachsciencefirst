@@ -157,11 +157,11 @@
         }
 
         /* Dedicated High-Yield A4 Print Stylesheet */
-        /* Dedicated High-Yield A4 Single-Page Print Stylesheet */
+        /* Dedicated High-Yield A4 Single-Page Landscape Print Stylesheet */
         @media print {
             @page {
-                size: A4 portrait;
-                margin: 5mm 7mm 5mm 7mm;
+                size: A4 landscape;
+                margin: 6mm 10mm 6mm 10mm;
             }
             #comparison-data-table thead th,
             #modal-comparison-cloned-table thead th,
@@ -176,8 +176,8 @@
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
                 padding: 0 !important;
                 margin: 0 !important;
-                font-size: 8pt !important;
-                line-height: 1.18 !important;
+                font-size: 8.5pt !important;
+                line-height: 1.22 !important;
             }
             /* Hide web chrome, navigations, sidebars, buttons, modals, non-comparison views */
             header, nav, #canvas-top-toolbar, .playback-bar, button, #spec-modal,
@@ -209,9 +209,9 @@
             /* Dedicated compact print header */
             .print-only-header {
                 display: block !important;
-                border-bottom: 1.2pt solid #0f172a !important;
-                padding-bottom: 2pt !important;
-                margin-bottom: 3pt !important;
+                border-bottom: 1.5pt solid #0f172a !important;
+                padding-bottom: 2.5pt !important;
+                margin-bottom: 3.5pt !important;
             }
 
             /* Printable Table formatting */
@@ -235,42 +235,42 @@
                 border: 1.2pt solid #0f172a !important;
                 color: #0f172a !important;
                 background-color: #f1f5f9 !important;
-                padding: 3pt 4pt !important;
-                font-size: 8pt !important;
+                padding: 3.5pt 6pt !important;
+                font-size: 8.5pt !important;
                 font-weight: bold !important;
                 text-align: left !important;
             }
             #comparison-data-table td {
                 border: 0.8pt solid #334155 !important;
-                padding: 3pt 4pt !important;
-                font-size: 8pt !important;
-                line-height: 1.18 !important;
+                padding: 3.5pt 6pt !important;
+                font-size: 8.5pt !important;
+                line-height: 1.22 !important;
                 color: #0f172a !important;
                 vertical-align: top !important;
                 background: #ffffff !important;
             }
 
-            /* Balanced column widths: AQA Exam Tip given 38% so it is never squashed, others resized to fit 1 page */
+            /* Optimized landscape column widths: Feature (15%), Meiosis (25%), Mitosis (25%), AQA Exam Tip (35%) */
             #comparison-data-table th:nth-child(1),
             #comparison-data-table td:nth-child(1) {
-                width: 14% !important;
+                width: 15% !important;
                 font-weight: bold !important;
-                font-size: 7.5pt !important;
+                font-size: 8.5pt !important;
             }
             #comparison-data-table th:nth-child(2),
             #comparison-data-table td:nth-child(2) {
-                width: 24% !important;
+                width: 25% !important;
             }
             #comparison-data-table th:nth-child(3),
             #comparison-data-table td:nth-child(3) {
-                width: 24% !important;
+                width: 25% !important;
             }
             #comparison-data-table th:nth-child(4),
             #comparison-data-table td:nth-child(4) {
-                width: 38% !important;
+                width: 35% !important;
                 display: table-cell !important;
-                font-size: 7.5pt !important;
-                line-height: 1.15 !important;
+                font-size: 8pt !important;
+                line-height: 1.18 !important;
             }
 
             /* When printing Student Fill-In Worksheet */
@@ -284,10 +284,10 @@
                 display: none !important;
                 visibility: hidden !important;
             }
-            /* Leave cell completely empty to maximize student space without "show reveal" text */
+            /* Leave cell completely empty to maximize student space without "show reveal" text, sized for landscape 1-page fit */
             body.printing-student-worksheet #comparison-data-table td.compare-cell {
-                height: 25pt !important;
-                min-height: 25pt !important;
+                height: 38pt !important;
+                min-height: 38pt !important;
                 background: #ffffff !important;
                 color: transparent !important;
             }
@@ -938,19 +938,19 @@
                         </button>
 
                         <!-- Print Student Worksheet (Blank) -->
-                        <button id="btn-print-student-worksheet" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white font-semibold text-xs flex items-center gap-1.5 border border-cyan-800/80 transition cursor-pointer shadow-sm" title="Print blank comparison table worksheet for students to handwrite answers">
+                        <button id="btn-print-student-worksheet" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white font-semibold text-xs flex items-center gap-1.5 border border-cyan-800/80 transition cursor-pointer shadow-sm" title="Print 1-page blank comparison table worksheet in A4 Landscape for students to handwrite answers">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                             </svg>
-                            <span>Print Student Worksheet (Blank)</span>
+                            <span>Print Student Worksheet (A4 Landscape)</span>
                         </button>
 
                         <!-- Print Teacher Answer Key (Complete) -->
-                        <button id="btn-print-answer-key" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 hover:text-white font-semibold text-xs flex items-center gap-1.5 border border-emerald-800/80 transition cursor-pointer shadow-sm" title="Print complete comparison table answer key with all text">
+                        <button id="btn-print-answer-key" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 hover:text-white font-semibold text-xs flex items-center gap-1.5 border border-emerald-800/80 transition cursor-pointer shadow-sm" title="Print 1-page complete comparison table answer key in A4 Landscape with all examiner tips">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
-                            <span>Print Answer Key</span>
+                            <span>Print Answer Key (A4 Landscape)</span>
                         </button>
                     </div>
                 </div>
@@ -1365,11 +1365,11 @@
                 </button>
 
                 <!-- Quick Print Buttons in Fullscreen Modal -->
-                <button id="modal-table-print-worksheet" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 border border-cyan-800/80 transition cursor-pointer shadow-sm" title="Print blank worksheet">
+                <button id="modal-table-print-worksheet" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 border border-cyan-800/80 transition cursor-pointer shadow-sm" title="Print blank 1-page worksheet in A4 Landscape">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                     </svg>
-                    <span>Print Worksheet</span>
+                    <span>Print Landscape Worksheet</span>
                 </button>
 
                 <button id="close-table-fullscreen-btn" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition border border-slate-700 cursor-pointer shadow-sm" title="Exit Fullscreen (Esc)">

@@ -32,7 +32,7 @@ import { PreviewModal } from './components/PreviewModal';
 import { FolderTreeNav } from './components/FolderTreeNav';
 
 const STORAGE_KEY_AUTH = 'pyrex_science_auth_v1';
-const STORAGE_KEY_REPOS = 'teach_science_first_resources_v5';
+const STORAGE_KEY_REPOS = 'teach_science_first_resources_v7';
 
 export default function App() {
   // Authentication State
@@ -50,19 +50,20 @@ export default function App() {
   // Resources State - loaded from resources/ structure
   const [repositories, setRepositories] = useState<ScienceResource[]>(() => {
     try {
-      const isGmCounter = (r: any) =>
+      const isExcluded = (r: any) =>
         r?.id === 'res-ks4-physics-simulations-gm-tube' ||
         r?.id === 'res-ks4-physics-simulations-g-m-tube' ||
+        r?.id === 'res-ks3-biology-concepts-body-systems' ||
         r?.slug === 'g m-tube' ||
         r?.path?.includes('g m-tube');
 
-      // 1. Try primary storage key v5
+      // 1. Try primary storage key v7
       const saved = localStorage.getItem(STORAGE_KEY_REPOS);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.path?.startsWith('resources/')) {
           const validCategories = new Set(['Concepts', 'Simulations']);
-          const cleaned = parsed.filter((r: any) => validCategories.has(r.category) && !isGmCounter(r));
+          const cleaned = parsed.filter((r: any) => validCategories.has(r.category) && !isExcluded(r));
           const existingIds = new Set(cleaned.map((r: any) => r.id));
           const missingDefaults = INITIAL_REPOSITORIES.filter(r => !existingIds.has(r.id));
           if (missingDefaults.length > 0) {
@@ -79,7 +80,7 @@ export default function App() {
         const parsed = JSON.parse(legacySaved);
         if (Array.isArray(parsed) && parsed.length > 0) {
           const validCategories = new Set(['Concepts', 'Simulations']);
-          const cleaned = parsed.filter((r: any) => validCategories.has(r.category) && !isGmCounter(r));
+          const cleaned = parsed.filter((r: any) => validCategories.has(r.category) && !isExcluded(r));
           const existingIds = new Set(cleaned.map((r: any) => r.id));
           const missingDefaults = INITIAL_REPOSITORIES.filter(r => !existingIds.has(r.id));
           return [...cleaned, ...missingDefaults];
