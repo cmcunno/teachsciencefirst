@@ -80,22 +80,22 @@ export const RepoModal: React.FC<RepoModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="bg-surface border border-line rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-line flex items-center justify-between">
           <div>
-            <h2 className="text-base font-semibold text-slate-100">
-              {initialRepo ? 'Edit Science Resource' : 'Add Teaching Resource'}
+            <h2 className="text-base font-semibold text-ink">
+              {initialRepo ? 'Edit resource' : 'Add a resource'}
             </h2>
-            <p className="text-xs text-slate-400">
-              Configure application path and hierarchy
+            <p className="text-xs text-muted">
+              Link to an activity in the resources folder or anywhere on the web
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1 rounded-lg text-muted hover:text-ink hover:bg-sunken transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -104,8 +104,8 @@ export const RepoModal: React.FC<RepoModalProps> = ({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4 flex-1">
           <div>
-            <label className="block text-xs font-mono uppercase text-slate-400 mb-1">
-              Resource Title *
+            <label className="block text-sm font-medium text-ink mb-1">
+              Title
             </label>
             <input
               type="text"
@@ -113,19 +113,19 @@ export const RepoModal: React.FC<RepoModalProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Calorimetry & Specific Heat Capacity Lab"
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 placeholder:text-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+              className="w-full px-3 py-2 bg-page border border-line-strong rounded-lg text-ink placeholder:text-faint text-sm focus:outline-none focus:ring-2 focus:border-accent focus:ring-accent/20"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-mono uppercase text-slate-400 mb-1">
+              <label className="block text-sm font-medium text-ink mb-1">
                 Key Stage
               </label>
               <select
                 value={keyStage}
                 onChange={(e) => setKeyStage(e.target.value as KeyStage)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+                className="w-full px-3 py-2 bg-page border border-line-strong rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:border-accent focus:ring-accent/20"
               >
                 <option value="KS3">KS3 (Ages 11-14)</option>
                 <option value="KS4">KS4 / GCSE (Ages 14-16)</option>
@@ -134,13 +134,13 @@ export const RepoModal: React.FC<RepoModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-mono uppercase text-slate-400 mb-1">
+              <label className="block text-sm font-medium text-ink mb-1">
                 Subject
               </label>
               <select
                 value={subject}
                 onChange={(e) => setSubject(e.target.value as ScienceDiscipline)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+                className="w-full px-3 py-2 bg-page border border-line-strong rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:border-accent focus:ring-accent/20"
               >
                 <option value="Biology">Biology</option>
                 <option value="Chemistry">Chemistry</option>
@@ -149,13 +149,13 @@ export const RepoModal: React.FC<RepoModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-mono uppercase text-slate-400 mb-1">
+              <label className="block text-sm font-medium text-ink mb-1">
                 Category
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as ResourceCategory)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+                className="w-full px-3 py-2 bg-page border border-line-strong rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:border-accent focus:ring-accent/20"
               >
                 <option value="Simulations">Simulations</option>
                 <option value="Concepts">Concepts</option>
@@ -164,8 +164,8 @@ export const RepoModal: React.FC<RepoModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-mono uppercase text-slate-400 mb-1">
-              File Path or URL (e.g. /resources/.../index.html) *
+            <label className="block text-sm font-medium text-ink mb-1">
+              Link (web address or /resources/… path)
             </label>
             <input
               type="text"
@@ -180,54 +180,54 @@ export const RepoModal: React.FC<RepoModalProps> = ({
                 }
               }}
               placeholder="/resources/ks4/Biology/simulations/my-lab/index.html"
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 placeholder:text-slate-500 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+              className="w-full px-3 py-2 bg-page border border-line-strong rounded-lg text-ink placeholder:text-faint text-sm focus:outline-none focus:ring-2 focus:border-accent focus:ring-accent/20"
             />
-            <p className="text-[11px] text-slate-500 mt-1">
-              Local paths start with <code className="text-slate-400 font-mono">/resources/.../index.html</code>.
+            <p className="text-[11px] text-faint mt-1">
+              Local paths start with <code className="text-muted">/resources/.../index.html</code>.
             </p>
           </div>
 
           <div>
-            <label className="block text-xs font-mono uppercase text-slate-400 mb-1">
-              Description & Learning Objectives
+            <label className="block text-sm font-medium text-ink mb-1">
+              Description
             </label>
             <textarea
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe what students will explore and key scientific principles demonstrated..."
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 placeholder:text-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+              className="w-full px-3 py-2 bg-page border border-line-strong rounded-lg text-ink placeholder:text-faint text-sm focus:outline-none focus:ring-2 focus:border-accent focus:ring-accent/20"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-mono uppercase text-slate-400 mb-1">
-              Teacher / Pedagogy Notes (Optional)
+            <label className="block text-sm font-medium text-ink mb-1">
+              Notes (optional)
             </label>
             <input
               type="text"
               value={authorNotes}
               onChange={(e) => setAuthorNotes(e.target.value)}
               placeholder="e.g. Ideal for pre-lab homework or revision recap..."
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 placeholder:text-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+              className="w-full px-3 py-2 bg-page border border-line-strong rounded-lg text-ink placeholder:text-faint text-sm focus:outline-none focus:ring-2 focus:border-accent focus:ring-accent/20"
             />
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
+          <div className="pt-4 border-t border-line flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-muted hover:text-ink transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+              className="px-4 py-2 bg-accent hover:bg-accent-hover text-accent-ink font-semibold text-sm rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
             >
               <Save className="w-4 h-4" />
-              <span>Save Resource</span>
+              <span>Save</span>
             </button>
           </div>
         </form>

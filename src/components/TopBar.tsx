@@ -1,123 +1,135 @@
-import React from 'react';
-import { Lock, Atom, FolderTree, LayoutGrid } from 'lucide-react';
-import { KeyStage } from '../types';
+import React, { useEffect, useRef, useState } from 'react';
+import { Atom, Search, Sun, Moon, MoreHorizontal, Plus, RotateCcw, Lock, X } from 'lucide-react';
 
 interface TopBarProps {
-  currentKeyStage: KeyStage | 'All';
-  onSelectKeyStage: (ks: KeyStage | 'All') => void;
-  showFolderTree: boolean;
-  onToggleFolderTree: () => void;
-  onLock: () => void;
+  searchQuery: string;
+  onSearchChange: (q: string) => void;
+  searchInputRef: React.RefObject<HTMLInputElement | null>;
   totalApps: number;
+  isDark: boolean;
+  onToggleTheme: () => void;
+  onGoHome: () => void;
+  onAddResource: () => void;
+  onResetDefaults: () => void;
+  onLock: () => void;
 }
 
-export const TopBar: React.FC<TopBarProps> = ({
-  currentKeyStage,
-  onSelectKeyStage,
-  showFolderTree,
-  onToggleFolderTree,
-  onLock,
-  totalApps
-}) => {
-  const keyStages: { id: KeyStage | 'All'; label: string; sub: string }[] = [
-    { id: 'All', label: 'All Stages', sub: `${totalApps} Apps` },
-    { id: 'KS3', label: 'KS3', sub: 'Ages 11-14' },
-    { id: 'KS4', label: 'KS4 / GCSE', sub: 'Ages 14-16' },
-    { id: 'KS5', label: 'KS5 / A-Level', sub: 'Ages 16-18' },
-  ];
+const SearchBox: React.FC<Pick<TopBarProps, 'searchQuery' | 'onSearchChange' | 'searchInputRef' | 'totalApps'> & { id: string; showHint?: boolean }> = ({
+  searchQuery,
+  onSearchChange,
+  searchInputRef,
+  totalApps,
+  id,
+  showHint,
+}) => (
+  <div className="relative w-full">
+    <label htmlFor={id} className="sr-only">Search resources</label>
+    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-faint pointer-events-none" />
+    <input
+      id={id}
+      ref={searchInputRef}
+      type="search"
+      value={searchQuery}
+      onChange={(e) => onSearchChange(e.target.value)}
+      placeholder={`Search ${totalApps} resources — e.g. osmosis, half-life`}
+      className="w-full pl-9 pr-10 py-2 bg-sunken border border-transparent rounded-lg text-sm text-ink placeholder:text-faint focus:outline-none focus:bg-surface focus:border-accent focus:ring-2 focus:ring-accent/20 transition-colors [&::-webkit-search-cancel-button]:hidden"
+    />
+    {searchQuery ? (
+      <button
+        onClick={() => onSearchChange('')}
+        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-faint hover:text-ink cursor-pointer"
+        aria-label="Clear search"
+      >
+        <X className="w-4 h-4" />
+      </button>
+    ) : showHint ? (
+      <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-faint border border-line rounded px-1.5 leading-5 font-sans">/</kbd>
+    ) : null}
+  </div>
+);
+
+export const TopBar: React.FC<TopBarProps> = (props) => {
+  const { isDark, onToggleTheme, onGoHome, onAddResource, onResetDefaults, onLock } = props;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  // The mobile search box gets its own ref so the "/" shortcut targets the visible desktop one.
+  const mobileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false);
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [menuOpen]);
+
+  const menuItem =
+    'w-full flex items-center gap-2.5 px-3 py-2 text-sm text-ink rounded-md hover:bg-sunken transition-colors cursor-pointer text-left';
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-md border-b border-slate-800 shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-        
-        {/* Zone 1: Wordmark & count */}
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-cyan-950/80 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-            <Atom className="w-5 h-5 text-cyan-400" />
-          </div>
-          <button 
-            onClick={() => onSelectKeyStage('All')} 
-            className="text-left cursor-pointer"
-          >
-            <div className="text-sm sm:text-base font-bold tracking-tight text-slate-100 hover:text-cyan-400 transition-colors">
-              Teach Science First
-            </div>
-            <div className="text-[10px] font-mono text-cyan-400/80 hidden sm:block">
-              resources/ tree · {totalApps} modules
-            </div>
-          </button>
+    <header className="sticky top-0 z-40 bg-page/90 backdrop-blur-md border-b border-line">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-4">
+        <button onClick={onGoHome} className="flex items-center gap-2.5 shrink-0 cursor-pointer" aria-label="Teach Science First — show all resources">
+          <span className="w-8 h-8 rounded-lg bg-accent text-accent-ink flex items-center justify-center">
+            <Atom className="w-[18px] h-[18px]" />
+          </span>
+          <span className="font-display text-lg font-semibold text-ink tracking-tight">Teach Science First</span>
+        </button>
+
+        <div className="hidden md:block flex-1 max-w-md mx-auto">
+          <SearchBox {...props} id="search-desktop" showHint />
         </div>
 
-        {/* Zone 2: Key Stage Navigation Links */}
-        <nav className="hidden md:flex items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl">
-          {keyStages.map((ks) => {
-            const isActive = currentKeyStage === ks.id;
-            return (
-              <button
-                key={ks.id}
-                onClick={() => onSelectKeyStage(ks.id)}
-                className={`px-3 py-1.5 text-xs rounded-lg whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                  isActive
-                    ? 'bg-cyan-600 text-slate-950 font-bold shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 font-medium'
-                }`}
+        <div className="flex items-center gap-1 ml-auto md:ml-0 shrink-0">
+          <button
+            onClick={onToggleTheme}
+            className="p-2 rounded-lg text-muted hover:text-ink hover:bg-sunken transition-colors cursor-pointer"
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={isDark ? 'Light mode' : 'Dark mode'}
+          >
+            {isDark ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+          </button>
+
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              className={`p-2 rounded-lg transition-colors cursor-pointer ${menuOpen ? 'bg-sunken text-ink' : 'text-muted hover:text-ink hover:bg-sunken'}`}
+              aria-label="More options"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              title="More options"
+            >
+              <MoreHorizontal className="w-[18px] h-[18px]" />
+            </button>
+            {menuOpen && (
+              <div
+                role="menu"
+                className="absolute right-0 mt-2 w-60 p-1.5 bg-surface border border-line rounded-xl shadow-lg animate-[fadeIn_0.12s_ease-out]"
               >
-                <span>{ks.label}</span>
-                <span className={`text-[10px] ${isActive ? 'text-slate-900/80' : 'text-slate-500'}`}>
-                  {ks.sub}
-                </span>
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Zone 3: Navigation toggles & Lock */}
-        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-          {/* Toggle Folder Tree Sidebar */}
-          <button
-            onClick={onToggleFolderTree}
-            className={`px-3 py-1.5 text-xs font-mono font-medium rounded-lg border transition-colors flex items-center gap-1.5 cursor-pointer ${
-              showFolderTree 
-                ? 'bg-slate-800 text-cyan-300 border-cyan-500/40' 
-                : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700'
-            }`}
-            title="Toggle resources directory folder tree"
-          >
-            <FolderTree className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="hidden sm:inline">Folder Tree</span>
-          </button>
-
-          {/* Lock Portal */}
-          <button
-            onClick={onLock}
-            title="Lock Portal (requires password pyrexpyrex to unlock)"
-            className="px-3 py-1.5 text-xs font-medium bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-slate-100 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
-          >
-            <Lock className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden sm:inline">Lock</span>
-          </button>
+                <button role="menuitem" className={menuItem} onClick={() => { setMenuOpen(false); onAddResource(); }}>
+                  <Plus className="w-4 h-4 text-muted" /> Add a resource
+                </button>
+                <button role="menuitem" className={menuItem} onClick={() => { setMenuOpen(false); onResetDefaults(); }}>
+                  <RotateCcw className="w-4 h-4 text-muted" /> Restore default list
+                </button>
+                <div className="my-1 border-t border-line" />
+                <button role="menuitem" className={menuItem} onClick={() => { setMenuOpen(false); onLock(); }}>
+                  <Lock className="w-4 h-4 text-muted" /> Lock portal
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-
       </div>
 
-      {/* Mobile navigation tab strip for Key Stages */}
-      <div className="md:hidden border-t border-slate-800/80 px-4 py-2 flex items-center gap-1 overflow-x-auto no-scrollbar">
-        {keyStages.map((ks) => {
-          const isActive = currentKeyStage === ks.id;
-          return (
-            <button
-              key={ks.id}
-              onClick={() => onSelectKeyStage(ks.id)}
-              className={`px-2.5 py-1 text-xs rounded-md whitespace-nowrap shrink-0 transition-colors ${
-                isActive
-                  ? 'bg-cyan-600 text-slate-950 font-bold'
-                  : 'text-slate-400 hover:text-slate-200 bg-slate-900'
-              }`}
-            >
-              {ks.label}
-            </button>
-          );
-        })}
+      <div className="md:hidden px-4 pb-3">
+        <SearchBox {...props} searchInputRef={mobileRef} id="search-mobile" />
       </div>
     </header>
   );

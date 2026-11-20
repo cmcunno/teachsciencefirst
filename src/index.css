@@ -1,9 +1,69 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens. Utilities such as bg-surface / text-muted / border-line
+ * read these variables, so the whole portal switches theme by toggling
+ * the `dark` class on <html> — no per-component dark: variants needed.
+ */
 @theme {
   --font-display: 'Fraunces', Georgia, serif;
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-page: #f6f5f1;
+  --color-surface: #ffffff;
+  --color-sunken: #efede7;
+  --color-ink: #1c2430;
+  --color-muted: #545e6c;
+  --color-faint: #848c98;
+  --color-line: #e2dfd7;
+  --color-line-strong: #cfcbc1;
+
+  --color-accent: #0e6a70;
+  --color-accent-hover: #0a5559;
+  --color-accent-ink: #ffffff;
+  --color-accent-soft: #e0efee;
+
+  --color-bio: #2b8048;
+  --color-bio-soft: #e4f2e8;
+  --color-chem: #b4600f;
+  --color-chem-soft: #faeedf;
+  --color-phys: #2a5cc0;
+  --color-phys-soft: #e5edfb;
+
+  --color-danger: #b42318;
+  --color-danger-soft: #fdecea;
+}
+
+:root.dark {
+  --color-page: #12161c;
+  --color-surface: #1a1f27;
+  --color-sunken: #151a21;
+  --color-ink: #e7e9ed;
+  --color-muted: #a6aebb;
+  --color-faint: #78818e;
+  --color-line: #2a313c;
+  --color-line-strong: #3a4250;
+
+  --color-accent: #5ab8b6;
+  --color-accent-hover: #74c9c7;
+  --color-accent-ink: #0b1416;
+  --color-accent-soft: #1b3233;
+
+  --color-bio: #64c486;
+  --color-bio-soft: #1b2d22;
+  --color-chem: #e8a157;
+  --color-chem-soft: #33261a;
+  --color-phys: #7ea3f2;
+  --color-phys-soft: #1c263d;
+
+  --color-danger: #f28b82;
+  --color-danger-soft: #3a1e1c;
+
+  color-scheme: dark;
+}
+
+html {
+  background: var(--color-page);
 }
 
 @keyframes shake {
@@ -13,22 +73,21 @@
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translate(-50%, 10px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Subtle custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #090d16;
-}
-::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
