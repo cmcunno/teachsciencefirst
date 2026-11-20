@@ -1,4 +1,4 @@
-// Target SHA-256 hash for password 'pyrexpyrex'
+// SHA-256 hash of the teacher password (the password itself is not stored in the code)
 export const TARGET_PASSWORD_HASH = 'dbf1f8031e08cf6164cb5b88d337fadb632f0528e19f529cffd61bee216e03f5';
 
 /**

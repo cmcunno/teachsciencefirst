@@ -1,19 +1,29 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-GB">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Teach Science First</title>
-    <meta name="description" content="Teach Science First - Science teaching portal protected by SHA-256 hash password authentication, providing links to interactive science teaching repositories and homepages." />
+    <meta name="description" content="Interactive science simulations and activities for KS3, GCSE and A-Level teaching." />
     <meta property="og:title" content="Teach Science First" />
-    <meta property="og:description" content="Teach Science First - Science teaching portal protected by SHA-256 hash password authentication, providing links to interactive science teaching repositories and homepages." />
+    <meta property="og:description" content="Interactive science simulations and activities for KS3, GCSE and A-Level teaching." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#f6f5f1" />
+    <script>
+      // Apply saved (or system) theme before first paint to avoid a flash.
+      try {
+        var t = localStorage.getItem('tsf_theme');
+        if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {}
+    </script>
   </head>
-  <body class="bg-slate-950 text-slate-100 antialiased font-sans selection:bg-cyan-500 selection:text-slate-950">
+  <body class="bg-page text-ink antialiased font-sans">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
