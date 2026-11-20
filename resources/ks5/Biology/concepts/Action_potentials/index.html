@@ -1,38 +1,604 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NeuroAction - Action Potential Visualizer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      /* Minimal reset to ensure full height for the app container */
-      html, body, #root {
-        height: 100%;
-        width: 100%;
-        margin: 0;
-        overflow: hidden;
-        background-color: #0f172a; /* Slate 900 */
-      }
-    </style>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Membrane Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:InterLocal;font-weight:400;src:local("Inter Regular"),local("Inter-Regular")}
+@font-face{font-family:InterLocal;font-weight:500;src:local("Inter Medium"),local("Inter-Medium")}
+@font-face{font-family:InterLocal;font-weight:600;src:local("Inter SemiBold"),local("Inter-SemiBold")}
+@font-face{font-family:InterLocal;font-weight:700;src:local("Inter Bold"),local("Inter-Bold")}
+:root{
+  --bg:#EEF2F7; --card:#FFFFFF; --ink:#0F172A; --muted:#64748B; --line:#E2E8F0;
+  --na:#F59E0B; --k:#7C3AED; --accent:#2563EB;
+  --ff:Inter,InterLocal,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#0B1220;font-family:var(--ff);color:var(--ink);overflow:hidden;height:100%}
+#frame{position:absolute;left:0;top:0;width:1440px;height:810px;overflow:hidden;background:var(--bg);transform-origin:0 0}
+#viewport{position:absolute;left:0;top:0;width:1440px;height:746px;overflow:hidden}
+#stage{position:absolute;left:0;top:0;width:1440px;height:746px;transform-origin:0 0;background:var(--bg)}
+.rec *{transition:none!important;animation:none!important}
+button{font-family:var(--ff)}
 
-  <script type="importmap">
-{
-  "imports": {
-    "three": "https://aistudiocdn.com/three@^0.181.2",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "@react-three/fiber": "https://aistudiocdn.com/@react-three/fiber@^9.4.0",
-    "@react-three/drei": "https://aistudiocdn.com/@react-three/drei@^10.7.7",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "recharts": "https://aistudiocdn.com/recharts@^3.5.0"
+#topbar{position:absolute;left:0;top:0;width:1440px;height:48px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 20px;gap:14px}
+.logo{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#0D9488,#2563EB);display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px}
+.brand{font-weight:700;font-size:15px;letter-spacing:-.01em}
+.crumb{color:var(--muted);font-size:13.5px;padding-left:14px;border-left:1px solid var(--line)}
+.crumb b{color:var(--ink);font-weight:600}
+.badge{margin-left:auto;font-size:12px;font-weight:600;color:#0F766E;background:#CCFBF1;border-radius:999px;padding:4px 10px}
+
+.card{position:absolute;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.card h3{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.chead{display:flex;align-items:center;justify-content:space-between;height:36px;padding:0 14px;border-bottom:1px solid var(--line);gap:10px}
+.chead h3.big{color:var(--ink);text-transform:none;letter-spacing:0;font-size:14px}
+.chead h3.big span{color:var(--muted);font-weight:400;font-size:12.5px;margin-left:6px}
+#simCard{left:16px;top:64px;width:940px;height:456px}
+#traceCard{left:16px;top:528px;width:940px;height:202px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);align-items:center}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-2px;margin-right:5px}
+#cv{position:absolute;left:0;top:36px;width:940px;height:420px;cursor:pointer}
+#tr{position:absolute;left:0;top:36px;width:940px;height:166px}
+#tip{position:absolute;width:250px;background:#0F172A;color:#E2E8F0;border-radius:10px;padding:11px 13px 12px;font-size:12.5px;line-height:1.42;box-shadow:0 10px 30px rgba(15,23,42,.25);display:none;z-index:3}
+#tip b{display:block;color:#fff;font-size:13px;margin-bottom:4px}
+#tip button{position:absolute;right:8px;top:6px;background:none;border:0;color:#94A3B8;font-size:16px;cursor:pointer;line-height:1}
+.stepctl{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:500}
+#bNext{font-size:12.5px;font-weight:600;border-radius:8px;padding:5px 12px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+#bNext:disabled{background:#F1F5F9;border-color:var(--line);color:#94A3B8;cursor:default}
+#bNext.ready{box-shadow:0 0 0 4px rgba(37,99,235,.18)}
+
+#col{position:absolute;left:972px;top:64px;width:452px}
+#meterCard{left:0;top:0;width:452px;height:124px;padding:11px 14px}
+#ctrlCard{left:0;top:132px;width:452px;height:178px}
+#concCard{left:0;top:318px;width:452px;height:132px}
+#notesCard{left:0;top:458px;width:452px;height:208px}
+
+.mrow{display:flex;align-items:baseline;justify-content:space-between;margin-top:2px}
+#mVal{font-size:36px;font-weight:700;letter-spacing:-.02em;font-feature-settings:"tnum"}
+#mVal small{font-size:17px;font-weight:600;color:var(--muted);margin-left:4px}
+#mChip{font-size:12px;font-weight:600;border-radius:999px;padding:4px 10px;background:#F1F5F9;color:#475569}
+.msub{font-size:12px;color:var(--muted);margin-top:-3px}
+.gauge{position:relative;height:8px;border-radius:4px;margin-top:9px;background:linear-gradient(90deg,#2563EB,#93C5FD 64.3%,#E2E8F0 64.3%,#FCA5A5)}
+#mMark{position:absolute;top:-5px;width:4px;height:18px;border-radius:2px;background:var(--ink);transform:translateX(-2px)}
+.thr{position:absolute;top:-3px;left:25%;width:2px;height:14px;background:#DC2626;opacity:.8}
+.ticks{position:relative;height:14px;font-size:10.5px;color:var(--muted);margin-top:3px}
+.ticks span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+
+.trow{display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 14px;font-size:13.5px;font-weight:500}
+.trow:first-of-type{margin-top:3px}
+.trow em{font-style:normal;color:var(--muted);font-size:12px;font-weight:400;margin-left:6px}
+.sw{width:38px;height:22px;border-radius:11px;background:#CBD5E1;border:0;position:relative;cursor:pointer;transition:background .15s;flex:none}
+.sw::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:left .15s}
+.sw[aria-checked="true"]{background:var(--accent)}
+.sw[aria-checked="true"]::after{left:19px}
+#reset{font-size:12px;font-weight:600;color:var(--accent);background:none;border:0;cursor:pointer}
+.stim{display:flex;gap:8px}
+.stim button{font-size:12.5px;font-weight:600;border-radius:8px;padding:5px 12px;border:1px solid #A7F3D0;background:#ECFDF5;color:#047857;cursor:pointer}
+.stim button#bStrong{background:#059669;border-color:#059669;color:#fff}
+.stim button:disabled{background:#F1F5F9!important;border-color:var(--line)!important;color:#94A3B8!important;cursor:default}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11px;font-weight:600;color:var(--muted);text-align:left;padding:7px 14px 4px;text-transform:uppercase;letter-spacing:.05em}
+td{padding:6px 14px;border-top:1px solid var(--line)}
+tbody tr{cursor:pointer}
+tbody tr.sel{background:#F5F3FF}
+tbody tr.sel.na{background:#FFFBEB}
+.ion{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;color:#fff;font-size:10px;font-weight:700}
+.bar{display:inline-block;height:8px;border-radius:4px;vertical-align:middle;margin-right:8px;min-width:2px}
+.num{font-weight:600;font-feature-settings:"tnum"}
+.hint{font-size:11px;color:var(--muted)}
+
+.tabs{display:flex;gap:4px}
+.tab{font-size:12px;font-weight:600;color:var(--muted);background:none;border:0;border-radius:6px;padding:4px 10px;cursor:pointer}
+.tab.on{background:#EFF6FF;color:var(--accent)}
+#live{padding:11px 14px;font-size:13.5px;line-height:1.48}
+#live .muted{color:var(--muted);font-size:12.5px}
+#sum{display:none;padding:8px 14px;font-size:12px;line-height:1.34}
+#sum ol{padding-left:17px}
+#sum li{margin-bottom:2px}
+
+#cursor{position:absolute;left:0;top:0;width:22px;height:26px;pointer-events:none;display:none;transform-origin:2px 2px;z-index:20}
+#ripple{position:absolute;border-radius:50%;border:2px solid var(--accent);background:rgba(37,99,235,.16);pointer-events:none;display:none;z-index:19}
+#caption{position:absolute;left:0;top:746px;width:1440px;height:64px;background:#0F172A;color:#F8FAFC;display:flex;align-items:center;gap:16px;padding:0 24px}
+#capTag{font-size:12px;font-weight:600;color:#5EEAD4;white-space:nowrap;border:1px solid #134E4A;border-radius:999px;padding:4px 10px}
+#capText{font-size:17.5px;font-weight:500;line-height:1.3}
+</style>
+</head>
+<body>
+<div id="frame">
+ <div id="viewport">
+  <div id="stage">
+   <div id="topbar">
+    <div class="logo">M</div><div class="brand">Membrane Lab</div>
+    <div class="crumb">Neurone · <b>Resting and action potentials</b></div>
+    <div class="badge">A level Biology</div>
+   </div>
+
+   <div class="card" id="simCard">
+    <div class="chead"><h3 class="big">Neurone membrane: cross-section</h3>
+     <div class="legend"><span><i style="background:var(--na)"></i>Na⁺</span><span><i style="background:var(--k)"></i>K⁺</span><span>Ion numbers not to scale</span></div>
+    </div>
+    <canvas id="cv"></canvas>
+    <div id="tip"><button aria-label="Close">×</button><b id="tipT"></b><span id="tipB"></span></div>
+   </div>
+
+   <div class="card" id="traceCard">
+    <div class="chead"><h3 class="big">Membrane potential over time<span>time slowed down</span></h3>
+     <div class="stepctl"><span>Step through stages</span><button class="sw" id="tStep" role="switch" aria-checked="false" aria-label="Step through stages"></button><button id="bNext" disabled>Next stage ▸</button></div>
+    </div>
+    <canvas id="tr"></canvas>
+   </div>
+
+   <div id="col">
+    <div class="card" id="meterCard">
+     <h3>Membrane potential</h3>
+     <div class="mrow"><div id="mVal">0<small>mV</small></div><div id="mChip">No potential difference</div></div>
+     <div class="msub">Inside of membrane relative to outside</div>
+     <div class="gauge"><div class="thr"></div><div id="mMark"></div></div>
+     <div class="ticks"><span style="left:0%;transform:none">−90</span><span style="left:14.3%">−70</span><span style="left:25%;color:#DC2626">−55</span><span style="left:64.3%">0</span><span style="left:92.9%">+40</span></div>
+    </div>
+
+    <div class="card" id="ctrlCard">
+     <div class="chead"><h3>Controls</h3><button id="reset">Reset</button></div>
+     <div class="trow"><span>Na⁺/K⁺ pump<em>uses ATP</em></span><button class="sw" id="tPump" role="switch" aria-checked="false" aria-label="Na/K pump"></button></div>
+     <div class="trow"><span>K⁺ leak channels</span><button class="sw" id="tLeak" role="switch" aria-checked="false" aria-label="K leak channels"></button></div>
+     <div class="trow"><span>Show charge</span><button class="sw" id="tCharges" role="switch" aria-checked="false" aria-label="Show charge"></button></div>
+     <div class="trow"><span>Stimulus<em>pressure on receptor</em></span><div class="stim"><button id="bWeak">Weak</button><button id="bStrong">Strong</button></div></div>
+    </div>
+
+    <div class="card" id="concCard">
+     <div class="chead"><h3>Ion distribution</h3><span class="hint">Click a row to highlight</span></div>
+     <table>
+      <thead><tr><th style="width:64px">Ion</th><th>Outside</th><th>Inside</th></tr></thead>
+      <tbody>
+       <tr id="rowNa" class="na"><td><span class="ion" style="background:var(--na)">Na⁺</span></td><td><span class="bar" id="bNaO" style="background:var(--na)"></span><span class="num" id="nNaO"></span></td><td><span class="bar" id="bNaI" style="background:var(--na)"></span><span class="num" id="nNaI"></span></td></tr>
+       <tr id="rowK"><td><span class="ion" style="background:var(--k)">K⁺</span></td><td><span class="bar" id="bKO" style="background:var(--k)"></span><span class="num" id="nKO"></span></td><td><span class="bar" id="bKI" style="background:var(--k)"></span><span class="num" id="nKI"></span></td></tr>
+      </tbody>
+     </table>
+    </div>
+
+    <div class="card" id="notesCard">
+     <div class="chead"><h3>Notes</h3><div class="tabs"><button class="tab on" id="tabLive">Live</button><button class="tab" id="tabSum">Summary</button></div></div>
+     <div id="live"></div>
+     <div id="sum"><ol>
+      <li><b>Resting potential (−70 mV):</b> Na⁺/K⁺ pump moves 3 Na⁺ out, 2 K⁺ in (ATP). Membrane more permeable to K⁺, which diffuses out.</li>
+      <li><b>Generator potential:</b> a stimulus opens Na⁺ channels; Na⁺ diffuses in.</li>
+      <li><b>Threshold (−55 mV):</b> voltage-gated Na⁺ channels open and Na⁺ floods in: <b>depolarisation</b> (+40 mV).</li>
+      <li><b>Repolarisation:</b> Na⁺ channels close; voltage-gated K⁺ channels open, K⁺ out.</li>
+      <li><b>Hyperpolarisation:</b> K⁺ channels slow to close (≈ −80 mV). Then −70 mV is restored (refractory period).</li>
+     </ol></div>
+    </div>
+   </div>
+
+   <svg id="cursor" viewBox="0 0 22 26"><path d="M2 2 L2 20.5 L6.8 16 L10.3 23.6 L13.6 22.1 L10.1 14.6 L16.6 14.6 Z" fill="#0F172A" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+   <div id="ripple"></div>
+  </div>
+ </div>
+ <div id="caption"><span id="capTag">Membrane Lab</span><span id="capText"></span></div>
+</div>
+
+<script>
+const REC = new URLSearchParams(location.search).has('record');
+const FF = 'Inter, InterLocal, system-ui, sans-serif';
+const $ = s => document.querySelector(s);
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let rnd = mulberry32(20261120);
+const R=(a,b)=>a+(b-a)*rnd();
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const sm=t=>t*t*(3-2*t), eo=t=>1-(1-t)*(1-t);
+const lerp=(a,b,t)=>a+(b-a)*t;
+
+/* ---------- geometry (canvas CSS px) ---------- */
+const CV={w:940,h:420,memTop:172,memBot:258}; CV.mid=(CV.memTop+CV.memBot)/2;
+const OUT={x0:22,x1:918,y0:44,y1:120}, IN={x0:22,x1:918,y0:314,y1:390};
+const STR={x:110}, PUMP={x:265,hw:46}, KCH=[{x:410},{x:460}], NAV=[{x:600},{x:660}], KV={x:800};
+const NO_GO=[[STR.x-24,STR.x+24],[PUMP.x-60,PUMP.x+60],[KCH[0].x-22,KCH[1].x+22],[NAV[0].x-24,NAV[1].x+24],[KV.x-24,KV.x+24]];
+const LBL_UP=CV.memTop-30, LBL_DN=CV.memBot+30;
+
+/* ---------- state ---------- */
+let S, ions, labels;
+function freshState(){
+  rnd = mulberry32(20261120);
+  S={pumpOn:false,leakOn:false,showCharges:false,stepMode:false,highlight:null,V:0,G:0,cycles:0,
+     pump:{active:false,tc:0,na:[],k:[]}, leak:{timer:0,eq:false,debt:0,alt:0,ch:0},
+     ap:{phase:'rest',t:0,dur:1,sched:[],hold:false}, gates:{str:0,nav:0,kv:0}, kGap:2,
+     trace:[], traceT:0, flash:'', flashT:0, tab:'live'};
+  labels=[]; ions=[];
+  const add=(t,reg,n)=>{const b=reg==='out'?OUT:IN;for(let i=0;i<n;i++){let x,y,ok,tries=0;do{x=R(b.x0,b.x1);y=R(b.y0,b.y1);ok=ions.every(o=>Math.hypot(o.x-x,o.y-y)>27);}while(!ok&&++tries<60);ions.push({t,reg,x,y,vx:R(-14,14),vy:R(-14,14),busy:false,anim:null})}};
+  add('Na','out',14);add('Na','in',14);add('K','out',14);add('K','in',14);
+}
+const count=(t,reg)=>ions.filter(i=>i.t===t&&i.reg===reg).length;
+const free=(t,reg)=>ions.filter(i=>i.t===t&&i.reg===reg&&!i.busy);
+function pick(t,reg,x,y,n){return free(t,reg).sort((a,b)=>Math.hypot(a.x-x,a.y-y)-Math.hypot(b.x-x,b.y-y)).slice(0,n)}
+function move(ion,pts,dur,done){ion.busy=true;ion.anim={pts:[{x:ion.x,y:ion.y},...pts],t:0,dur,done}}
+function along(pts,p){let L=[],tot=0;for(let i=1;i<pts.length;i++){const d=Math.hypot(pts[i].x-pts[i-1].x,pts[i].y-pts[i-1].y);L.push(d);tot+=d}
+  let s=p*tot;for(let i=0;i<L.length;i++){if(s<=L[i]||i===L.length-1){const f=L[i]?Math.min(1,s/L[i]):1;return{x:lerp(pts[i].x,pts[i+1].x,f),y:lerp(pts[i].y,pts[i+1].y,f)}}s-=L[i]}}
+function addLabel(text,x,y,color,dur=1.1){labels.push({text,x,y,color,t:0,dur})}
+const relY=reg=>reg==='out'?R(70,118):R(318,372);
+// move one ion straight through a channel at x
+function chMove(t,dir,x,dur){
+  const from=dir==='in'?'out':'in', to=dir==='in'?'in':'out';
+  const o=pick(t,from,x,from==='out'?OUT.y1:IN.y0,1)[0]; if(!o) return;
+  const a=from==='out'?CV.memTop-12:CV.memBot+12, b=from==='out'?CV.memBot+12:CV.memTop-12;
+  move(o,[{x,y:a},{x,y:b},{x:x+R(-60,60),y:relY(to)}],dur,()=>{o.reg=to;o.busy=false});
+}
+
+/* ---------- Na+/K+ pump: 3 Na+ out, 2 K+ in per ATP ---------- */
+const PT={flip1:.36,out:.52,kbind:.9,flip2:1.22,kin:1.38,end:1.8};
+function pumpFlip(tc){ if(!S.pump.active) return 0;
+  if(tc<PT.flip1) return 0; if(tc<PT.out) return ease((tc-PT.flip1)/(PT.out-PT.flip1));
+  if(tc<PT.flip2) return 1; if(tc<PT.kin) return 1-ease((tc-PT.flip2)/(PT.kin-PT.flip2)); return 0;}
+function pumpStep(dt){
+  const P=S.pump;
+  if(!P.active){
+    if(S.pumpOn && free('Na','in').length>=3 && free('K','out').length>=2){
+      P.active=true;P.tc=0;P.na=pick('Na','in',PUMP.x,IN.y0,3);
+      P.na.forEach((o,i)=>move(o,[{x:PUMP.x-22+i*22,y:CV.memBot-16}],.34));
+    } else return;
+  }
+  const a=P.tc; P.tc+=dt; const b=P.tc, X=v=>a<v&&b>=v;
+  if(X(PT.flip1)){P.na.forEach((o,i)=>move(o,[{x:PUMP.x-22+i*22,y:CV.memTop+16}],PT.out-PT.flip1));addLabel('ATP → ADP + Pi',PUMP.x+66,CV.mid+62,'#0F766E',1.2)}
+  if(X(PT.out)){P.na.forEach(o=>move(o,[{x:PUMP.x+R(-75,75),y:relY('out')}],.38,()=>{o.reg='out';o.busy=false}));addLabel('↑ 3 Na⁺ out',PUMP.x+100,92,'#B45309')}
+  if(X(PT.kbind)){P.k=pick('K','out',PUMP.x,OUT.y1,2);P.k.forEach((o,i)=>move(o,[{x:PUMP.x-13+i*26,y:CV.memTop+16}],.3))}
+  if(X(PT.flip2)){P.k.forEach((o,i)=>move(o,[{x:PUMP.x-13+i*26,y:CV.memBot-16}],PT.kin-PT.flip2))}
+  if(X(PT.kin)){P.k.forEach(o=>move(o,[{x:PUMP.x+R(-75,75),y:relY('in')}],.38,()=>{o.reg='in';o.busy=false}));if(P.k.length)addLabel('↓ 2 K⁺ in',PUMP.x+96,350,'#6D28D9');}
+  if(b>=PT.end){P.active=false;S.cycles++}
+}
+
+/* ---------- K+ leak channels ---------- */
+function Vtarget(){return (S.pumpOn?-5*S.G:0)+(S.leakOn?-65*S.G:0)}
+function leakMove(dir){
+  const ch=KCH[S.leak.ch++%2];
+  chMove('K',dir,ch.x,.8);
+  const mx=(KCH[0].x+KCH[1].x)/2;
+  if(dir==='out') addLabel(S.leak.eq?'↑ K⁺ out':'↑ K⁺ diffuses out',mx,96,'#6D28D9',.9);
+  else addLabel(S.G>=.3?'↓ K⁺ attracted back in':'↓ K⁺ in',mx,352,'#6D28D9',.9);
+}
+function leakStep(dt){
+  const L=S.leak; if(!S.leakOn){L.eq=false;return}
+  if(S.ap.phase!=='rest') return;
+  L.timer-=dt; if(L.timer>0) return;
+  if(S.G<.3){leakMove(L.alt++%2?'in':'out');L.timer=.9;return}
+  if(!L.eq && S.V>Vtarget()+3){leakMove('out');L.timer=.42;return}
+  L.eq=true;
+  if(L.debt>0){L.debt--;leakMove('out');L.timer=.7}else{leakMove(L.alt++%2?'in':'out');L.timer=1.1}
+}
+
+/* ---------- stimulus and action potential ---------- */
+const NEXT={gen:'depol',depol:'repol',repol:'hyper',hyper:'recover'};
+const DUR={gen:1.0,genW:.7,decay:1.2,depol:1.6,repol:2.0,hyper:1.2,recover:2.5};
+const HOLD_TXT={depol:'Threshold reached (−55 mV)',repol:'Peak ≈ +40 mV',hyper:'Back to −70 mV',recover:'Hyperpolarised ≈ −80 mV'};
+function stimulate(kind){
+  if(S.ap.phase!=='rest') return;
+  if(S.V>-60){S.flash='Set up the resting potential first: switch on the Na⁺/K⁺ pump and the K⁺ leak channels.';S.flashT=4;return}
+  S.ap={phase:'gen',kind,V0:S.V,t:0,dur:1,sched:[],hold:false};enter('gen');
+}
+function enter(ph){
+  const A=S.ap; A.phase=ph; A.t=0; A.hold=false; A.sched=[];
+  A.dur = ph==='gen'&&A.kind==='weak' ? DUR.genW : DUR[ph];
+  const at=(t,fn)=>A.sched.push({t,fn});
+  if(ph==='gen'){const n=A.kind==='strong'?4:2;for(let i=0;i<n;i++)at(.05+i*.18,()=>chMove('Na','in',STR.x,.7));
+    at(0,()=>{addLabel('↓ pressure (stimulus)',STR.x+20,60,'#047857',1.4);addLabel('↓ Na⁺ diffuses in',STR.x+30,352,'#047857',1.4)})}
+  if(ph==='depol'){for(let i=0;i<7;i++)at(.06+i*.15,()=>chMove('Na','in',NAV[i%2].x,.6));at(.05,()=>addLabel('↓ Na⁺ floods in',630,352,'#B45309',1.6))}
+  if(ph==='repol'){for(let i=0;i<6;i++)at(.1+i*.22,()=>chMove('K','out',KV.x,.7));at(.08,()=>addLabel('↑ K⁺ diffuses out',KV.x,92,'#5B21B6',1.9))}
+  if(ph==='hyper'){for(let i=0;i<2;i++)at(.05+i*.3,()=>chMove('K','out',KV.x,.7));at(.05,()=>addLabel('↑ extra K⁺ leaves',KV.x,92,'#5B21B6',1.2))}
+}
+function apV(){const A=S.ap,p=clamp(A.t/A.dur,0,1);
+  switch(A.phase){
+    case 'gen': return A.kind==='weak'?A.V0+9*eo(p):A.V0+(-55-A.V0)*eo(p);
+    case 'decay': return A.V0+9*(1-sm(p));
+    case 'depol': return -55+95*sm(p);
+    case 'repol': return 40-110*sm(p);
+    case 'hyper': return -70-10*eo(p);
+    case 'recover': return -80+10*sm(p);
+  } return S.V;}
+function apStep(dt){
+  const A=S.ap; if(A.phase==='rest') return;
+  if(A.hold){ if(!S.stepMode) enter(A.pending); else return; }
+  const a=A.t; A.t+=dt;
+  for(const s of A.sched) if(a<=s.t&&A.t>s.t) s.fn();
+  if(A.t>=A.dur){
+    A.t=A.dur;
+    let nx = A.phase==='gen'&&A.kind==='weak' ? 'decay' : A.phase==='decay'||A.phase==='recover' ? 'rest' : NEXT[A.phase];
+    if(nx==='rest'){S.V=apV();A.phase='rest';return}
+    if(S.stepMode && nx!=='decay'){A.hold=true;A.pending=nx;return}
+    enter(nx);
   }
 }
+
+function step(dt){
+  pumpStep(dt); leakStep(dt); apStep(dt);
+  S.G=Math.min(1,S.cycles/3);
+  if(S.ap.phase==='rest') S.V+=(Vtarget()-S.V)*(1-Math.exp(-dt/.7)); else S.V=apV();
+  const ph=S.ap.phase, k=1-Math.exp(-dt/.1);
+  S.kGap+=((S.leakOn?14:2)-S.kGap)*k;
+  S.gates.str+=(((ph==='gen')?1:0)-S.gates.str)*k;
+  S.gates.nav+=(((ph==='depol'&&!S.ap.hold)?1:0)-S.gates.nav)*k;
+  S.gates.kv+=(((ph==='repol'||ph==='hyper'||(ph==='recover'&&S.ap.t<.1))&&!(S.ap.hold&&S.ap.pending==='repol')?1:0)-S.gates.kv)*k;
+  S.flashT=Math.max(0,S.flashT-dt);
+  if(!S.ap.hold){S.traceT+=dt;S.trace.push({t:S.traceT,V:S.V,ph:ph==='decay'?'genW':ph==='gen'&&S.ap.kind==='weak'?'genW':ph});
+    while(S.trace.length&&S.trace[0].t<S.traceT-TR.win-1)S.trace.shift()}
+  for(const o of ions){
+    if(o.anim){const A=o.anim;A.t+=dt;const p=ease(Math.min(1,A.t/A.dur));const q=along(A.pts,p);o.x=q.x;o.y=q.y;
+      if(A.t>=A.dur){o.anim=null;if(A.done)A.done()} continue}
+    if(o.busy) continue;
+    const b=o.reg==='out'?OUT:IN;
+    o.vx+=R(-1,1)*60*dt;o.vy+=R(-1,1)*60*dt;const sp=Math.hypot(o.vx,o.vy);if(sp>22){o.vx*=22/sp;o.vy*=22/sp}
+    o.x+=o.vx*dt;o.y+=o.vy*dt;
+    if(o.x<b.x0){o.x=b.x0;o.vx=Math.abs(o.vx)} if(o.x>b.x1){o.x=b.x1;o.vx=-Math.abs(o.vx)}
+    if(o.y<b.y0){o.y=b.y0;o.vy=Math.abs(o.vy)} if(o.y>b.y1){o.y=b.y1;o.vy=-Math.abs(o.vy)}
+  }
+  const fr=ions.filter(o=>!o.busy);
+  for(let i=0;i<fr.length;i++)for(let j=i+1;j<fr.length;j++){const a=fr[i],b=fr[j];if(a.reg!==b.reg)continue;const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);
+    if(d<26&&d>0.01){const push=(26-d)/2*.35,ux=dx/d,uy=dy/d;a.x-=ux*push;a.y-=uy*push;b.x+=ux*push;b.y+=uy*push;a.vx-=ux*4;a.vy-=uy*4;b.vx+=ux*4;b.vy+=uy*4}}
+  for(const l of labels) l.t+=dt; labels=labels.filter(l=>l.t<l.dur);
+}
+
+/* ---------- membrane drawing ---------- */
+const cv=$('#cv'), ctx=cv.getContext('2d'), DPR=2.6;
+cv.width=CV.w*DPR; cv.height=CV.h*DPR;
+function rr(c,x,y,w,h,r){c.beginPath();c.roundRect(x,y,w,h,r)}
+function pill(c,text,x,y,fg,bg,font='600 11.5px'){c.font=font+' '+FF;const w=c.measureText(text).width+16;rr(c,x-w/2,y-10,w,20,10);c.fillStyle=bg;c.fill();c.fillStyle=fg;c.textAlign='center';c.textBaseline='middle';c.fillText(text,x,y+.5);return w}
+function channel(x,gap,col,gate,gateSide,gateCol){
+  for(const s of [-1,1]){rr(ctx,x+s*(gap/2)+(s<0?-16:0),CV.memTop-10,16,CV.memBot-CV.memTop+20,7);ctx.fillStyle=col;ctx.fill()}
+  if(gateSide){const y=gateSide==='top'?CV.memTop-8:CV.memBot+8;const dir=gateSide==='top'?-1:1;
+    ctx.save();ctx.translate(x-gap/2-16,y);ctx.rotate(dir*gate*1.25);rr(ctx,0,-4,gap+32,8,4);ctx.fillStyle=gateCol;ctx.fill();ctx.restore()}
+}
+function draw(){
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.fillStyle='#E7F2FB';ctx.fillRect(0,0,CV.w,CV.memTop);
+  ctx.fillStyle='#F3EEFB';ctx.fillRect(0,CV.memBot,CV.w,CV.h-CV.memBot);
+  ctx.fillStyle='#FBF4E8';ctx.fillRect(0,CV.memTop,CV.w,CV.memBot-CV.memTop);
+  ctx.textAlign='left';ctx.textBaseline='middle';
+  ctx.font='700 11px '+FF;ctx.fillStyle='#1E3A5F';ctx.fillText('OUTSIDE',16,20);ctx.font='500 11px '+FF;ctx.fillStyle='#64748B';ctx.fillText('tissue fluid',76,20);
+  ctx.font='700 11px '+FF;ctx.fillStyle='#4C1D95';ctx.fillText('INSIDE',16,CV.h-13);ctx.font='500 11px '+FF;ctx.fillStyle='#64748B';ctx.fillText('cytoplasm',65,CV.h-13);
+  for(let x=10;x<CV.w;x+=15){
+    if(NO_GO.some(([a,b])=>x>a-6&&x<b+6)) continue;
+    ctx.strokeStyle='#E2B97A';ctx.lineWidth=1.6;ctx.beginPath();
+    ctx.moveTo(x-2,CV.memTop+13);ctx.lineTo(x-2,CV.mid-3);ctx.moveTo(x+2,CV.memTop+13);ctx.lineTo(x+2,CV.mid-3);
+    ctx.moveTo(x-2,CV.memBot-13);ctx.lineTo(x-2,CV.mid+3);ctx.moveTo(x+2,CV.memBot-13);ctx.lineTo(x+2,CV.mid+3);ctx.stroke();
+    for(const y of [CV.memTop+7,CV.memBot-7]){ctx.beginPath();ctx.arc(x,y,6.3,0,7);ctx.fillStyle='#F2C27B';ctx.fill();ctx.strokeStyle='#D49A45';ctx.lineWidth=1;ctx.stroke()}
+  }
+  // pump
+  const flip=pumpFlip(S.pump.tc), px=PUMP.x, top=CV.memTop-16, h=CV.memBot-CV.memTop+32;
+  const g=ctx.createLinearGradient(px-PUMP.hw,0,px+PUMP.hw,0);g.addColorStop(0,'#0F766E');g.addColorStop(.5,'#14B8A6');g.addColorStop(1,'#0F766E');
+  rr(ctx,px-PUMP.hw,top,PUMP.hw*2,h,22);ctx.fillStyle=g;ctx.fill();
+  const cy=lerp(CV.memBot-16,CV.memTop+16,flip);
+  ctx.fillStyle='#CCFBF1';ctx.beginPath();ctx.ellipse(px,cy,36,17,0,0,7);ctx.fill();
+  ctx.fillRect(px-13,cy,26,(top+h-cy)*(1-flip)); ctx.fillRect(px-13,top+(cy-top)*(1-flip),26,(cy-top)*flip);
+  // channels
+  channel(STR.x,6+8*S.gates.str,'#34D399',S.gates.str,'top','#047857');
+  for(const c of KCH) channel(c.x,S.kGap,S.leakOn?'#8B5CF6':'#A78BFA',0,null);
+  for(const c of NAV) channel(c.x,6+8*S.gates.nav,'#FBBF24',S.gates.nav,'top','#B45309');
+  channel(KV.x,6+8*S.gates.kv,'#7C3AED',S.gates.kv,'bottom','#4C1D95');
+  // charges (sign flips when the inside becomes positive)
+  if(S.showCharges){const n=Math.round(18*Math.min(1,Math.abs(S.V)/70));const xs=[];for(let x=36;x<CV.w-24;x+=22){if(!NO_GO.some(([a,b])=>x>a-12&&x<b+12))xs.push(x)}
+    const stepI=xs.length/Math.max(1,n), pos=S.V<0;
+    for(let k=0;k<n;k++){const x=xs[Math.floor(k*stepI)];
+      for(const [y,c,s] of [[CV.memTop-8,pos?'#DC2626':'#2563EB',pos?'+':'−'],[CV.memBot+8,pos?'#2563EB':'#DC2626',pos?'−':'+']]){ctx.beginPath();ctx.arc(x,y,7.5,0,7);ctx.fillStyle=c;ctx.fill();ctx.fillStyle='#fff';ctx.font='700 12px '+FF;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(s,x,y+.5)}}}
+  // ions
+  for(const o of ions){
+    const dim=S.highlight&&S.highlight!==o.t;
+    ctx.globalAlpha=dim?.22:1;
+    if(S.highlight===o.t){ctx.beginPath();ctx.arc(o.x,o.y,15.5,0,7);ctx.fillStyle=o.t==='K'?'rgba(124,58,237,.22)':'rgba(245,158,11,.25)';ctx.fill()}
+    ctx.beginPath();ctx.arc(o.x,o.y,11,0,7);ctx.fillStyle=o.t==='K'?'#7C3AED':'#F59E0B';ctx.fill();
+    ctx.lineWidth=1.5;ctx.strokeStyle='rgba(255,255,255,.9)';ctx.stroke();
+    ctx.fillStyle='#fff';ctx.font='700 9.5px '+FF;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(o.t==='K'?'K⁺':'Na⁺',o.x,o.y+.5);
+    ctx.globalAlpha=1;
+  }
+  // protein labels
+  const ph=S.ap.phase;
+  pill(ctx,'Na⁺/K⁺ pump · '+(S.pumpOn?'on':'off'),PUMP.x,LBL_UP,'#fff','#0F766E');
+  pill(ctx,'Voltage-gated Na⁺ · '+(S.gates.nav>.5?'open':'closed'),(NAV[0].x+NAV[1].x)/2,LBL_UP,'#fff','#B45309');
+  pill(ctx,'Stretch-mediated Na⁺ · '+(S.gates.str>.5?'open':'closed'),STR.x,LBL_DN,'#fff','#047857');
+  pill(ctx,'K⁺ leak channels · '+(S.leakOn?'open':'closed'),(KCH[0].x+KCH[1].x)/2,LBL_DN,'#fff','#6D28D9');
+  pill(ctx,'Voltage-gated K⁺ · '+(S.gates.kv>.5?'open':'closed'),KV.x,LBL_DN,'#fff','#4C1D95');
+  pill(ctx,'phospholipid bilayer',882,CV.mid,'#92400E','rgba(251,244,232,.96)','600 10px');
+  for(const l of labels){const a=Math.min(1,l.t/.15,(l.dur-l.t)/.25);ctx.globalAlpha=clamp(a,0,1);
+    pill(ctx,l.text,l.x,l.y-l.t*8,'#fff',l.color,'700 12px');ctx.globalAlpha=1}
+}
+
+/* ---------- trace chart ---------- */
+const TR={w:940,h:166,l:122,r:18,t:26,b:30,win:16};
+const tr=$('#tr'), tctx=tr.getContext('2d');
+tr.width=TR.w*DPR; tr.height=TR.h*DPR;
+const PH={rest:['#0F172A',''],genW:['#059669','generator potential (below threshold)'],gen:['#059669','generator potential'],
+  depol:['#D97706','depolarisation'],repol:['#7C3AED','repolarisation'],hyper:['#2563EB','hyperpolarisation'],recover:['#0D9488','refractory period']};
+const TOPROW={depol:1,repol:1};
+function drawTrace(){
+  const c=tctx;c.setTransform(DPR,0,0,DPR,0,0);c.clearRect(0,0,TR.w,TR.h);
+  const y=V=>TR.t+(50-V)/140*(TR.h-TR.t-TR.b), x0=S.traceT-TR.win, x=t=>TR.l+(t-x0)/TR.win*(TR.w-TR.l-TR.r);
+  // runs
+  const runs=[];for(const p of S.trace){const last=runs[runs.length-1];if(!last||last.ph!==p.ph||p.t-last.t1>.2)runs.push({ph:p.ph,t0:p.t,t1:p.t});else last.t1=p.t}
+  for(const r of runs){if(r.ph==='rest')continue;c.fillStyle=PH[r.ph][0]+'14';const a=Math.max(TR.l,x(r.t0));c.fillRect(a,TR.t-4,x(r.t1)-a,TR.h-TR.t-TR.b+8)}
+  // grid
+  c.font='600 11px '+FF;c.textBaseline='middle';c.textAlign='right';
+  for(const [V,txt,col,dash] of [[40,'+40 mV','#64748B',[2,4]],[0,'0 mV','#64748B',[2,4]],[-55,'threshold −55','#DC2626',[6,4]],[-70,'resting −70','#2563EB',[6,4]]]){
+    c.strokeStyle=col;c.globalAlpha=.55;c.setLineDash(dash);c.lineWidth=1;c.beginPath();c.moveTo(TR.l,y(V));c.lineTo(TR.w-TR.r,y(V));c.stroke();c.globalAlpha=1;c.setLineDash([]);
+    c.fillStyle=col;c.fillText(txt,TR.l-10,y(V))}
+  // curve
+  c.lineWidth=2.6;c.lineJoin='round';c.lineCap='round';
+  for(let i=1;i<S.trace.length;i++){const a=S.trace[i-1],b=S.trace[i];if(b.t<x0)continue;
+    c.strokeStyle=PH[b.ph][0];c.beginPath();c.moveTo(Math.max(TR.l,x(a.t)),y(a.V));c.lineTo(x(b.t),y(b.V));c.stroke()}
+  // stage labels (shifted right if they would overlap)
+  const lastRight={top:-1e9,bot:-1e9};
+  for(const r of runs){if(r.ph==='rest'||x(r.t1)<TR.l)continue;const row=TOPROW[r.ph]?'top':'bot';
+    c.font='700 11px '+FF;const w=c.measureText(PH[r.ph][1]).width+16;
+    let cx=clamp((x(Math.max(r.t0,x0))+x(r.t1))/2,TR.l+w/2,TR.w-TR.r-w/2);cx=Math.max(cx,lastRight[row]+6+w/2);lastRight[row]=cx+w/2;
+    pill(c,PH[r.ph][1],cx,row==='top'?12:TR.h-12,'#fff',PH[r.ph][0],'700 11px')}
+  // latest point
+  const L=S.trace[S.trace.length-1];if(L){c.beginPath();c.arc(x(L.t),y(L.V),4.5,0,7);c.fillStyle=PH[L.ph][0];c.fill();c.strokeStyle='#fff';c.lineWidth=2;c.stroke();
+    if(S.ap.hold){c.font='700 11.5px '+FF;const t='Paused · '+HOLD_TXT[S.ap.pending];const w=c.measureText(t).width+16;
+      pill(c,t,clamp(x(L.t)-w/2-14,TR.l+w/2,TR.w-TR.r-w/2),clamp(y(L.V)+(L.V>0?24:-20),TR.t+8,TR.h-TR.b-6),'#fff','#0F172A','700 11.5px')}}
+}
+
+/* ---------- side panel ---------- */
+const sgn=v=>(v<0?'−':v>0?'+':'')+Math.abs(v);
+let lastLive='';
+const PHASE_NOTE={
+  genW:'<b>Generator potential:</b> the stimulus opened stretch-mediated Na⁺ channels and Na⁺ diffused in. It is too small to reach threshold, so there is <b>no action potential</b> (all-or-nothing).',
+  gen:'<b>Generator potential:</b> a stronger stimulus opens more Na⁺ channels, so more Na⁺ diffuses in and the inside becomes less negative.',
+  thr:'<b>Threshold reached (−55 mV).</b> Voltage-gated Na⁺ channels now open.',
+  depol:'<b>Depolarisation:</b> voltage-gated Na⁺ channels open and Na⁺ diffuses in rapidly. The inside becomes positive, about +40 mV.',
+  repol:'<b>Repolarisation:</b> voltage-gated Na⁺ channels close and voltage-gated K⁺ channels open. K⁺ diffuses out, so the inside becomes negative again.',
+  hyper:'<b>Hyperpolarisation:</b> voltage-gated K⁺ channels are slow to close, so too much K⁺ leaves. The potential falls to about −80 mV.',
+  recover:'<b>Refractory period:</b> the K⁺ channels close and the Na⁺/K⁺ pump and K⁺ leak restore −70 mV. Another action potential cannot start yet.'};
+function panel(){
+  const v=Math.round(S.V), ph=S.ap.phase;
+  $('#mVal').firstChild.nodeValue=sgn(v);
+  $('#mMark').style.left=clamp((S.V+90)/140*100,0,100)+'%';
+  const chip=$('#mChip');let ct,cb,cc;
+  if(ph==='gen'||ph==='decay'){ct='Generator potential';cb='#D1FAE5';cc='#047857'}
+  else if(ph==='depol'){ct='Depolarising';cb='#FEF3C7';cc='#92400E'}
+  else if(ph==='repol'){ct='Repolarising';cb='#EDE9FE';cc='#5B21B6'}
+  else if(ph==='hyper'){ct='Hyperpolarised';cb='#DBEAFE';cc='#1D4ED8'}
+  else if(ph==='recover'){ct='Refractory period';cb='#CCFBF1';cc='#0F766E'}
+  else if(S.V<-60){ct='Polarised (resting)';cb='#DBEAFE';cc='#1D4ED8'}
+  else if(S.V<-3){ct='Becoming polarised';cb='#FEF3C7';cc='#92400E'}
+  else {ct='No potential difference';cb='#F1F5F9';cc='#475569'}
+  chip.textContent=ct;chip.style.background=cb;chip.style.color=cc;
+  const c={NaO:count('Na','out'),NaI:count('Na','in'),KO:count('K','out'),KI:count('K','in')};
+  for(const k in c){$('#n'+k).textContent=c[k];$('#b'+k).style.width=(c[k]*4)+'px'}
+  $('#rowNa').classList.toggle('sel',S.highlight==='Na');$('#rowK').classList.toggle('sel',S.highlight==='K');
+  const busy=ph!=='rest';$('#bWeak').disabled=busy;$('#bStrong').disabled=busy;
+  $('#bNext').disabled=!S.ap.hold;$('#bNext').classList.toggle('ready',!!S.ap.hold);
+  let t;
+  if(S.flashT>0) t=S.flash;
+  else if(ph!=='rest'){
+    const key=S.ap.hold?(S.ap.pending==='depol'?'thr':ph):(ph==='decay'||(ph==='gen'&&S.ap.kind==='weak')?'genW':ph);
+    t=PHASE_NOTE[key]+(S.ap.hold?'<br><span class="muted">Paused: click <b>Next stage</b> to continue.</span>':'');
+  }
+  else if(!S.pumpOn&&!S.leakOn) t='Pump and channels are off. With no concentration gradients there is <b>no potential difference</b> across the membrane.';
+  else if(S.leakOn&&S.G<.3) t='K⁺ channels are open, but there is no K⁺ concentration gradient yet, so there is no net movement.';
+  else if(S.leakOn&&!S.leak.eq) t='<b>K⁺ diffuses out</b> through the open K⁺ channels. Losing positive ions makes the inside <b>more negative</b>.';
+  else if(S.leakOn) t='<b>Resting potential ≈ −70 mV.</b> K⁺ diffusing out is balanced by the negative inside attracting K⁺ back in. Try a stimulus.';
+  else t='The <b>Na⁺/K⁺ pump</b> uses ATP to move <b>3 Na⁺ out</b> and <b>2 K⁺ in</b>, building concentration gradients.';
+  if(t!==lastLive){$('#live').innerHTML=t;lastLive=t}
+}
+function syncControls(){
+  $('#tPump').setAttribute('aria-checked',S.pumpOn);$('#tLeak').setAttribute('aria-checked',S.leakOn);
+  $('#tCharges').setAttribute('aria-checked',S.showCharges);$('#tStep').setAttribute('aria-checked',S.stepMode);
+  $('#tabLive').classList.toggle('on',S.tab==='live');$('#tabSum').classList.toggle('on',S.tab==='sum');
+  $('#live').style.display=S.tab==='live'?'block':'none';$('#sum').style.display=S.tab==='sum'?'block':'none';
+}
+
+/* ---------- interactions ---------- */
+$('#tPump').onclick=()=>{S.pumpOn=!S.pumpOn;syncControls()};
+$('#tLeak').onclick=()=>{S.leakOn=!S.leakOn;S.leak.timer=.15;syncControls()};
+$('#tCharges').onclick=()=>{S.showCharges=!S.showCharges;syncControls()};
+$('#tStep').onclick=()=>{S.stepMode=!S.stepMode;syncControls()};
+$('#bNext').onclick=()=>{if(S.ap.hold)enter(S.ap.pending)};
+$('#bWeak').onclick=()=>stimulate('weak');
+$('#bStrong').onclick=()=>stimulate('strong');
+$('#reset').onclick=()=>{freshState();hideTip();syncControls()};
+$('#rowNa').onclick=()=>{S.highlight=S.highlight==='Na'?null:'Na'};
+$('#rowK').onclick=()=>{S.highlight=S.highlight==='K'?null:'K'};
+$('#tabLive').onclick=()=>{S.tab='live';syncControls()};
+$('#tabSum').onclick=()=>{S.tab='sum';syncControls()};
+const INFO={
+  str:['Stretch-mediated Na⁺ channel','In a receptor such as a Pacinian corpuscle, pressure deforms the membrane and opens these channels. Na⁺ diffuses in, producing a generator potential.',STR.x],
+  pump:['Na⁺/K⁺ pump','A carrier protein. It uses ATP to actively transport 3 Na⁺ out and 2 K⁺ in, against their concentration gradients.',PUMP.x],
+  k:['K⁺ leak channels','Channel proteins that stay open at rest, so the membrane is more permeable to K⁺. K⁺ diffuses out down its concentration gradient.',(KCH[0].x+KCH[1].x)/2],
+  nav:['Voltage-gated Na⁺ channels','Closed at rest, so the membrane is much less permeable to Na⁺. They open at threshold (about −55 mV) and Na⁺ floods in.',(NAV[0].x+NAV[1].x)/2],
+  kv:['Voltage-gated K⁺ channel','Opens at about +40 mV, so K⁺ diffuses out (repolarisation). Slow to close, which causes hyperpolarisation.',KV.x]};
+function showTip(key){const [t,b,x]=INFO[key];$('#tipT').textContent=t;$('#tipB').textContent=b;const tip=$('#tip');tip.style.display='block';
+  tip.style.left=clamp(x-125,12,CV.w-262)+'px';tip.style.top='44px'}
+function hideTip(){$('#tip').style.display='none'}
+function canvasClick(x,y){
+  if(y<CV.memTop-46||y>CV.memBot+46){hideTip();return}
+  if(Math.abs(x-STR.x)<44)showTip('str');else if(Math.abs(x-PUMP.x)<56)showTip('pump');
+  else if(x>KCH[0].x-30&&x<KCH[1].x+30)showTip('k');else if(x>NAV[0].x-30&&x<NAV[1].x+30)showTip('nav');
+  else if(Math.abs(x-KV.x)<40)showTip('kv');else hideTip();
+}
+cv.addEventListener('click',e=>{const r=cv.getBoundingClientRect();canvasClick((e.clientX-r.left)*CV.w/r.width,(e.clientY-r.top)*CV.h/r.height)});
+$('#tip button').onclick=hideTip;
+document.addEventListener('click',e=>{if(!e.target.closest('#cv,#tip'))hideTip()},true);
+
+freshState();syncControls();
+
+/* ---------- interactive mode ---------- */
+if(!REC){
+  $('#capTag').textContent='How to use';
+  $('#capText').textContent='Switch on the pump and K⁺ leak channels to set up −70 mV, then try a weak or strong stimulus. Click proteins for details.';
+  const fit=()=>{const s=Math.min(innerWidth/1440,innerHeight/810);const f=$('#frame');f.style.transform=`scale(${s})`;f.style.left=(innerWidth-1440*s)/2+'px';f.style.top=(innerHeight-810*s)/2+'px'};
+  addEventListener('resize',fit);fit();
+  let last=performance.now();
+  (function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;step(dt);draw();drawTrace();panel();requestAnimationFrame(loop)})(last);
+}
+
+/* ---------- recording director (screencast layer, only with ?record) ---------- */
+if(REC){
+  document.body.classList.add('rec');
+  const W=1440,H=746;
+  const ctr=sel=>{const r=$(sel).getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}};
+  const cvAt=(x,y)=>({x:16+x,y:100+y});
+  const CAP=[
+    ['Resting potential','How does a neurone set up its resting potential, and what happens when it is stimulated?'],
+    ['Resting potential','Na⁺/K⁺ pump: active transport using ATP. 3 Na⁺ are pumped out for every 2 K⁺ pumped in.'],
+    ['Resting potential','This sets up concentration gradients: more Na⁺ outside, more K⁺ inside.'],
+    ['Resting potential','Many K⁺ channels are open, so the membrane is more permeable to K⁺. K⁺ diffuses out down its gradient.'],
+    ['Resting potential','Voltage-gated Na⁺ channels are closed at rest, so the membrane is much less permeable to Na⁺.'],
+    ['Resting potential','More positive ions outside than inside: the membrane is polarised. Resting potential ≈ −70 mV.'],
+    ['Resting potential','At rest both gradients stay in place: Na\u207a (orange) mostly outside, K\u207a (purple) mostly inside.'],
+    ['Generator potential','A stimulus opens Na⁺ channels (stretch-mediated in a Pacinian corpuscle). Na⁺ diffuses in: a generator potential.'],
+    ['Generator potential','A weak stimulus gives a small generator potential that stays below threshold (−55 mV): no action potential.'],
+    ['Generator potential','A stronger stimulus gives a bigger generator potential, which reaches the threshold of about −55 mV.'],
+    ['Depolarisation','Voltage-gated Na⁺ channels open and Na⁺ floods in. The inside becomes positive, about +40 mV.'],
+    ['Repolarisation','Na⁺ channels close and voltage-gated K⁺ channels open. K⁺ diffuses out, so the inside becomes negative again.'],
+    ['Hyperpolarisation','The K⁺ channels are slow to close, so too much K⁺ leaves. The potential dips to about −80 mV.'],
+    ['Refractory period','The K⁺ channels close and the Na⁺/K⁺ pump restores −70 mV. Until then, no new action potential can start.'],
+    ['Summary','Stimulus → generator potential → threshold → depolarisation → repolarisation → hyperpolarisation → resting potential.']];
+  const A=[
+    {click:60,  to:()=>ctr('#tPump'), act:()=>$('#tPump').click(), zoom:()=>cvAt(PUMP.x+70,CV.mid)},
+    {click:171, to:()=>({x:ctr('#rowK').x-150,y:ctr('#rowK').y}), act:()=>$('#rowK').click(), zoom:()=>ctr('#concCard')},
+    {click:282, to:()=>ctr('#tLeak'), act:()=>$('#tLeak').click(), zoom:()=>cvAt(435,CV.mid)},
+    {click:393, to:()=>cvAt(NAV[1].x+2,CV.mid+16), act:()=>canvasClick(NAV[1].x+2,CV.mid+16), zoom:()=>cvAt(630,CV.mid-50)},
+    {click:504, to:()=>ctr('#tCharges'), act:()=>{hideTip();$('#tCharges').click()}, zoom:()=>ctr('#meterCard')},
+    {click:615, to:()=>({x:ctr('#rowK').x-150,y:ctr('#rowK').y}), act:()=>$('#rowK').click(), zoom:()=>cvAt(470,CV.mid)},
+    {click:726, to:()=>ctr('#bWeak'), act:()=>$('#bWeak').click(), zoom:()=>cvAt(200,CV.mid)},
+    {click:837, to:()=>ctr('#tStep'), act:()=>$('#tStep').click(), zoom:()=>ctr('#traceCard')},
+    {click:948, to:()=>ctr('#bStrong'), act:()=>$('#bStrong').click(), zoom:()=>cvAt(200,CV.mid)},
+    {click:1059, to:()=>ctr('#bNext'), act:()=>$('#bNext').click(), zoom:()=>cvAt(630,CV.mid+40)},
+    {click:1170,to:()=>ctr('#bNext'), act:()=>$('#bNext').click(), zoom:()=>cvAt(KV.x,CV.mid+40)},
+    {click:1281,to:()=>ctr('#bNext'), act:()=>$('#bNext').click(), zoom:()=>ctr('#traceCard')},
+    {click:1392,to:()=>ctr('#bNext'), act:()=>$('#bNext').click(), zoom:()=>cvAt(PUMP.x+70,CV.mid+20)},
+    {click:1503,to:()=>ctr('#tabSum'), act:()=>$('#tabSum').click(), zoom:()=>ctr('#notesCard')},
+  ];
+  A.forEach((a,i)=>{a.T=a.to();a.Z=a.zoom();a.zout=i<A.length-1?A[i+1].click-36:1603});
+  const END=1667; window.__TOTAL=END;
+  const start={x:800,y:520};
+  const cursor=$('#cursor'),rip=$('#ripple'),stage=$('#stage');cursor.style.display='block';
+  function camAt(f){for(const a of A){const zin=a.click+4;if(f>=zin&&f<a.zout+18){const p=ease(clamp((f-zin)/18,0,1))*(1-ease(clamp((f-a.zout)/18,0,1)));return{s:1+.6*p,cx:lerp(W/2,a.Z.x,p),cy:lerp(H/2,a.Z.y,p)}}}return{s:1,cx:W/2,cy:H/2}}
+  function cursorAt(f){let prev=start;for(const a of A){const ms=a.click-34,ar=a.click-10;
+      if(f<ms) return prev; if(f<ar){const t=ease((f-ms)/(ar-ms));const dx=a.T.x-prev.x,dy=a.T.y-prev.y;
+        if(Math.hypot(dx,dy)<2) return a.T;
+        const cx=(prev.x+a.T.x)/2-dy*.18,cy=(prev.y+a.T.y)/2+dx*.18;
+        return{x:(1-t)*(1-t)*prev.x+2*(1-t)*t*cx+t*t*a.T.x,y:(1-t)*(1-t)*prev.y+2*(1-t)*t*cy+t*t*a.T.y}}
+      prev=a.T}return prev}
+  let f=-1;
+  window.__advance=()=>{
+    f++;
+    for(const a of A) if(f===a.click) a.act();
+    step(1/30);draw();drawTrace();panel();
+    const c=camAt(f);const tx=clamp(W/2-c.s*c.cx,W-c.s*W,0),ty=clamp(H/2-c.s*c.cy,H-c.s*H,0);
+    stage.style.transform=`translate(${tx}px,${ty}px) scale(${c.s})`;
+    const p=cursorAt(f);let press=1,rf=-1;
+    for(const a of A){const d=f-a.click;if(d>=0&&d<6)press=d<3?.86:1-(.14*(5-d)/3);if(d>=0&&d<14)rf=d}
+    cursor.style.transform=`translate(${p.x-2}px,${p.y-2}px) scale(${press})`;
+    if(rf>=0){const r=6+22*ease(rf/13);rip.style.display='block';rip.style.width=rip.style.height=2*r+'px';rip.style.left=p.x-r+'px';rip.style.top=p.y-r+'px';rip.style.opacity=1-rf/14}else rip.style.display='none';
+    const changes=[0,...A.map(a=>a.click)];let ci=0;for(let i=0;i<changes.length;i++)if(f>=changes[i])ci=i;
+    const next=changes[ci+1]??1e9;
+    $('#capTag').textContent=CAP[ci][0];$('#capText').textContent=CAP[ci][1];
+    const op=clamp(Math.min((f-changes[ci])/8,(next-f)/6),0,1);
+    $('#capText').style.opacity=op;$('#capTag').style.opacity=op;
+    return f;
+  };
+}
 </script>
-  <script type="module" crossorigin src="./assets/index-3OiqHxkU.js"></script>
-</head>
-  <body>
-    <div id="root"></div>
 </body>
 </html>

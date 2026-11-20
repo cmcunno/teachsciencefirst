@@ -18,6 +18,7 @@ export interface ScienceResource {
   isFavorite?: boolean;
   dateAdded?: string;
   authorNotes?: string;
+  videoUrl?: string; // optional explainer video (shown once the file exists)
 }
 
 // ScienceRepo alias for backwards compatibility

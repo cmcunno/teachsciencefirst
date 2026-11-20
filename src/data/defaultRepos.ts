@@ -286,19 +286,20 @@ export const INITIAL_REPOSITORIES: ScienceResource[] = [
   // ==========================================
   {
     id: 'res-ks5-biology-concepts-action-potentials',
-    title: 'NeuroAction - Action Potential Visualizer',
+    title: 'Membrane Lab: Resting & Action Potentials',
     keyStage: 'KS5',
     stageLevel: 'KS5 / A-Level (Ages 16-18)',
     subject: 'Biology',
     category: 'Concepts',
     slug: 'Action_potentials',
-    description: 'High-precision neuronal membrane potential visualizer: voltage-gated Na⁺ and K⁺ ion channels, threshold depolarization (+40mV), repolarization, refractory period, and oscilloscope trace.',
+    description: 'Build the resting potential with the Na⁺/K⁺ pump and K⁺ leak channels, then apply a weak or strong stimulus to see a generator potential, threshold, depolarisation, repolarisation and hyperpolarisation, with a live trace you can step through stage by stage.',
     url: '/resources/ks5/Biology/concepts/Action_potentials/index.html',
     path: 'resources/ks5/Biology/concepts/Action_potentials/index.html',
     fileName: 'index.html',
     isLocalRepo: true,
     isFavorite: true,
-    authorNotes: 'Advanced electrophysiology visualizer for A-Level nervous coordination units.'
+    authorNotes: 'A-Level nervous coordination. Turn on "Step through stages" to pause at each event; click any membrane protein for an explanation.',
+    videoUrl: '/resources/ks5/Biology/concepts/Action_potentials/action-potential.mp4'
   },
   {
     id: 'res-ks5-biology-concepts-tissue-fluid',

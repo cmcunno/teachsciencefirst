@@ -41,13 +41,22 @@ export default function App() {
         r?.slug === 'g m-tube' ||
         r?.path?.includes('g m-tube');
 
+      // Built-in resources always take their details (title, description, video...)
+      // from the code, so edits show up; only the teacher's favourite flag is kept.
+      const DEFAULTS = new Map(INITIAL_REPOSITORIES.map(r => [r.id, r]));
+      const refresh = (list: any[]) =>
+        list.map((r: any) => {
+          const d = DEFAULTS.get(r.id);
+          return d ? { ...d, isFavorite: r.isFavorite ?? d.isFavorite } : r;
+        });
+
       // 1. Try primary storage key v7
       const saved = localStorage.getItem(STORAGE_KEY_REPOS);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.path?.startsWith('resources/')) {
           const validCategories = new Set(['Concepts', 'Simulations']);
-          const cleaned = parsed.filter((r: any) => validCategories.has(r.category) && !isExcluded(r));
+          const cleaned = refresh(parsed.filter((r: any) => validCategories.has(r.category) && !isExcluded(r)));
           const existingIds = new Set(cleaned.map((r: any) => r.id));
           const missingDefaults = INITIAL_REPOSITORIES.filter(r => !existingIds.has(r.id));
           if (missingDefaults.length > 0) {
@@ -64,7 +73,7 @@ export default function App() {
         const parsed = JSON.parse(legacySaved);
         if (Array.isArray(parsed) && parsed.length > 0) {
           const validCategories = new Set(['Concepts', 'Simulations']);
-          const cleaned = parsed.filter((r: any) => validCategories.has(r.category) && !isExcluded(r));
+          const cleaned = refresh(parsed.filter((r: any) => validCategories.has(r.category) && !isExcluded(r)));
           const existingIds = new Set(cleaned.map((r: any) => r.id));
           const missingDefaults = INITIAL_REPOSITORIES.filter(r => !existingIds.has(r.id));
           return [...cleaned, ...missingDefaults];
