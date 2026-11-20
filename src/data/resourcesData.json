@@ -222,13 +222,13 @@
   },
   {
     "id": "res-ks5-biology-concepts-action-potentials",
-    "title": "NeuroAction - Action Potential Visualizer",
+    "title": "Membrane Lab: Resting & Action Potentials",
     "keyStage": "KS5",
     "stageLevel": "KS5 / A-Level (Ages 16-18)",
     "subject": "Biology",
     "category": "Concepts",
     "slug": "Action_potentials",
-    "description": "Neuronal membrane potential visualizer: voltage-gated Na+/K+ channels, depolarization, repolarization, refractory period, and axon trace.",
+    "description": "Resting potential, generator potential, threshold, depolarisation, repolarisation and hyperpolarisation, with a live membrane potential trace.",
     "url": "/resources/ks5/Biology/concepts/Action_potentials/index.html",
     "path": "resources/ks5/Biology/concepts/Action_potentials/index.html",
     "fileName": "index.html"

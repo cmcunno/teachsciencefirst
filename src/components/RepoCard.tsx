@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ExternalLink, Maximize2, Link2, Check, Star } from 'lucide-react';
+import { ExternalLink, Maximize2, Link2, Check, Star, Clapperboard } from 'lucide-react';
 import { ScienceResource } from '../types';
 import { resolveResourceUrl, getFullResourceUrl } from '../utils/url';
 import { SUBJECT_STYLE } from '../utils/subjects';
+import { useVideoAvailable } from '../utils/useVideoAvailable';
 
 interface RepoCardProps {
   repo: ScienceResource;
@@ -23,6 +24,7 @@ export const RepoCard: React.FC<RepoCardProps> = ({
   const [copied, setCopied] = useState(false);
   const resolvedUrl = resolveResourceUrl(repo.url);
   const subject = SUBJECT_STYLE[repo.subject];
+  const videoUrl = useVideoAvailable(repo.videoUrl);
   const typeLabel = repo.category === 'Simulations' ? 'Simulation' : 'Concept';
 
   const handleCopy = async () => {
@@ -86,6 +88,18 @@ export const RepoCard: React.FC<RepoCardProps> = ({
           Open
           <ExternalLink className="w-3.5 h-3.5" />
         </a>
+        {videoUrl && (
+          <a
+            href={videoUrl}
+            download
+            className="py-2 px-2.5 rounded-lg text-sm font-medium text-muted hover:text-ink hover:bg-sunken transition-colors inline-flex items-center gap-1.5"
+            aria-label={`Download the explainer video for ${repo.title}`}
+            title="Download the explainer video"
+          >
+            <Clapperboard className="w-4 h-4" />
+            Video
+          </a>
+        )}
         <button
           onClick={() => onPreview(repo)}
           className={iconButton}

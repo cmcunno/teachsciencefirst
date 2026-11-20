@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { X, ExternalLink, RefreshCw, Maximize2, Minimize2 } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { X, ExternalLink, RefreshCw, Maximize2, Minimize2, Clapperboard } from 'lucide-react';
 import { ScienceResource } from '../types';
 import { resolveResourceUrl } from '../utils/url';
 import { SUBJECT_STYLE } from '../utils/subjects';
+import { useVideoAvailable } from '../utils/useVideoAvailable';
 
 interface PreviewModalProps {
   repo: ScienceResource | null;
@@ -15,6 +16,37 @@ const iconButton =
 export const PreviewModal: React.FC<PreviewModalProps> = ({ repo, onClose }) => {
   const [isMaximized, setIsMaximized] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const videoUrl = useVideoAvailable(repo?.videoUrl);
+
+  // Full screen uses the real browser full-screen mode (hides tabs and taskbar on a
+  // projector). Where that isn't available, it falls back to filling the window.
+  const toggleFullScreen = async () => {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen().catch(() => {});
+      return;
+    }
+    if (isMaximized) {
+      setIsMaximized(false);
+      return;
+    }
+    setIsMaximized(true);
+    await dialogRef.current?.requestFullscreen?.().catch(() => {});
+  };
+
+  useEffect(() => {
+    const onChange = () => {
+      if (!document.fullscreenElement) setIsMaximized(false);
+    };
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
+
+  // Leave full screen if the preview closes while in it.
+  useEffect(() => {
+    if (!repo && document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    if (!repo) setIsMaximized(false);
+  }, [repo]);
 
   useEffect(() => {
     if (!repo) return;
@@ -43,6 +75,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({ repo, onClose }) => 
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={`Preview: ${repo.title}`}
@@ -63,8 +96,19 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({ repo, onClose }) => 
             <button onClick={() => setReloadKey((k) => k + 1)} className={iconButton} aria-label="Reload" title="Reload">
               <RefreshCw className="w-4 h-4" />
             </button>
+            {videoUrl && (
+              <a
+                href={videoUrl}
+                download
+                className="px-2.5 py-1.5 rounded-lg text-sm font-medium text-muted hover:text-ink hover:bg-sunken transition-colors inline-flex items-center gap-1.5"
+                title="Download the explainer video"
+              >
+                <Clapperboard className="w-4 h-4" />
+                <span className="hidden sm:inline">Explainer video</span>
+              </a>
+            )}
             <button
-              onClick={() => setIsMaximized(!isMaximized)}
+              onClick={toggleFullScreen}
               className={iconButton}
               aria-label={isMaximized ? 'Exit full screen' : 'Full screen'}
               title={isMaximized ? 'Exit full screen' : 'Full screen'}
