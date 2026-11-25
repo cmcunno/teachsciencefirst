@@ -47,6 +47,10 @@ button{font-family:var(--ff)}
 #tip b{display:block;color:#fff;font-size:13px;margin-bottom:4px}
 #tip button{position:absolute;right:8px;top:6px;background:none;border:0;color:#94A3B8;font-size:16px;cursor:pointer;line-height:1}
 .stepctl{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:500}
+.speed{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;margin-left:auto;margin-right:14px}
+.seg{display:flex;background:#F1F5F9;border-radius:8px;padding:2px}
+.seg button{font-size:12px;font-weight:600;color:#475569;background:none;border:0;border-radius:6px;padding:4px 8px;cursor:pointer;font-feature-settings:"tnum"}
+.seg button.on{background:#fff;color:var(--accent);box-shadow:0 1px 2px rgba(15,23,42,.15)}
 #bNext{font-size:12.5px;font-weight:600;border-radius:8px;padding:5px 12px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
 #bNext:disabled{background:#F1F5F9;border-color:var(--line);color:#94A3B8;cursor:default}
 #bNext.ready{box-shadow:0 0 0 4px rgba(37,99,235,.18)}
@@ -128,6 +132,7 @@ tbody tr.sel.na{background:#FFFBEB}
 
    <div class="card" id="traceCard">
     <div class="chead"><h3 class="big">Membrane potential over time<span>time slowed down</span></h3>
+     <div class="speed"><span>Speed</span><div class="seg" id="speed" role="group" aria-label="Animation speed"><button data-s="0.25">¼×</button><button data-s="0.5">½×</button><button data-s="1" class="on">1×</button><button data-s="2">2×</button></div></div>
      <div class="stepctl"><span>Step through stages</span><button class="sw" id="tStep" role="switch" aria-checked="false" aria-label="Step through stages"></button><button id="bNext" disabled>Next stage ▸</button></div>
     </div>
     <canvas id="tr"></canvas>
@@ -491,6 +496,9 @@ function syncControls(){
 $('#tPump').onclick=()=>{S.pumpOn=!S.pumpOn;syncControls()};
 $('#tLeak').onclick=()=>{S.leakOn=!S.leakOn;S.leak.timer=.15;syncControls()};
 $('#tCharges').onclick=()=>{S.showCharges=!S.showCharges;syncControls()};
+let speed=1;
+document.querySelectorAll('#speed button').forEach(b=>b.onclick=()=>{speed=+b.dataset.s;
+  document.querySelectorAll('#speed button').forEach(x=>x.classList.toggle('on',x===b))});
 $('#tStep').onclick=()=>{S.stepMode=!S.stepMode;syncControls()};
 $('#bNext').onclick=()=>{if(S.ap.hold)enter(S.ap.pending)};
 $('#bWeak').onclick=()=>stimulate('weak');
@@ -528,7 +536,7 @@ if(!REC){
   const fit=()=>{const s=Math.min(innerWidth/1440,innerHeight/810);const f=$('#frame');f.style.transform=`scale(${s})`;f.style.left=(innerWidth-1440*s)/2+'px';f.style.top=(innerHeight-810*s)/2+'px'};
   addEventListener('resize',fit);fit();
   let last=performance.now();
-  (function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;step(dt);draw();drawTrace();panel();requestAnimationFrame(loop)})(last);
+  (function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;step(dt*speed);draw();drawTrace();panel();requestAnimationFrame(loop)})(last);
 }
 
 /* ---------- recording director (screencast layer, only with ?record) ---------- */
