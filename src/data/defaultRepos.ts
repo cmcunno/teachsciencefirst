@@ -298,7 +298,7 @@ export const INITIAL_REPOSITORIES: ScienceResource[] = [
     fileName: 'index.html',
     isLocalRepo: true,
     isFavorite: true,
-    authorNotes: 'A-Level nervous coordination. Turn on "Step through stages" to pause at each event, and use the Speed buttons (¼× to 2×) to slow the animation down; click any membrane protein for an explanation.',
+    authorNotes: 'A-Level nervous coordination. Turn on "Step through stages" to pause at each event, and use the Speed buttons (⅛× to 1×) to slow the animation down; click any membrane protein for an explanation.',
     videoUrl: '/resources/ks5/Biology/concepts/Action_potentials/action-potential.mp4'
   },
   {
