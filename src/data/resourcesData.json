@@ -234,6 +234,19 @@
     "fileName": "index.html"
   },
   {
+    "id": "res-ks5-biology-concepts-sliding-filament",
+    "title": "Muscle Lab: Sliding Filament Theory",
+    "keyStage": "KS5",
+    "stageLevel": "KS5 / A-Level (Ages 16-18)",
+    "subject": "Biology",
+    "category": "Concepts",
+    "slug": "sliding_filament",
+    "description": "Sliding filament theory: Ca²⁺ release, tropomyosin, actinomyosin cross-bridges, power stroke, ATP and phosphocreatine, with sarcomere band changes.",
+    "url": "/resources/ks5/Biology/concepts/sliding_filament/index.html",
+    "path": "resources/ks5/Biology/concepts/sliding_filament/index.html",
+    "fileName": "index.html"
+  },
+  {
     "id": "res-ks5-biology-concepts-tissue-fluid",
     "title": "Professional Microcirculation Simulator",
     "keyStage": "KS5",
