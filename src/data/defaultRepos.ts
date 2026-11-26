@@ -302,6 +302,22 @@ export const INITIAL_REPOSITORIES: ScienceResource[] = [
     videoUrl: '/resources/ks5/Biology/concepts/Action_potentials/action-potential.mp4'
   },
   {
+    id: 'res-ks5-biology-concepts-sliding-filament',
+    title: 'Muscle Lab: Sliding Filament Theory',
+    keyStage: 'KS5',
+    stageLevel: 'KS5 / A-Level (Ages 16-18)',
+    subject: 'Biology',
+    category: 'Concepts',
+    slug: 'sliding_filament',
+    description: 'AQA 3.6.3 step-by-step simulation of muscle contraction: action potential and Ca²⁺ release from the SR, tropomyosin moving, cross-bridge formation, power stroke, ATP-driven detachment and re-cocking, and relaxation. Shows live sarcomere, A band, I band and H zone measurements, plus ATP and phosphocreatine use.',
+    url: '/resources/ks5/Biology/concepts/sliding_filament/index.html',
+    path: 'resources/ks5/Biology/concepts/sliding_filament/index.html',
+    fileName: 'index.html',
+    isLocalRepo: true,
+    isFavorite: true,
+    authorNotes: 'A-level only (3.6.3). Leave "Pause after each step" on and use the speed slider (0.1× to 3×) to slow the animation down. Use the ⤢ button to expand any panel to full screen; a floating control bar appears so you can keep stepping through. The Muscle structure tab covers antagonistic pairs, labelled whole-muscle and fibre diagrams, the myofibril banding pattern and a simulated AT d slide.'
+  },
+  {
     id: 'res-ks5-biology-concepts-tissue-fluid',
     title: 'Professional Microcirculation Simulator',
     keyStage: 'KS5',
